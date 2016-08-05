@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fab="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        />
 
     <TextView
         android:id="@+id/header"
@@ -43,35 +54,42 @@
         fab:menu_labels_ellipsize="end"
         fab:menu_labels_singleLine="true"
         fab:menu_backgroundColor="#ccffffff"
-        fab:menu_fab_label="Add"
         >
 
         <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab1"
+            android:id="@+id/fab_list"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_add_black_24dp"
+            android:src="@drawable/ic_format_list_bulleted_black_24dp"
             fab:fab_size="mini"
-            fab:fab_label="Disabled" />
+            fab:fab_label="New List" />
 
         <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab2"
+            android:id="@+id/fab_note"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_add_black_24dp"
+            android:src="@drawable/ic_note_black_24dp"
             fab:fab_size="mini"
-            fab:fab_label="Remove button" />
+            fab:fab_label="New Note" />
 
         <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab3"
+            android:id="@+id/fab_audio_note"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_add_black_24dp"
+            android:src="@drawable/ic_mic_black_24dp"
             fab:fab_size="mini"
-            fab:fab_label="Restore Button" />
+            fab:fab_label="New Audio Note" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_video_note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_movie_black_24dp"
+            fab:fab_size="mini"
+            fab:fab_label="New Video Note" />
 
     </com.github.clans.fab.FloatingActionMenu>
 
 
 
-</RelativeLayout>
+</LinearLayout>
