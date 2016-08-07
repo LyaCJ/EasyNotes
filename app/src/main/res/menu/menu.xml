@@ -2,15 +2,60 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <!-- "Mark Favorite", should appear as action button if possible -->
+    <group android:id="@+id/main_menu_group">
     <item
-        android:id="@+id/action_favorite"
+        android:id="@+id/action_search"
         android:icon="@drawable/ic_search_black_24dp"
         android:title="@string/menu_item_search"
         app:showAsAction="always"
         />
 
+    <item
+        android:id="@+id/action_filter"
+        android:icon="@drawable/ic_filter_list_black_24dp"
+        android:title="@string/menu_item_search"
+        app:showAsAction="always"
+        />
+
+
     <!-- Settings, should always be in the overflow -->
     <item android:id="@+id/action_settings"
         android:title="@string/menu_item_setting"/>
+    </group>
+
+    <group android:id="@+id/create_note_menu_group"
+        android:visible="false">
+        <item
+            android:id="@+id/action_done"
+            android:icon="@drawable/ic_done_black_24dp"
+            android:title="Save"
+            app:showAsAction="collapseActionView"
+            />
+
+        <item
+            android:id="@+id/action_discard"
+            android:icon="@drawable/ic_clear_black_24dp"
+            android:title="Discard"
+            app:showAsAction="collapseActionView"
+            />
+        <item
+            android:id="@+id/action_camera"
+            android:icon="@drawable/ic_add_a_photo_black_24dp"
+            android:title="Add a Photo"
+            app:showAsAction="always"
+            />
+        <item
+            android:id="@+id/action_pictures"
+            android:icon="@drawable/ic_insert_photo_black_24dp"
+            android:title="Insert Image"
+            app:showAsAction="always"
+            />
+        <item
+            android:id="@+id/action_scribble"
+            android:icon="@drawable/ic_mode_edit_black_24dp"
+            android:title="Scribble"
+            app:showAsAction="always"
+            />
+        </group>
 
 </menu>

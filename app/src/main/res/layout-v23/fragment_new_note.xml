@@ -1,0 +1,54 @@
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="match_parent"
+        android:layout_height="71dp"
+        android:background="@color/Transparent"
+        android:hint="@string/title"
+        android:maxLines="1"
+        android:minLines="1"
+        android:padding="10dp"
+        android:lines="1"
+        android:linksClickable="false"
+        android:singleLine="true"
+        android:textStyle="bold"
+        />
+        <LinearLayout
+            android:id="@+id/pictures_holder"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:background="@color/Transparent"
+            android:layout_gravity="center|bottom"
+            android:layout_below="@+id/editText"
+            >
+        </LinearLayout>
+    <ScrollView
+        android:id="@+id/note_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@id/pictures_holder">
+
+            <EditText
+                android:id="@+id/editText2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/Transparent"
+                android:ems="10"
+                android:gravity="top"
+                android:hint="@string/content"
+                android:inputType="textMultiLine"
+                android:padding="10dp"
+                android:textAlignment="viewStart"
+                android:linksClickable="true"
+                android:scrollIndicators="top"
+                android:minLines="20" />
+    </ScrollView>
+
+
+</RelativeLayout>

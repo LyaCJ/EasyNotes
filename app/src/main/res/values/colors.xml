@@ -10,4 +10,5 @@
     <color name="white_overlay">#F3F3F3</color>
     <color name="ColorPrimary">#FF5722</color>
     <color name="ColorPrimaryDark">#E64A19</color>
+    <color name="Transparent">#80FFFFFF</color>
 </resources>

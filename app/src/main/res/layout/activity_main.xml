@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:fab="http://schemas.android.com/apk/res-auto"
+
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -16,79 +16,14 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         />
 
-    <TextView
-        android:id="@+id/header"
-        android:layout_width="match_parent"
-        android:layout_height="102dp"
-        android:text="@string/lorem_ipsum"
-        android:maxLines="3"
-        android:ellipsize="end"
-        android:textColor="@android:color/white"
-        android:textSize="22sp"
-        android:paddingTop="8dp"
-        android:paddingRight="8dp"
-        android:paddingLeft="60dp"
-        android:fontFamily="sans-serif-light"
-        android:background="@color/colorPrimary"
-        android:elevation="4dp"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/header"
-        android:padding="16dp"
-        android:textSize="18sp"
-        android:text="@string/lorem_ipsum"/>
 
 
-
-    <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/menu_red"
+    <FrameLayout
+        android:id="@+id/frame_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:paddingRight="10dp"
-        android:paddingBottom="10dp"
-        android:paddingLeft="10dp"
-        fab:menu_labels_ellipsize="end"
-        fab:menu_labels_singleLine="true"
-        fab:menu_backgroundColor="#ccffffff"
-        >
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_list"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_format_list_bulleted_black_24dp"
-            fab:fab_size="mini"
-            fab:fab_label="New List" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_note"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_black_24dp"
-            fab:fab_size="mini"
-            fab:fab_label="New Note" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_audio_note"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_mic_black_24dp"
-            fab:fab_size="mini"
-            fab:fab_label="New Audio Note" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_video_note"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_movie_black_24dp"
-            fab:fab_size="mini"
-            fab:fab_label="New Video Note" />
-
-    </com.github.clans.fab.FloatingActionMenu>
+        android:orientation="vertical"
+        />
 
 
 
