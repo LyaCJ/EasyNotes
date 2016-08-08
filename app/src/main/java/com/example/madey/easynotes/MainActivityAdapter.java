@@ -133,11 +133,13 @@ public class MainActivityAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                 if(snData.getLastModifiedDate() != null)
                     sndoh.modified.setText(snData.getLastModifiedDate().toString());
-                System.out.println("Title: Inside onBind");
-                ImageView imageView=new ImageView(sndoh.tl.getContext());
-                if(snData.getImageURI().size()>0)
+
+                if(snData.getImageURI()!= null && snData.getImageURI().size()>0){
+                    ImageView imageView=new ImageView(sndoh.tl.getContext());
                 imageView.setImageBitmap(snData.getImageURI().get(0));
                 sndoh.tl.addView(imageView);
+                }
+                System.out.println("Title: Inside onBind");
                 break;
             case TYPE_LIST:
                 SimpleListDataObjectHolder sldoh = (SimpleListDataObjectHolder) holder;

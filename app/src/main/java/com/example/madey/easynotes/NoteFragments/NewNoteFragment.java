@@ -126,7 +126,7 @@ public class NewNoteFragment extends android.app.Fragment {
         EditText title= (EditText) getView().findViewById(R.id.editText);
         EditText content= (EditText) getView().findViewById(R.id.editText2);
         SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
-        //sndo.setImageURI(bitmaps);
+        sndo.setImageURI(bitmaps);
 
         Calendar c = Calendar.getInstance();
         if(sndo.getCreationDate()== null){
@@ -139,11 +139,11 @@ public class NewNoteFragment extends android.app.Fragment {
         String fileName=sndo.toString()+System.currentTimeMillis();
         try {
             fos = getActivity().openFileOutput(fileName, Context.MODE_PRIVATE);
-            oos =new ObjectOutputStream(fos);
+
+
+            /*oos =new ObjectOutputStream(fos);
             oos.writeObject(sndo);
-            oos.flush();
-
-
+            oos.flush();*/
 
         } catch (FileNotFoundException e) {
             Snackbar.make(getView(),"Unable to Save Note",Snackbar.LENGTH_SHORT).show();
