@@ -2,17 +2,14 @@ package com.example.madey.easynotes.NoteFragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
-import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
@@ -22,13 +19,25 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
+import com.example.madey.easynotes.MainActivity;
+import com.example.madey.easynotes.MainFragment;
 import com.example.madey.easynotes.R;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+
 
 public class NewNoteFragment extends android.app.Fragment {
 
@@ -41,7 +50,8 @@ public class NewNoteFragment extends android.app.Fragment {
     };
 
     private LinearLayout imageHolderLayout;
-    private List<Bitmap> bitmaps = new ArrayList<>();
+    private ArrayList<Bitmap> bitmaps = new ArrayList<>();
+    private ArrayList<Bitmap> thumbs = new ArrayList<>();
 
     NoteOnSaveListener nosl;
 
@@ -92,68 +102,130 @@ public class NewNoteFragment extends android.app.Fragment {
             case R.id.action_pictures:
                 if (imageHolderLayout.getChildCount() < 4) {
                     verifyStoragePermissions(getActivity());
-                    Intent pictureIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    pictureIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    pictureIntent.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(Intent.createChooser(pictureIntent,"Select Picture"), PICTURE_REQUEST);
+                    Intent intent = new Intent();
+                    intent.setType("image/*");
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICTURE_REQUEST);
                 } else
                     Snackbar.make(getView(), "Image Limit Reached", Snackbar.LENGTH_SHORT).show();
                 return true;
             case R.id.action_done:
+                saveNote();
+
+                getActivity().getFragmentManager().popBackStack();
+                getActivity().getFragmentManager().beginTransaction().remove(this).commit();
 
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
+    private String saveNote() {
+        verifyStoragePermissions(getActivity());
+        EditText title= (EditText) getView().findViewById(R.id.editText);
+        EditText content= (EditText) getView().findViewById(R.id.editText2);
+        SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
+        //sndo.setImageURI(bitmaps);
+
+        Calendar c = Calendar.getInstance();
+        if(sndo.getCreationDate()== null){
+            sndo.setCreationDate(c.getTime());
+        }
+        sndo.setLastModifiedDate(c.getTime());
+
+        FileOutputStream fos = null;
+        ObjectOutputStream oos = null;
+        String fileName=sndo.toString()+System.currentTimeMillis();
+        try {
+            fos = getActivity().openFileOutput(fileName, Context.MODE_PRIVATE);
+            oos =new ObjectOutputStream(fos);
+            oos.writeObject(sndo);
+            oos.flush();
+
+
+
+        } catch (FileNotFoundException e) {
+            Snackbar.make(getView(),"Unable to Save Note",Snackbar.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Snackbar.make(getView(),"Error Saving Note",Snackbar.LENGTH_SHORT).show();
+        }
+        finally {
+                try {
+                    if(oos != null)
+                        oos.close();
+                    if(fos != null)
+                    fos.close();
+                } catch (IOException e) {
+                    Snackbar.make(getView(),"An I/O Error Occurred",Snackbar.LENGTH_SHORT).show();
+                }
+        }
+        ((MainActivity)getActivity()).getNotes().add(sndo);
+        return fileName;
+    }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         int width = imageHolderLayout.getWidth();
-        imageHolderLayout.setMinimumHeight(width/4);
+        imageHolderLayout.setMinimumHeight(width / 4);
         ImageView imageView = new ImageView(getActivity());
         imageView.setAdjustViewBounds(false);
         imageView.setMaxWidth(width / 4);
         imageView.setMaxHeight(width / 4);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
         int THUMBSIZE = width / 4;
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
             bitmaps.add(photo);
             Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+            thumbs.add(thumb);
             imageView.setImageBitmap(thumb);
             imageHolderLayout.addView(imageView);
         }
-        if (requestCode == PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data) {
-            Uri selectedImage = data.getData();
-            String[] filePathColumn = {MediaStore.Images.Media.DATA};
-            Cursor cursor = getActivity().getContentResolver().query(selectedImage, filePathColumn, null, null, null);
-            if(cursor.getCount()+imageHolderLayout.getChildCount()>4){
-                Snackbar.make(getView(),"Max 4 Images Allowed", Snackbar.LENGTH_SHORT).show();
+        if (requestCode == PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getData() != null) {
+            Bitmap photo = null;
+            try {
+                photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
+            } catch (FileNotFoundException e) {
+                System.out.println("FileNotFoundException: " + e.getMessage());
             }
-            cursor.moveToFirst();
-            int count=0;
-            do{
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                String picturePath = cursor.getString(columnIndex);
-                System.out.println(picturePath);
-
-                Bitmap photo = BitmapFactory.decodeFile(picturePath);
+            bitmaps.add(photo);
+            Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+            thumbs.add(thumb);
+            imageView.setImageBitmap(thumb);
+            imageHolderLayout.addView(imageView);
+        }
+        if (requestCode == PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getClipData() != null) {
+            System.out.println("Clip Data:" + data.getClipData());
+            for (int i = 0; bitmaps.size() <= 4 && i<data.getClipData().getItemCount(); i++) {
+                imageView = new ImageView(getActivity());
+                imageView.setAdjustViewBounds(false);
+                imageView.setMaxWidth(width / 4);
+                imageView.setMaxHeight(width / 4);
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                ClipData.Item item = data.getClipData().getItemAt(i);
+                InputStream is = null;
+                try {
+                    is = getActivity().getContentResolver().openInputStream(item.getUri());
+                } catch (FileNotFoundException e) {
+                    System.out.println("Exception: " + e.getMessage());
+                }
+                Bitmap photo = BitmapFactory.decodeStream(is);
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+                thumbs.add(thumb);
                 imageView.setImageBitmap(thumb);
                 imageHolderLayout.addView(imageView);
-                count++;
-                cursor.moveToNext();
             }
-            while(count<4 && !cursor.isAfterLast());
-            cursor.close();
+
 
         }
     }
 
     @Override
-    public void onAttach(Activity activity){
+    public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
             nosl = (NoteOnSaveListener) activity;
@@ -183,6 +255,7 @@ public class NewNoteFragment extends android.app.Fragment {
                         REQUEST_EXTERNAL_STORAGE
                 );
             }
+
         }
     }
 
@@ -201,7 +274,7 @@ public class NewNoteFragment extends android.app.Fragment {
     /**
      * Interface to send Data back to MainActivity
      */
-    public interface NoteOnSaveListener{
+    public interface NoteOnSaveListener {
         void onNoteSaved();
     }
 }

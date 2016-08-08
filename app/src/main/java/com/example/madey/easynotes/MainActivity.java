@@ -29,6 +29,11 @@ public class MainActivity extends AppCompatActivity implements NewNoteFragment.N
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
 
+    private List<Object> notes=new ArrayList<>();
+
+    public List<Object> getNotes(){
+        return notes;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements NewNoteFragment.N
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
-        myToolbar.setTitle("EasyNotes");
 
         MainFragment mf = new MainFragment();
         getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf).commit();

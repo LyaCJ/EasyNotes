@@ -1,49 +1,32 @@
 package com.example.madey.easynotes.DataObject;
 
+import android.graphics.Bitmap;
+import android.text.Editable;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOError;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by madey on 8/6/2016.
  */
-public class SimpleNoteDataObject {
+public class SimpleNoteDataObject implements Serializable {
     private String title;
+
+    public SimpleNoteDataObject(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     private String content;
     private Date creationDate;
     private Date lastModifiedDate;
-    private String imageURI;
-
-    public Date getCreationDate() {
-        return creationDate;
-    }
-    public void setCreationDate(Date creationDate) {
-        this.creationDate = creationDate;
-    }
-
-    public String getImageURI() {
-        return imageURI;
-    }
-
-    public void setImageURI(String imageURI) {
-        this.imageURI = imageURI;
-    }
-
-    public Date getLastModifiedDate() {
-        return lastModifiedDate;
-    }
-
-    public void setLastModifiedDate(Date lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
-    }
-
-
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
+    private transient ArrayList<Bitmap> imageURI;
 
 
 
@@ -55,10 +38,45 @@ public class SimpleNoteDataObject {
         this.title = title;
     }
 
-    public SimpleNoteDataObject (String text1, String text2){
-        title = text1;
-        content = text2;
+    public String getContent() {
+        return content;
     }
 
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public Date getLastModifiedDate() {
+        return lastModifiedDate;
+    }
+
+    public void setLastModifiedDate(Date lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
+    }
+
+    public ArrayList<Bitmap> getImageURI() {
+        return imageURI;
+    }
+
+    public void setImageURI(ArrayList<Bitmap> imageURI) {
+        this.imageURI = imageURI;
+    }
+
+
+    public void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException{
+
+    }
+
+    // Converts the Bitmap into a byte array for serialization
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+    }
 
 }
