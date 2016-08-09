@@ -16,8 +16,10 @@ import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -104,6 +106,9 @@ public class MainFragment extends android.app.Fragment {
             }
         });
         menuRed.showMenuButton(true);
+
+        System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
+
         return v;
     }
 

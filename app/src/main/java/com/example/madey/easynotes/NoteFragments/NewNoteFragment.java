@@ -3,7 +3,6 @@ package com.example.madey.easynotes.NoteFragments;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -23,20 +22,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.MainActivity;
-import com.example.madey.easynotes.MainFragment;
 import com.example.madey.easynotes.R;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 
 public class NewNoteFragment extends android.app.Fragment {
@@ -53,7 +47,6 @@ public class NewNoteFragment extends android.app.Fragment {
     private ArrayList<Bitmap> bitmaps = new ArrayList<>();
     private ArrayList<Bitmap> thumbs = new ArrayList<>();
 
-    NoteOnSaveListener nosl;
 
     public NewNoteFragment() {
         // Required empty public constructor
@@ -70,7 +63,16 @@ public class NewNoteFragment extends android.app.Fragment {
         setHasOptionsMenu(true);
         Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
         toolbar.setTitle("Create Note");
+        System.out.println("Fragment Note Create");
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
+                getFragmentManager().popBackStack();
+
+            }
+        });
         imageHolderLayout = (LinearLayout) v.findViewById(R.id.pictures_holder);
         return v;
     }
@@ -121,47 +123,26 @@ public class NewNoteFragment extends android.app.Fragment {
         }
     }
 
-    private String saveNote() {
+    private void saveNote() {
         verifyStoragePermissions(getActivity());
         EditText title= (EditText) getView().findViewById(R.id.editText);
         EditText content= (EditText) getView().findViewById(R.id.editText2);
-        SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
+        final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
         sndo.setImageURI(bitmaps);
-
         Calendar c = Calendar.getInstance();
         if(sndo.getCreationDate()== null){
             sndo.setCreationDate(c.getTime());
         }
         sndo.setLastModifiedDate(c.getTime());
-
-        FileOutputStream fos = null;
-        ObjectOutputStream oos = null;
-        String fileName=sndo.toString()+System.currentTimeMillis();
-        try {
-            fos = getActivity().openFileOutput(fileName, Context.MODE_PRIVATE);
-
-
-            /*oos =new ObjectOutputStream(fos);
-            oos.writeObject(sndo);
-            oos.flush();*/
-
-        } catch (FileNotFoundException e) {
-            Snackbar.make(getView(),"Unable to Save Note",Snackbar.LENGTH_SHORT).show();
-        } catch (IOException e) {
-            Snackbar.make(getView(),"Error Saving Note",Snackbar.LENGTH_SHORT).show();
-        }
-        finally {
-                try {
-                    if(oos != null)
-                        oos.close();
-                    if(fos != null)
-                    fos.close();
-                } catch (IOException e) {
-                    Snackbar.make(getView(),"An I/O Error Occurred",Snackbar.LENGTH_SHORT).show();
-                }
-        }
         ((MainActivity)getActivity()).getNotes().add(sndo);
-        return fileName;
+        //write images asynchronously
+
+        WriteSimpleNoteFilesTask wft=new WriteSimpleNoteFilesTask(getActivity(), new WriteSimpleNoteFilesTask.AsyncResponse() {
+            @Override
+            public void processFinish(Boolean success) {
+            }
+        });
+        wft.execute(sndo);
     }
 
 
@@ -224,16 +205,6 @@ public class NewNoteFragment extends android.app.Fragment {
         }
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            nosl = (NoteOnSaveListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnHeadlineSelectedListener");
-        }
-    }
 
     /**
      * Checks if the app has permission to write to device storage

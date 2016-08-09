@@ -23,10 +23,60 @@ public class SimpleNoteDataObject implements Serializable {
         this.content = content;
     }
 
+    public SimpleNoteDataObject(){}
+
     private String content;
     private Date creationDate;
     private Date lastModifiedDate;
-    private transient ArrayList<Bitmap> imageURI;
+    private transient ArrayList<Bitmap> imageList;
+
+    private transient boolean dataLoaded=false;
+
+    public boolean isImageLoaded() {
+        return imageLoaded;
+    }
+
+    public void setImageLoaded(boolean imageLoaded) {
+        this.imageLoaded = imageLoaded;
+    }
+
+    public boolean isDataLoaded() {
+        return dataLoaded;
+    }
+
+    public void setDataLoaded(boolean dataLoaded) {
+        this.dataLoaded = dataLoaded;
+    }
+
+    public ArrayList<Bitmap> getImageList() {
+        return imageList;
+    }
+
+    public void setImageList(ArrayList<Bitmap> imageList) {
+        this.imageList = imageList;
+    }
+
+    private transient boolean imageLoaded=false;
+
+    public ArrayList<Bitmap> getImageThumbs() {
+        return imageThumbs;
+    }
+
+    public void setImageThumbs(ArrayList<Bitmap> imageThumbs) {
+        this.imageThumbs = imageThumbs;
+    }
+
+    public ArrayList<String> getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(ArrayList<String> imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    private transient ArrayList<Bitmap> imageThumbs;
+
+    private ArrayList<String> imagePath;
 
 
 
@@ -63,20 +113,24 @@ public class SimpleNoteDataObject implements Serializable {
     }
 
     public ArrayList<Bitmap> getImageURI() {
-        return imageURI;
+        return imageList;
     }
 
     public void setImageURI(ArrayList<Bitmap> imageURI) {
-        this.imageURI = imageURI;
+        this.imageList = imageURI;
     }
 
 
     public void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException{
+        is.defaultReadObject();
+
+        //run an asynchtask to initialize trasnient
 
     }
 
     // Converts the Bitmap into a byte array for serialization
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
     }
 
 }

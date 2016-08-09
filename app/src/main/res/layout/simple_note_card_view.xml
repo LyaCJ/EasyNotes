@@ -25,7 +25,8 @@
             android:outlineProvider="paddedBounds"
             android:padding="0dp"
             android:useDefaultMargins="false"
-            >
+            android:measureWithLargestChild="true"
+            android:baselineAligned="false">
         </TableLayout>
         <RelativeLayout
             android:layout_width="match_parent"
@@ -54,14 +55,20 @@
                 android:id="@+id/sn_title"
                 android:text="@string/lorem_ipsum"
                 android:textStyle="bold"
-                android:layout_alignParentTop="true"/>
+                android:layout_alignParentTop="true"
+                android:maxLines="1"
+                android:lines="1"
+                android:ellipsize="end" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/sn_content"
                 android:layout_below="@+id/sn_title"
-                android:text="@string/hello_blank_fragment"/>
+                android:text="@string/hello_blank_fragment"
+                android:maxLines="2"
+                android:lines="2"
+                android:ellipsize="end" />
         </RelativeLayout>
     </LinearLayout>
     </android.support.v7.widget.CardView>

@@ -1,39 +1,31 @@
 package com.example.madey.easynotes;
 
 import android.content.Intent;
-import android.os.Handler;
-import android.preference.*;
-import android.preference.PreferenceFragment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.Toast;
 
+import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteFilesTask;
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
-import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements NewNoteFragment.NoteOnSaveListener {
-
-    private static final int CAMERA_REQUEST = 1888;
-    private ImageView imageView;
+public class MainActivity extends AppCompatActivity {
 
     private List<Object> notes=new ArrayList<>();
 
     public List<Object> getNotes(){
         return notes;
     }
+
+    private List<String> noteFileNames;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +38,26 @@ public class MainActivity extends AppCompatActivity implements NewNoteFragment.N
 
         MainFragment mf = new MainFragment();
         getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf).commit();
+
+        /*for (File file: getFilesDir().listFiles()){
+            if(file.isFile()){
+                file.delete();
+            }
+        }*/
+        //retrieve references to note files
+        noteFileNames= Arrays.asList(getFilesDir().list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                return filename.endsWith("note");
+            }
+        }));
+
+        for(String name: noteFileNames) {
+            SimpleNoteDataObject sndo = new SimpleNoteDataObject();
+            ReadSimpleNoteFilesTask rsnft = new ReadSimpleNoteFilesTask(sndo, this);
+            rsnft.execute(name);
+            notes.add(sndo);
+        }
 
     }
 
@@ -68,8 +80,4 @@ public class MainActivity extends AppCompatActivity implements NewNoteFragment.N
         return true;
     }
 
-    @Override
-    public void onNoteSaved() {
-
-    }
 }
