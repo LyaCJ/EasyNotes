@@ -49,7 +49,7 @@ public class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject,Int
             FileOutputStream fos=null;
             try {
                 ArrayList<String> fileNames=new ArrayList<>();
-                for (Bitmap bmp : sndo.getImageURI()) {
+                for (Bitmap bmp : sndo.getImageList()) {
                     String fileName = "Image_" + System.currentTimeMillis()+".png";
                     fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
                     bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);

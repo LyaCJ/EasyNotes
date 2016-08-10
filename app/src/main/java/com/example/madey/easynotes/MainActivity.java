@@ -17,12 +17,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFilesTask.OnNoteLoadedListener {
 
     private List<Object> notes=new ArrayList<>();
-
+    private MainFragment mf;
     public List<Object> getNotes(){
         return notes;
+    }
+
+    public List<String> getNoteFileNames() {
+        return noteFileNames;
     }
 
     private List<String> noteFileNames;
@@ -36,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
 
-        MainFragment mf = new MainFragment();
+        mf = new MainFragment();
         getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf).commit();
 
         /*for (File file: getFilesDir().listFiles()){
@@ -55,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
         for(String name: noteFileNames) {
             SimpleNoteDataObject sndo = new SimpleNoteDataObject();
             ReadSimpleNoteFilesTask rsnft = new ReadSimpleNoteFilesTask(sndo, this);
+            rsnft.setOnNoteLoadedListener(this);
             rsnft.execute(name);
-            notes.add(sndo);
+            notes.add(0,sndo);
+
         }
 
     }
@@ -80,4 +86,11 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
+    @Override
+    public void onNoteLoaded(SimpleNoteDataObject obj) {
+    if(mf!= null){
+        mf.getmAdapter().notifyItemChanged(notes.indexOf(obj));
+    }
+    }
 }

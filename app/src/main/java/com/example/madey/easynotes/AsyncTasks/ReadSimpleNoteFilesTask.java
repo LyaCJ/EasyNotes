@@ -1,11 +1,14 @@
 package com.example.madey.easynotes.AsyncTasks;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,10 +19,16 @@ import java.util.List;
 /**
  * Created by madey on 8/9/2016.
  */
-public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNoteDataObject> {
+public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNoteDataObject>{
 
     private SimpleNoteDataObject sndo;
     private Activity ctx;
+
+    public void setOnNoteLoadedListener(OnNoteLoadedListener onNoteLoadedListener) {
+        this.onNoteLoadedListener = onNoteLoadedListener;
+    }
+
+    private OnNoteLoadedListener onNoteLoadedListener;
 
     public ReadSimpleNoteFilesTask(SimpleNoteDataObject sndo, Activity ctx){
         this.sndo=sndo;
@@ -75,6 +84,29 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
                 }
             }
 
+        for(String path:sndo.getImagePath()){
+            Bitmap bmp= null;
+            try {
+                bmp = BitmapFactory.decodeStream(ctx.openFileInput(path));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Path:" + bmp);
+            sndo.getImageList().add(bmp);
+        }
+
         return sndo;
     }
+
+    @Override
+    protected void onPostExecute(SimpleNoteDataObject simpleNoteDataObject) {
+        super.onPostExecute(simpleNoteDataObject);
+        onNoteLoadedListener.onNoteLoaded(simpleNoteDataObject);
+    }
+
+    public interface OnNoteLoadedListener{
+        public void onNoteLoaded(SimpleNoteDataObject sndo);
+    }
+
+
 }

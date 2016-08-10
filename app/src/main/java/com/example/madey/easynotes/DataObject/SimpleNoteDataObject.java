@@ -28,7 +28,7 @@ public class SimpleNoteDataObject implements Serializable {
     private String content;
     private Date creationDate;
     private Date lastModifiedDate;
-    private transient ArrayList<Bitmap> imageList;
+    private transient ArrayList<Bitmap> imageList=new ArrayList<>();
 
     private transient boolean dataLoaded=false;
 
@@ -112,13 +112,6 @@ public class SimpleNoteDataObject implements Serializable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public ArrayList<Bitmap> getImageURI() {
-        return imageList;
-    }
-
-    public void setImageURI(ArrayList<Bitmap> imageURI) {
-        this.imageList = imageURI;
-    }
 
 
     public void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException{

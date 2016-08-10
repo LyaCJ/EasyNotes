@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteFilesTask;
+import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -21,7 +23,7 @@ import java.util.Arrays;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MainFragment extends android.app.Fragment {
+public class MainFragment extends android.app.Fragment{
 
     private FloatingActionMenu menuRed;
     private FloatingActionButton fab1;
@@ -30,6 +32,11 @@ public class MainFragment extends android.app.Fragment {
     private FloatingActionButton fab4;
 
     private RecyclerView mRecyclerView;
+
+    public MainFragmentAdapter getmAdapter() {
+        return mAdapter;
+    }
+
     private MainFragmentAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
@@ -84,6 +91,7 @@ public class MainFragment extends android.app.Fragment {
 
             mRecyclerView.setAdapter(mAdapter);
 
+
         // Inflate the layout for this fragment
         menuRed = (FloatingActionMenu) v.findViewById(R.id.menu_red);
 
@@ -117,4 +125,6 @@ public class MainFragment extends android.app.Fragment {
     public void onResume() {
         super.onResume();
     }
+
+
 }

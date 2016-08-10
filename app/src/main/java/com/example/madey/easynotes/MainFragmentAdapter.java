@@ -1,5 +1,6 @@
 package com.example.madey.easynotes;
 
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.util.Log;
@@ -49,8 +50,8 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             tl=(TableLayout) itemView.findViewById(R.id.grid_image_preview);
             title = (TextView) itemView.findViewById(R.id.sn_title);
             content = (TextView) itemView.findViewById(R.id.sn_content);
-            created = (TextView) itemView.findViewById(R.id.sn_created);
-            modified = (TextView) itemView.findViewById(R.id.sn_lastmodified);
+            //created = (TextView) itemView.findViewById(R.id.sn_created);
+            //modified = (TextView) itemView.findViewById(R.id.sn_lastmodified);
             itemView.setOnClickListener(this);
         }
 
@@ -128,16 +129,18 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 if(snData.getContent()!=null)
                     sndoh.content.setText(snData.getContent());
 
-                if(snData.getCreationDate()!=null)
+                /*if(snData.getCreationDate()!=null)
                     sndoh.created.setText(snData.getCreationDate().toString());
 
                 if(snData.getLastModifiedDate() != null)
-                    sndoh.modified.setText(snData.getLastModifiedDate().toString());
+                    sndoh.modified.setText(snData.getLastModifiedDate().toString());*/
 
-                if(snData.getImageURI()!= null && snData.getImageURI().size()>0){
-                    ImageView imageView=new ImageView(sndoh.tl.getContext());
-                imageView.setImageBitmap(snData.getImageURI().get(0));
-                sndoh.tl.addView(imageView);
+                if(snData.getImageList()!= null && snData.getImageList().size()>0){
+                    for(Bitmap bmp: snData.getImageList()){
+                        ImageView imageView=new ImageView(sndoh.tl.getContext());
+                        imageView.setImageBitmap(bmp);
+                        sndoh.tl.addView(imageView);
+                    }
                 }
                 System.out.println("Title: Inside onBind");
                 break;

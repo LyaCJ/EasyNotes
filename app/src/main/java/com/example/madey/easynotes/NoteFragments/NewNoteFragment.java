@@ -128,7 +128,7 @@ public class NewNoteFragment extends android.app.Fragment {
         EditText title= (EditText) getView().findViewById(R.id.editText);
         EditText content= (EditText) getView().findViewById(R.id.editText2);
         final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
-        sndo.setImageURI(bitmaps);
+        sndo.setImageList(bitmaps);
         Calendar c = Calendar.getInstance();
         if(sndo.getCreationDate()== null){
             sndo.setCreationDate(c.getTime());
