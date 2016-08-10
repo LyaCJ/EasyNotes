@@ -134,7 +134,7 @@ public class NewNoteFragment extends android.app.Fragment {
             sndo.setCreationDate(c.getTime());
         }
         sndo.setLastModifiedDate(c.getTime());
-        ((MainActivity)getActivity()).getNotes().add(sndo);
+        ((MainActivity)getActivity()).getNotes().add(0,sndo);
         //write images asynchronously
 
         WriteSimpleNoteFilesTask wft=new WriteSimpleNoteFilesTask(getActivity(), new WriteSimpleNoteFilesTask.AsyncResponse() {

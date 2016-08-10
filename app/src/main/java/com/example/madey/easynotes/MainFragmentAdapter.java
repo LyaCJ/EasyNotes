@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Created by madey on 8/6/2016.
  */
-public class MainActivityAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Object> mDataset;
 
     private final int TYPE_NOTE = 0;
@@ -80,13 +80,13 @@ public class MainActivityAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MainActivityAdapter() {
+    public MainFragmentAdapter() {
         mDataset = getMDataSet();
     }
 
     //Called when creating recycler view and instance of this adapter im MainFragment
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MainActivityAdapter(List<Object> data) {
+    public MainFragmentAdapter(List<Object> data) {
         mDataset = data;
     }
 
@@ -183,5 +183,10 @@ public class MainActivityAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             results.add(obj);
         }*/
         return results;
+    }
+
+    public void remove(int position) {
+        mDataset.remove(position);
+        notifyItemRemoved(position);
     }
 }
