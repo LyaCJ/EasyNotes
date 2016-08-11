@@ -1,36 +1,43 @@
 package com.example.madey.easynotes.DataObject;
 
 import android.graphics.Bitmap;
-import android.text.Editable;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOError;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by madey on 8/6/2016.
  */
 public class SimpleNoteDataObject implements Serializable {
     private String title;
-
+    private String content;
+    private Date creationDate;
+    private Date lastModifiedDate;
+    private transient ArrayList<Bitmap> imageList = new ArrayList<>();
+    private transient File noteFile;
+    private transient boolean dataLoaded = false;
+    private transient boolean imageLoaded = false;
+    private transient ArrayList<Bitmap> imageThumbs;
+    private ArrayList<String> imagePath;
     public SimpleNoteDataObject(String title, String content) {
         this.title = title;
         this.content = content;
     }
 
-    public SimpleNoteDataObject(){}
+    public SimpleNoteDataObject() {
+    }
 
-    private String content;
-    private Date creationDate;
-    private Date lastModifiedDate;
-    private transient ArrayList<Bitmap> imageList=new ArrayList<>();
+    public File getNoteFile() {
+        return noteFile;
+    }
 
-    private transient boolean dataLoaded=false;
+    public void setNoteFile(File noteFile) {
+        this.noteFile = noteFile;
+    }
 
     public boolean isImageLoaded() {
         return imageLoaded;
@@ -56,8 +63,6 @@ public class SimpleNoteDataObject implements Serializable {
         this.imageList = imageList;
     }
 
-    private transient boolean imageLoaded=false;
-
     public ArrayList<Bitmap> getImageThumbs() {
         return imageThumbs;
     }
@@ -73,12 +78,6 @@ public class SimpleNoteDataObject implements Serializable {
     public void setImagePath(ArrayList<String> imagePath) {
         this.imagePath = imagePath;
     }
-
-    private transient ArrayList<Bitmap> imageThumbs;
-
-    private ArrayList<String> imagePath;
-
-
 
     public String getTitle() {
         return title;
@@ -113,8 +112,7 @@ public class SimpleNoteDataObject implements Serializable {
     }
 
 
-
-    public void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException{
+    public void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException {
         is.defaultReadObject();
 
         //run an asynchtask to initialize trasnient
@@ -126,4 +124,12 @@ public class SimpleNoteDataObject implements Serializable {
         out.defaultWriteObject();
     }
 
+    public void removeFromDisk() {
+        if (noteFile != null)
+            noteFile.delete();
+        for (String f : this.getImagePath()) {
+            if (f != null)
+                new File(noteFile.getParentFile().getAbsolutePath() + "//" + f).delete();
+        }
+    }
 }

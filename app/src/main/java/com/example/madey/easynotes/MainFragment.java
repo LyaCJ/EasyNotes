@@ -3,6 +3,7 @@ package com.example.madey.easynotes;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -10,9 +11,8 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
-import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteFilesTask;
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -32,15 +32,8 @@ public class MainFragment extends android.app.Fragment{
     private FloatingActionButton fab4;
 
     private RecyclerView mRecyclerView;
-
-    public MainFragmentAdapter getmAdapter() {
-        return mAdapter;
-    }
-
     private MainFragmentAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-
-
     private View.OnClickListener clickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -56,8 +49,13 @@ public class MainFragment extends android.app.Fragment{
         }
     };
 
+
     public MainFragment() {
         // Required empty public constructor
+    }
+
+    public MainFragmentAdapter getmAdapter() {
+        return mAdapter;
     }
 
     @Override
@@ -70,7 +68,20 @@ public class MainFragment extends android.app.Fragment{
                              Bundle savedInstanceState) {
         View v=inflater.inflate(R.layout.fragment_main, container, false);
         MainActivity ctx=(MainActivity)this.getActivity();
-        ((Toolbar)ctx.findViewById(R.id.my_toolbar)).setTitle("Easy Notes");
+        Toolbar toolbar = ((Toolbar) ctx.findViewById(R.id.my_toolbar));
+        toolbar.setTitle("Easy Notes");
+
+        toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
+        final DrawerLayout dl = (DrawerLayout) v.findViewById(R.id.drawer_layout);
+        final ListView dListView = (ListView) v.findViewById(R.id.left_drawer);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("Drawer: " + dl);
+                dl.openDrawer(dListView);
+            }
+        });
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
             mRecyclerView = (RecyclerView) v.findViewById(R.id.main_recycler_view);

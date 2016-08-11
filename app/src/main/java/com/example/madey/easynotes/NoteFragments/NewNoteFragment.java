@@ -52,6 +52,29 @@ public class NewNoteFragment extends android.app.Fragment {
         // Required empty public constructor
     }
 
+    /**
+     * Checks if the app has permission to write to device storage
+     * <p/>
+     * If the app does not has permission then the user will be prompted to grant permissions
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        // Check if we have write permission
+        if (currentapiVersion >= 23) {
+            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // We don't have permission so prompt the user
+                ActivityCompat.requestPermissions(
+                        activity,
+                        PERMISSIONS_STORAGE,
+                        REQUEST_EXTERNAL_STORAGE
+                );
+            }
+
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -63,7 +86,6 @@ public class NewNoteFragment extends android.app.Fragment {
         setHasOptionsMenu(true);
         Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
         toolbar.setTitle("Create Note");
-        System.out.println("Fragment Note Create");
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,9 +96,9 @@ public class NewNoteFragment extends android.app.Fragment {
             }
         });
         imageHolderLayout = (LinearLayout) v.findViewById(R.id.pictures_holder);
+
         return v;
     }
-
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -145,7 +167,6 @@ public class NewNoteFragment extends android.app.Fragment {
         wft.execute(sndo);
     }
 
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         int width = imageHolderLayout.getWidth();
@@ -201,31 +222,6 @@ public class NewNoteFragment extends android.app.Fragment {
                 imageHolderLayout.addView(imageView);
             }
 
-
-        }
-    }
-
-
-    /**
-     * Checks if the app has permission to write to device storage
-     * <p/>
-     * If the app does not has permission then the user will be prompted to grant permissions
-     *
-     * @param activity
-     */
-    public static void verifyStoragePermissions(Activity activity) {
-        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
-        // Check if we have write permission
-        if (currentapiVersion >= 23) {
-            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                // We don't have permission so prompt the user
-                ActivityCompat.requestPermissions(
-                        activity,
-                        PERMISSIONS_STORAGE,
-                        REQUEST_EXTERNAL_STORAGE
-                );
-            }
 
         }
     }

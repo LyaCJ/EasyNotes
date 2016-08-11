@@ -13,7 +13,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Created by madey on 8/9/2016.
@@ -79,8 +78,6 @@ public class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject,Int
                 oos =new ObjectOutputStream(fos);
                 oos.writeObject(sndo);
                 oos.flush();
-                System.out.println("File Written");
-                System.out.println("Files Curr: "+ Arrays.toString(ctx.getFilesDir().list()));
 
 
             } catch (FileNotFoundException e) {

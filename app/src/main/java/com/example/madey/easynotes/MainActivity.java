@@ -9,7 +9,6 @@ import android.view.MenuItem;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteFilesTask;
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
-import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -21,6 +20,8 @@ public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFil
 
     private List<Object> notes=new ArrayList<>();
     private MainFragment mf;
+    private List<String> noteFileNames;
+
     public List<Object> getNotes(){
         return notes;
     }
@@ -28,8 +29,6 @@ public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFil
     public List<String> getNoteFileNames() {
         return noteFileNames;
     }
-
-    private List<String> noteFileNames;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFil
 
         for(String name: noteFileNames) {
             SimpleNoteDataObject sndo = new SimpleNoteDataObject();
+            sndo.setNoteFile(getFileStreamPath(name));
             ReadSimpleNoteFilesTask rsnft = new ReadSimpleNoteFilesTask(sndo, this);
             rsnft.setOnNoteLoadedListener(this);
             rsnft.execute(name);
