@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,6 +26,8 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private final int TYPE_LIST = 2;
     private List<Object> mDataset;
 
+    private View cardView;
+
     // Provide a suitable constructor (depends on the kind of dataset)
     public MainFragmentAdapter() {
         mDataset = getMDataSet();
@@ -41,25 +44,26 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onItemRemove(int adapterPosition) {
         ((SimpleNoteDataObject) mDataset.get(adapterPosition)).removeFromDisk();
         mDataset.remove(adapterPosition);
+        this.notifyItemRemoved(adapterPosition);
     }
 
     // Create new views (invoked by the layout manager)
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                       int viewType) {
-        View view = null;
+        cardView = null;
 
         switch (viewType) {
             case TYPE_NOTE:
-                view = LayoutInflater.from(parent.getContext())
+                cardView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.simple_note_card_view, parent, false);
 
-                return new SimpleNoteDataObjectHolder(view);
+                return new SimpleNoteDataObjectHolder(cardView);
             case TYPE_LIST:
-                view = LayoutInflater.from(parent.getContext())
+                cardView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.simple_list_card_view, parent, false);
 
-                return new SimpleListDataObjectHolder(view);
+                return new SimpleListDataObjectHolder(cardView);
             default:
                 return null;
         }
@@ -87,14 +91,16 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 if(snData.getLastModifiedDate() != null)
                     sndoh.modified.setText(snData.getLastModifiedDate().toString());*/
 
-                /*if(snData.getImageList()!= null && snData.getImageList().size()>0){
-                    for(Bitmap bmp: snData.getImageList()){
+                if (snData.getImageThumbs() != null && snData.getImageThumbs().size() > 0) {
+                    for (Bitmap bmp : snData.getImageThumbs()) {
                         ImageView imageView=new ImageView(sndoh.gv.getContext());
+
                         imageView.setImageBitmap(bmp);
                         sndoh.gv.addView(imageView);
                     }
-                }*/
-                sndoh.gv.setAdapter(new ImageAdapter(snData.getImageList()));
+                }
+                //sndoh.gv.setAdapter(new ImageAdapter(snData.getImageList()));
+
                 break;
             case TYPE_LIST:
                 SimpleListDataObjectHolder sldoh = (SimpleListDataObjectHolder) holder;
@@ -151,7 +157,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public static class SimpleNoteDataObjectHolder extends RecyclerView.ViewHolder
             implements View
             .OnClickListener {
-        GridView gv;
+        GridLayout gv;
         ImageView image;
         TextView title;
         TextView content;
@@ -160,7 +166,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         public SimpleNoteDataObjectHolder(View itemView) {
             super(itemView);
-            gv = (GridView) itemView.findViewById(R.id.grid_image_preview);
+            gv = (GridLayout) itemView.findViewById(R.id.grid_image_preview);
             title = (TextView) itemView.findViewById(R.id.sn_title);
             content = (TextView) itemView.findViewById(R.id.sn_content);
             //created = (TextView) itemView.findViewById(R.id.sn_created);
@@ -222,8 +228,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             if (convertView == null) { // if it's not recycled, initialize some attributes
                 imageView = new ImageView(container.getContext());
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                imageView.setLayoutParams(new GridView.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                imageView.setLayoutParams(new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             } else {
                 imageView = (ImageView) convertView;
             }

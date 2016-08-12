@@ -1,6 +1,7 @@
 package com.example.madey.easynotes.DataObject;
 
 import android.graphics.Bitmap;
+import android.media.ThumbnailUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class SimpleNoteDataObject implements Serializable {
     private transient File noteFile;
     private transient boolean dataLoaded = false;
     private transient boolean imageLoaded = false;
-    private transient ArrayList<Bitmap> imageThumbs;
+    private transient ArrayList<Bitmap> imageThumbs = new ArrayList<>();
     private ArrayList<String> imagePath;
     public SimpleNoteDataObject(String title, String content) {
         this.title = title;
@@ -127,9 +128,19 @@ public class SimpleNoteDataObject implements Serializable {
     public void removeFromDisk() {
         if (noteFile != null)
             noteFile.delete();
-        for (String f : this.getImagePath()) {
+        for (String f : SimpleNoteDataObject.this.getImagePath()) {
             if (f != null)
                 new File(noteFile.getParentFile().getAbsolutePath() + "//" + f).delete();
+        }
+
+    }
+
+    public void createThumbs(int width, int height) {
+        if (getImageList().size() > 0 && getImageThumbs().size() == 0) {
+            for (Bitmap bmp : getImageList()) {
+                Bitmap thumb = ThumbnailUtils.extractThumbnail(bmp, width, height);
+                getImageThumbs().add(thumb);
+            }
         }
     }
 }

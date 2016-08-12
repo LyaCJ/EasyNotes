@@ -29,23 +29,24 @@
                 android:layout_below="@+id/sn_created"
                 android:layout_margin="5dp"
                 />-->
-        <GridView
+        <GridLayout
             android:id="@+id/grid_image_preview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:numColumns="auto_fit"
+            android:animateLayoutChanges="true"
+            android:columnCount="2"
+            android:columnOrderPreserved="false"
+            android:gravity="left"
+            android:rowCount="2"
             android:scrollingCache="true" />
 
         <TextView
             android:id="@+id/sn_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-            android:layout_below="@+id/grid_image_preview"
-            android:layout_margin="8dp"
+            android:layout_toEndOf="@+id/grid_image_preview"
             android:ellipsize="end"
-                android:lines="1"
             android:maxLines="1"
             android:text="@string/lorem_ipsum"
             android:textStyle="bold" />
@@ -55,9 +56,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/sn_title"
-                android:layout_margin="8dp"
+                android:layout_toEndOf="@+id/grid_image_preview"
                 android:ellipsize="end"
-                android:lines="2"
                 android:maxLines="4"
                 android:text="@string/hello_blank_fragment" />
 

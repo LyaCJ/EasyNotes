@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFil
 
         mf = new MainFragment();
         getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf).commit();
-
         /*for (File file: getFilesDir().listFiles()){
             if(file.isFile()){
                 file.delete();

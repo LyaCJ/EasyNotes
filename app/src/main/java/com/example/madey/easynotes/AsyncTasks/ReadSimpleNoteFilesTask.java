@@ -3,18 +3,17 @@ package com.example.madey.easynotes.AsyncTasks;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.os.AsyncTask;
-import android.support.v4.app.ActivityCompat;
+import android.view.View;
 
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.StreamCorruptedException;
-import java.util.List;
 
 /**
  * Created by madey on 8/9/2016.
@@ -23,16 +22,15 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
 
     private SimpleNoteDataObject sndo;
     private Activity ctx;
-
-    public void setOnNoteLoadedListener(OnNoteLoadedListener onNoteLoadedListener) {
-        this.onNoteLoadedListener = onNoteLoadedListener;
-    }
-
     private OnNoteLoadedListener onNoteLoadedListener;
 
     public ReadSimpleNoteFilesTask(SimpleNoteDataObject sndo, Activity ctx){
         this.sndo=sndo;
         this.ctx=ctx;
+    }
+
+    public void setOnNoteLoadedListener(OnNoteLoadedListener onNoteLoadedListener) {
+        this.onNoteLoadedListener = onNoteLoadedListener;
     }
 
     /**
@@ -86,13 +84,18 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
 
         for(String path:sndo.getImagePath()){
             Bitmap bmp= null;
+            Bitmap thumb = null;
             try {
                 bmp = BitmapFactory.decodeStream(ctx.openFileInput(path));
+                int id = ctx.getResources().getIdentifier("simple_note_card_view", "id", ctx.getPackageName());
+                View view = ctx.findViewById(id);
+                thumb = ThumbnailUtils.extractThumbnail(bmp, 200, 200);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
             System.out.println("Path:" + bmp);
             sndo.getImageList().add(bmp);
+            sndo.getImageThumbs().add(thumb);
         }
 
         return sndo;
@@ -105,7 +108,7 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
     }
 
     public interface OnNoteLoadedListener{
-        public void onNoteLoaded(SimpleNoteDataObject sndo);
+        void onNoteLoaded(SimpleNoteDataObject sndo);
     }
 
 

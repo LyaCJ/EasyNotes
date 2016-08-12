@@ -78,6 +78,7 @@ public class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject,Int
                 oos =new ObjectOutputStream(fos);
                 oos.writeObject(sndo);
                 oos.flush();
+                sndo.setNoteFile(ctx.getFileStreamPath(fileName));
 
 
             } catch (FileNotFoundException e) {
