@@ -3,33 +3,32 @@ package com.example.madey.easynotes.NoteFragments;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
+import com.example.madey.easynotes.Utils;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -150,9 +149,14 @@ public class NewNoteFragment extends android.app.Fragment {
     }
 
     private void saveNote() {
+
         verifyStoragePermissions(getActivity());
         EditText title= (EditText) getView().findViewById(R.id.editText);
         EditText content= (EditText) getView().findViewById(R.id.editText2);
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && bitmaps.size() == 0) {
+            Toast.makeText(title.getContext(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT);
+            return;
+        }
         final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
         sndo.setImageList(bitmaps);
         Calendar c = Calendar.getInstance();
@@ -160,24 +164,8 @@ public class NewNoteFragment extends android.app.Fragment {
             sndo.setCreationDate(c.getTime());
         }
         sndo.setLastModifiedDate(c.getTime());
-        WindowManager wm = (WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        DisplayMetrics metrics = new DisplayMetrics();
-        display.getMetrics(metrics);
-        int width = metrics.widthPixels;
-        int height = metrics.heightPixels;
-
-        if (bitmaps.size() == 1) {
-            sndo.createThumbs(width / 3, width / 3);
-        }
-        if (bitmaps.size() == 2) {
-            sndo.createThumbs(width / 6, width / 3);
-        }
-        if (bitmaps.size() == 3) {
-            sndo.createThumbs(width / 12, width / 12);
-        } else {
-            sndo.createThumbs(width / 6, width / 6);
-        }
+        Point dim = Utils.getDimension(getActivity());
+        sndo.createThumbs(dim);
         ((MainActivity)getActivity()).getNotes().add(0,sndo);
         //write images asynchronously
 

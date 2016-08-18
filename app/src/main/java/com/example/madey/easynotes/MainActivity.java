@@ -18,7 +18,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFilesTask.OnNoteLoadedListener {
 
-    private List<Object> notes=new ArrayList<>();
+    private List<Object> notes = new ArrayList<>(10);
     private MainFragment mf;
     private List<String> noteFileNames;
 

@@ -17,8 +17,6 @@ import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
-import java.util.Arrays;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -85,7 +83,6 @@ public class MainFragment extends android.app.Fragment{
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
             mRecyclerView = (RecyclerView) v.findViewById(R.id.main_recycler_view);
-            mRecyclerView.setHasFixedSize(true);
 
             // use a linear layout manager
             mLayoutManager = new LinearLayoutManager(ctx);
@@ -127,9 +124,14 @@ public class MainFragment extends android.app.Fragment{
         });
         menuRed.showMenuButton(true);
 
-        System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
+        //System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
 
         return v;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     @Override

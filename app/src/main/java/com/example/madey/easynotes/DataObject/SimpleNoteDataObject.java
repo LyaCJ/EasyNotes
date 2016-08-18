@@ -1,6 +1,7 @@
 package com.example.madey.easynotes.DataObject;
 
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.media.ThumbnailUtils;
 
 import java.io.File;
@@ -135,7 +136,22 @@ public class SimpleNoteDataObject implements Serializable {
 
     }
 
-    public void createThumbs(int width, int height) {
+    public void createThumbs(Point dim) {
+        /*if (imageList.size() == 1) {
+            this.createThumb(dim.x / 3, dim.x / 3);
+        }
+        if (imageList.size() == 2) {
+            this.createThumb(dim.x / 6, dim.x / 3);
+        }
+        if (imageList.size() == 3) {
+            this.createThumb(dim.x / 12, dim.x / 3);
+        } else {
+            this.createThumb(dim.x / 6, dim.x / 6);
+        }*/
+        createThumb(dim.x / 3, dim.x / 3);
+    }
+
+    private void createThumb(int width, int height) {
         if (getImageList().size() > 0 && getImageThumbs().size() == 0) {
             for (Bitmap bmp : getImageList()) {
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(bmp, width, height);
@@ -143,4 +159,6 @@ public class SimpleNoteDataObject implements Serializable {
             }
         }
     }
+
+
 }

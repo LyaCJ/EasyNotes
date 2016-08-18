@@ -3,11 +3,10 @@ package com.example.madey.easynotes.AsyncTasks;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.ThumbnailUtils;
 import android.os.AsyncTask;
-import android.view.View;
 
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
+import com.example.madey.easynotes.Utils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -84,19 +83,14 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
 
         for(String path:sndo.getImagePath()){
             Bitmap bmp= null;
-            Bitmap thumb = null;
             try {
                 bmp = BitmapFactory.decodeStream(ctx.openFileInput(path));
-                int id = ctx.getResources().getIdentifier("simple_note_card_view", "id", ctx.getPackageName());
-                View view = ctx.findViewById(id);
-                thumb = ThumbnailUtils.extractThumbnail(bmp, 200, 200);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-            System.out.println("Path:" + bmp);
             sndo.getImageList().add(bmp);
-            sndo.getImageThumbs().add(thumb);
         }
+        sndo.createThumbs(Utils.getDimension(ctx));
 
         return sndo;
     }

@@ -1,20 +1,19 @@
 package com.example.madey.easynotes;
 
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.GridLayout;
-import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.madey.easynotes.DataObject.SimpleListDataObject;
 import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,13 +23,14 @@ import java.util.List;
 public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final int TYPE_NOTE = 0;
     private final int TYPE_LIST = 2;
+    SimpleDateFormat dt = new SimpleDateFormat("MMM dd, yyyy");
     private List<Object> mDataset;
 
-    private View cardView;
+    //private View cardView;
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public MainFragmentAdapter() {
-        mDataset = getMDataSet();
+        mDataset = new ArrayList<>(20);
     }
     //private List<SimpleListDataObject> lDataset;
 
@@ -51,7 +51,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                       int viewType) {
-        cardView = null;
+        View cardView = null;
 
         switch (viewType) {
             case TYPE_NOTE:
@@ -85,21 +85,42 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 if (snData.getContent() != null)
                     sndoh.content.setText(snData.getContent());
 
-                /*if(snData.getCreationDate()!=null)
-                    sndoh.created.setText(snData.getCreationDate().toString());
-
-                if(snData.getLastModifiedDate() != null)
-                    sndoh.modified.setText(snData.getLastModifiedDate().toString());*/
-
-                if (snData.getImageThumbs() != null && snData.getImageThumbs().size() > 0) {
-                    for (Bitmap bmp : snData.getImageThumbs()) {
-                        ImageView imageView=new ImageView(sndoh.gv.getContext());
-
-                        imageView.setImageBitmap(bmp);
-                        sndoh.gv.addView(imageView);
-                    }
+                if (snData.getCreationDate() != null) {
+                    String date = dt.format(snData.getCreationDate());
+                    sndoh.created.setText("Created: " + date);
                 }
-                //sndoh.gv.setAdapter(new ImageAdapter(snData.getImageList()));
+
+                if (snData.getLastModifiedDate() != null) {
+                    String date = dt.format(snData.getLastModifiedDate());
+                    sndoh.modified.setText("Modified: " + date);
+                }
+
+                System.out.println("Title: " + snData.getTitle() + " Thumbs: " + snData.getImageThumbs() + " Size: " + snData.getImageThumbs().size());
+                if (snData.getImageThumbs() != null) {
+                    int size = snData.getImageThumbs() != null ? snData.getImageThumbs().size() : 0;
+                    int calcWidth = 0;
+                    if (size == 0) {
+                        LinearLayout layout = sndoh.gv;
+// Gets the layout params that will allow you to resize the layout
+                        ViewGroup.LayoutParams params = layout.getLayoutParams();
+// Changes the height and width to the specified *pixels*
+                        params.height = 0;
+                        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                        layout.setLayoutParams(params);
+                    } else
+                        calcWidth = Utils.getDimension(sndoh.gv.getContext()).x / size;
+                    for (int i = 0; i < sndoh.gv.getChildCount(); i++) {
+                        ((ImageView) sndoh.gv.getChildAt(i)).setImageDrawable(null);
+                        sndoh.gv.getChildAt(i).setVisibility(View.INVISIBLE);
+                    }
+                    for (int i = 0; i < size; i++) {
+                        sndoh.gv.getChildAt(i).getLayoutParams().width = calcWidth;
+                        sndoh.gv.getChildAt(i).getLayoutParams().height = calcWidth;
+                        ((ImageView) sndoh.gv.getChildAt(i)).setImageBitmap(snData.getImageThumbs().get(i));
+                        sndoh.gv.getChildAt(i).setVisibility(View.VISIBLE);
+                    }
+
+                }
 
                 break;
             case TYPE_LIST:
@@ -116,9 +137,9 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-
         return mDataset.size();
     }
+
 
     @Override
     public int getItemViewType(int position) {
@@ -132,18 +153,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public List<Object> getMDataSet() {
-        List<Object> results = new ArrayList<>();
-        /*for (int index = 0; index < 5; index++) {
-            SimpleNoteDataObject obj = new SimpleNoteDataObject("",
-                    "Secondary " + index);
-            results.add(obj);
-        }
-        for (int index = 0; index < 5; index++) {
-            SimpleListDataObject obj = new SimpleListDataObject("Some Primary Text " + index,
-                    Arrays.asList(new String[]{"Mommy", "Daddy"}));
-            results.add(obj);
-        }*/
-        return results;
+        return mDataset;
     }
 
     public void remove(int position) {
@@ -157,8 +167,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public static class SimpleNoteDataObjectHolder extends RecyclerView.ViewHolder
             implements View
             .OnClickListener {
-        GridLayout gv;
-        ImageView image;
+        LinearLayout gv;
         TextView title;
         TextView content;
         TextView created;
@@ -166,16 +175,17 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         public SimpleNoteDataObjectHolder(View itemView) {
             super(itemView);
-            gv = (GridLayout) itemView.findViewById(R.id.grid_image_preview);
+            gv = (LinearLayout) itemView.findViewById(R.id.image_preview);
             title = (TextView) itemView.findViewById(R.id.sn_title);
             content = (TextView) itemView.findViewById(R.id.sn_content);
-            //created = (TextView) itemView.findViewById(R.id.sn_created);
-            //modified = (TextView) itemView.findViewById(R.id.sn_lastmodified);
+            created = (TextView) itemView.findViewById(R.id.sn_created);
+            modified = (TextView) itemView.findViewById(R.id.sn_lastmodified);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
+            Toast.makeText(v.getContext(), "Card Clicked", Toast.LENGTH_SHORT).show();
 
         }
     }
@@ -199,41 +209,4 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    private class ImageAdapter extends BaseAdapter {
-        private final List<Bitmap> imagesBmp;
-
-        public ImageAdapter(List<Bitmap> bmp) {
-            super();
-            imagesBmp = bmp;
-        }
-
-        @Override
-        public int getCount() {
-            return imagesBmp.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return imagesBmp.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup container) {
-            ImageView imageView;
-            if (convertView == null) { // if it's not recycled, initialize some attributes
-                imageView = new ImageView(container.getContext());
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                imageView.setLayoutParams(new GridView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            } else {
-                imageView = (ImageView) convertView;
-            }
-            imageView.setImageBitmap(imagesBmp.get(position)); // Load image into ImageView
-            return imageView;
-        }
-    }
 }
