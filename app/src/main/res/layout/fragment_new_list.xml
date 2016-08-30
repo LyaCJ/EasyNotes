@@ -1,0 +1,64 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context="com.example.madey.easynotes.NoteFragments.NewListFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/pictures_holder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|bottom"
+            android:background="@color/Transparent"
+            android:gravity="start"
+            android:orientation="horizontal"></LinearLayout>
+
+        <EditText
+            android:id="@+id/sl_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/pictures_holder"
+            android:background="@color/Transparent"
+            android:hint="@string/title"
+            android:lines="1"
+            android:linksClickable="false"
+            android:maxLines="1"
+            android:minLines="1"
+            android:padding="10dp"
+            android:paddingStart="10dip"
+            android:singleLine="true"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/activeItemsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/Transparent"></android.support.v7.widget.RecyclerView>
+
+        <TextView
+            android:id="@+id/newItemTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="30dip"
+            android:background="@color/Transparent"
+            android:paddingTop="10dip"
+            android:text="+ new item"
+            android:textSize="20sp" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/doneItemList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"></android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+</ScrollView>

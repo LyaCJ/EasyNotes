@@ -8,14 +8,17 @@ import java.util.List;
  */
 public class SimpleListDataObject {
     private String title;
-    private List<String> content;
+    private List<String> activeItems;
+    private List<String> doneItems;
+
 
     private Date lastModifiedDate;
     private Date creationDate;
 
-    public SimpleListDataObject(String title, List<String> content){
+    public SimpleListDataObject(String title, List<String> active, List<String> done) {
         this.title=title;
-        this.content=content;
+        this.activeItems = active;
+        this.doneItems = done;
     }
     public String getTitle() {
         return title;
@@ -25,13 +28,6 @@ public class SimpleListDataObject {
         this.title = title;
     }
 
-    public List<String> getContent() {
-        return content;
-    }
-
-    public void setContent(List<String> content) {
-        this.content = content;
-    }
 
     public Date getCreationDate() {
         return creationDate;

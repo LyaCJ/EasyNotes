@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.example.madey.easynotes.NoteFragments.NewListFragment;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -43,6 +44,10 @@ public class MainFragment extends android.app.Fragment{
                     //getFragmentManager().beginTransaction().replace(R.id.frame_fragment, nnf).commit();
                     menuRed.close(true);
                     break;
+                case R.id.fab_list:
+                    NewListFragment nlf = NewListFragment.newInstance("New List Fragment", "Hello");
+                    getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nlf).commit();
+                    menuRed.close(true);
             }
         }
     };
@@ -64,22 +69,17 @@ public class MainFragment extends android.app.Fragment{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v=inflater.inflate(R.layout.fragment_main, container, false);
-        MainActivity ctx=(MainActivity)this.getActivity();
+        super.onCreateView(inflater, container, savedInstanceState);
+        final View v = inflater.inflate(R.layout.fragment_main, container, false);
+        final MainActivity ctx = (MainActivity) this.getActivity();
         Toolbar toolbar = ((Toolbar) ctx.findViewById(R.id.my_toolbar));
         toolbar.setTitle("Easy Notes");
+
 
         toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
         final DrawerLayout dl = (DrawerLayout) v.findViewById(R.id.drawer_layout);
         final ListView dListView = (ListView) v.findViewById(R.id.left_drawer);
 
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                System.out.println("Drawer: " + dl);
-                dl.openDrawer(dListView);
-            }
-        });
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
             mRecyclerView = (RecyclerView) v.findViewById(R.id.main_recycler_view);
@@ -91,6 +91,32 @@ public class MainFragment extends android.app.Fragment{
             // specify an adapter (see also next example)
 
             mAdapter = new MainFragmentAdapter(ctx.getNotes());
+
+        if (ctx.getNotes().isEmpty()) {
+            mRecyclerView.setVisibility(View.GONE);
+            v.findViewById(R.id.empty_view).setVisibility(View.VISIBLE);
+        } else {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            v.findViewById(R.id.empty_view).setVisibility(View.GONE);
+        }
+
+        mRecyclerView.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
+            @Override
+            public void onChildViewAttachedToWindow(View view) {
+
+            }
+
+            @Override
+            public void onChildViewDetachedFromWindow(View view) {
+                if (ctx.getNotes().isEmpty()) {
+                    mRecyclerView.setVisibility(View.GONE);
+                    v.findViewById(R.id.empty_view).setVisibility(View.VISIBLE);
+                } else {
+                    mRecyclerView.setVisibility(View.VISIBLE);
+                    v.findViewById(R.id.empty_view).setVisibility(View.GONE);
+                }
+            }
+        });
         ItemTouchHelper.Callback callback=new NoteTouchHelper(mAdapter);
         ItemTouchHelper helper=new ItemTouchHelper(callback);
         helper.attachToRecyclerView(mRecyclerView);

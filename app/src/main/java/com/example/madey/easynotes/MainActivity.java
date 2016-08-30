@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFil
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Utils.init(this);
         setContentView(R.layout.activity_main);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -91,5 +93,17 @@ public class MainActivity extends AppCompatActivity implements ReadSimpleNoteFil
     if(mf!= null){
         mf.getmAdapter().notifyItemChanged(notes.indexOf(obj));
     }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (getFragmentManager().getBackStackEntryCount() == 0) {
+            finish();
+        }
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            getFragmentManager().popBackStack();
+        }
+
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.madey.easynotes;
 
+import android.support.v7.widget.GridLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,6 +45,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onItemRemove(int adapterPosition) {
         ((SimpleNoteDataObject) mDataset.get(adapterPosition)).removeFromDisk();
         mDataset.remove(adapterPosition);
+
         this.notifyItemRemoved(adapterPosition);
     }
 
@@ -57,7 +59,6 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case TYPE_NOTE:
                 cardView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.simple_note_card_view, parent, false);
-
                 return new SimpleNoteDataObjectHolder(cardView);
             case TYPE_LIST:
                 cardView = LayoutInflater.from(parent.getContext())
@@ -79,7 +80,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 SimpleNoteDataObjectHolder sndoh = (SimpleNoteDataObjectHolder) holder;
                 SimpleNoteDataObject snData = (SimpleNoteDataObject) mDataset.get(position);
 
-
+                int width = Utils.dimension.x;
                 if (snData.getTitle() != null)
                     sndoh.title.setText(snData.getTitle());
                 if (snData.getContent() != null)
@@ -96,28 +97,35 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 }
 
                 System.out.println("Title: " + snData.getTitle() + " Thumbs: " + snData.getImageThumbs() + " Size: " + snData.getImageThumbs().size());
+
                 if (snData.getImageThumbs() != null) {
-                    int size = snData.getImageThumbs() != null ? snData.getImageThumbs().size() : 0;
-                    int calcWidth = 0;
-                    if (size == 0) {
-                        LinearLayout layout = sndoh.gv;
-// Gets the layout params that will allow you to resize the layout
-                        ViewGroup.LayoutParams params = layout.getLayoutParams();
-// Changes the height and width to the specified *pixels*
-                        params.height = 0;
-                        params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                        layout.setLayoutParams(params);
-                    } else
-                        calcWidth = Utils.getDimension(sndoh.gv.getContext()).x / size;
-                    for (int i = 0; i < sndoh.gv.getChildCount(); i++) {
-                        ((ImageView) sndoh.gv.getChildAt(i)).setImageDrawable(null);
-                        sndoh.gv.getChildAt(i).setVisibility(View.INVISIBLE);
+                    int size = snData.getImageThumbs().size();
+                    if (size > 0)
+                        width = width / size;
+                    sndoh.gv.removeAllViews();
+                    switch (size) {
+                        case 1:
+                            sndoh.gv.setColumnCount(size);
+                            break;
+                        case 2:
+                            sndoh.gv.setColumnCount(size);
+                            break;
+                        case 3:
+                            sndoh.gv.setColumnCount(size);
+                            break;
+                        case 4:
+                            sndoh.gv.setColumnCount(size);
+                            break;
                     }
                     for (int i = 0; i < size; i++) {
-                        sndoh.gv.getChildAt(i).getLayoutParams().width = calcWidth;
-                        sndoh.gv.getChildAt(i).getLayoutParams().height = calcWidth;
-                        ((ImageView) sndoh.gv.getChildAt(i)).setImageBitmap(snData.getImageThumbs().get(i));
-                        sndoh.gv.getChildAt(i).setVisibility(View.VISIBLE);
+                        ImageView iv = new ImageView(sndoh.gv.getContext());
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, width);
+                        iv.setLayoutParams(layoutParams);
+                        //iv.getLayoutParams().width=width;
+                        //iv.getLayoutParams().height=width;
+                        iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        iv.setImageBitmap(snData.getImageThumbs().get(i));
+                        sndoh.gv.addView(iv);
                     }
 
                 }
@@ -127,7 +135,6 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 SimpleListDataObjectHolder sldoh = (SimpleListDataObjectHolder) holder;
                 SimpleListDataObject slData = (SimpleListDataObject) mDataset.get(position);
                 sldoh.title.setText(slData.getTitle());
-                sldoh.content.setText(slData.getContent().toString());
                 break;
             default:
                 break;
@@ -167,7 +174,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public static class SimpleNoteDataObjectHolder extends RecyclerView.ViewHolder
             implements View
             .OnClickListener {
-        LinearLayout gv;
+        GridLayout gv;
         TextView title;
         TextView content;
         TextView created;
@@ -175,7 +182,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         public SimpleNoteDataObjectHolder(View itemView) {
             super(itemView);
-            gv = (LinearLayout) itemView.findViewById(R.id.image_preview);
+            gv = (GridLayout) itemView.findViewById(R.id.image_preview);
             title = (TextView) itemView.findViewById(R.id.sn_title);
             content = (TextView) itemView.findViewById(R.id.sn_content);
             created = (TextView) itemView.findViewById(R.id.sn_created);
@@ -194,12 +201,10 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             implements View
             .OnClickListener {
         TextView title;
-        TextView content;
 
         public SimpleListDataObjectHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.sl_title);
-            content = (TextView) itemView.findViewById(R.id.sl_content);
             itemView.setOnClickListener(this);
         }
 
@@ -208,5 +213,6 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             Log.i("DEBUG", "List Clicked!");
         }
     }
+
 
 }

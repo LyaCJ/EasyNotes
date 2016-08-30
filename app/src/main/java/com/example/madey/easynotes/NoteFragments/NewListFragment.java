@@ -5,10 +5,12 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,69 +21,141 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
-import com.example.madey.easynotes.MainActivity;
+import com.example.madey.easynotes.CustomViews.ListItemEditText;
+import com.example.madey.easynotes.ItemListAdapter;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Calendar;
 
+/**
+ * A simple {@link Fragment} subclass.
+ * Activities that contain this fragment must implement the
+ * { NewListFragment.OnFragmentInteractionListener} interface
+ * to handle interaction events.
+ * Use the {@link NewListFragment#newInstance} factory method to
+ * create an instance of this fragment.
+ */
+public class NewListFragment extends android.app.Fragment implements ListItemEditText.OnDelListener {
+    // TODO: Rename parameter arguments, choose names that match
+    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM2 = "param2";
 
-public class NewNoteFragment extends android.app.Fragment {
+    // TODO: Rename and change types of parameters
+    private String mParam1;
+    private String mParam2;
 
-
+    // TODO: Create and Set instance variables after init.
     private LinearLayout imageHolderLayout;
+    private TextView addItemButton;
+    private View rootView;
+    private EditText etslTitle;
+    private RecyclerView activeItemsRecyclerView;
+    private RecyclerView doneItemsRecyclerView;
+
     private ArrayList<Bitmap> bitmaps = new ArrayList<>();
     private ArrayList<Bitmap> thumbs = new ArrayList<>();
+    private ItemListAdapter listItemAdapter;
+    private LinearLayoutManager activeItemsRecyclerViewLayoutManager;
 
-
-    public NewNoteFragment() {
+    public NewListFragment() {
         // Required empty public constructor
     }
 
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param param1 Parameter 1.
+     * @param param2 Parameter 2.
+     * @return A new instance of fragment NewListFragment.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static NewListFragment newInstance(String param1, String param2) {
+        NewListFragment fragment = new NewListFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void delPressed(int position) {
+        listItemAdapter.getDataSet().remove(position);
+        listItemAdapter.notifyItemRemoved(position);
+        listItemAdapter.notifyItemRangeChanged(position, listItemAdapter.getDataSet().size());
+        if (position > 0)
+            activeItemsRecyclerView.getLayoutManager().findViewByPosition(position - 1).requestFocus();
+        else
+            etslTitle.requestFocus();
+
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mParam1 = getArguments().getString(ARG_PARAM1);
+            mParam2 = getArguments().getString(ARG_PARAM2);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
-        setRetainInstance(true);
-        View v = inflater.inflate(R.layout.fragment_new_note, container, false);
+        // Inflate the layout for this fragment
+        rootView = inflater.inflate(R.layout.fragment_new_list, container, false);
+
+        //Menu Bar
         // Inflate the layout for this fragment
         setHasOptionsMenu(true);
         Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
-        toolbar.setTitle("Create Note");
+        toolbar.setTitle("Create List");
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
+                getFragmentManager().beginTransaction().remove(NewListFragment.this).commit();
                 getFragmentManager().popBackStack();
 
             }
         });
-        imageHolderLayout = (LinearLayout) v.findViewById(R.id.pictures_holder);
 
+        etslTitle = (EditText) rootView.findViewById(R.id.sl_title);
+        etslTitle.setNextFocusForwardId(R.id.item_list);
+        addItemButton = (TextView) rootView.findViewById(R.id.newItemTextView);
+        imageHolderLayout = (LinearLayout) rootView.findViewById(R.id.pictures_holder);
+        addItemButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NewListFragment.this.listItemAdapter.addActiveListItem();
+                activeItemsRecyclerView.scrollToPosition(listItemAdapter.getItemCount() - 1);
+            }
+        });
+        activeItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
 
-        return v;
+        activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
+        activeItemsRecyclerView.setLayoutManager(activeItemsRecyclerViewLayoutManager);
+        listItemAdapter = new ItemListAdapter();
+        listItemAdapter.setOnDelListener(this);
+        activeItemsRecyclerView.setAdapter(listItemAdapter);
+
+        doneItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.doneItemList);
+        return rootView;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         if (menu != null) {
-            menu.setGroupVisible(R.id.create_note_menu_group, true);
             menu.setGroupVisible(R.id.main_menu_group, false);
+            menu.setGroupVisible(R.id.create_note_menu_group, true);
         }
     }
 
@@ -111,7 +185,6 @@ public class NewNoteFragment extends android.app.Fragment {
                     Snackbar.make(getView(), "Image Limit Reached", Snackbar.LENGTH_SHORT).show();
                 return true;
             case R.id.action_done:
-                saveNote();
 
                 getActivity().getFragmentManager().popBackStack();
                 getActivity().getFragmentManager().beginTransaction().remove(this).commit();
@@ -119,35 +192,6 @@ public class NewNoteFragment extends android.app.Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void saveNote() {
-
-        Utils.verifyStoragePermissions(getActivity());
-        EditText title= (EditText) getView().findViewById(R.id.editText);
-        EditText content= (EditText) getView().findViewById(R.id.editText2);
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && bitmaps.size() == 0) {
-            Toast.makeText(title.getContext(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
-        sndo.setImageList(bitmaps);
-        Calendar c = Calendar.getInstance();
-        if(sndo.getCreationDate()== null){
-            sndo.setCreationDate(c.getTime());
-        }
-        sndo.setLastModifiedDate(c.getTime());
-        Point dim = Utils.dimension;
-        sndo.createThumbs(dim);
-        ((MainActivity)getActivity()).getNotes().add(0,sndo);
-        //write images asynchronously
-
-        WriteSimpleNoteFilesTask wft=new WriteSimpleNoteFilesTask(getActivity(), new WriteSimpleNoteFilesTask.AsyncResponse() {
-            @Override
-            public void processFinish(Boolean success) {
-            }
-        });
-        wft.execute(sndo);
     }
 
     @Override
@@ -184,7 +228,7 @@ public class NewNoteFragment extends android.app.Fragment {
         }
         if (requestCode == Utils.PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getClipData() != null) {
             System.out.println("Clip Data:" + data.getClipData());
-            for (int i = 0; bitmaps.size() <= 4 && i<data.getClipData().getItemCount(); i++) {
+            for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
                 imageView = new ImageView(getActivity());
                 imageView.setAdjustViewBounds(false);
                 imageView.setMaxWidth(width / 4);
@@ -208,25 +252,5 @@ public class NewNoteFragment extends android.app.Fragment {
 
         }
     }
-
-    @Override
-    public void onSaveInstanceState(final Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
-
-    /**
-     * Interface to send Data back to MainActivity
-     */
-    public interface NoteOnSaveListener {
-        void onNoteSaved();
-    }
-
 
 }

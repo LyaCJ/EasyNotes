@@ -90,7 +90,7 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
             }
             sndo.getImageList().add(bmp);
         }
-        sndo.createThumbs(Utils.getDimension(ctx));
+        sndo.createThumbs(Utils.dimension);
 
         return sndo;
     }
