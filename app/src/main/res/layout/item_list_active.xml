@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/item_handle"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="8dip"
+        android:padding="0dp"
+        android:scaleType="center"
+        android:src="@drawable/ic_reorder_black_24dp" />
 <com.example.madey.easynotes.CustomViews.ListItemEditText xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/item_list"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="16dip"
     android:background="@color/Transparent"
     android:drawableLeft="@drawable/bullet"
     android:drawablePadding="16dip"
@@ -13,3 +26,4 @@
     android:textSize="18sp">
 
 </com.example.madey.easynotes.CustomViews.ListItemEditText>
+</LinearLayout>

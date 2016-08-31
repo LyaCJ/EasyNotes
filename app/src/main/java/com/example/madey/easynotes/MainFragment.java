@@ -18,6 +18,8 @@ import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
+import java.util.ArrayList;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,7 +47,9 @@ public class MainFragment extends android.app.Fragment{
                     menuRed.close(true);
                     break;
                 case R.id.fab_list:
-                    NewListFragment nlf = NewListFragment.newInstance("New List Fragment", "Hello");
+                    ArrayList<StringBuilder> asb = new ArrayList<>();
+                    asb.add(new StringBuilder());
+                    NewListFragment nlf = NewListFragment.newInstance(asb, new ArrayList<String>());
                     getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nlf).commit();
                     menuRed.close(true);
             }

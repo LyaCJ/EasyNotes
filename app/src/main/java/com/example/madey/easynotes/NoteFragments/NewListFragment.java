@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
+import com.example.madey.easynotes.ListItemTouchHelper;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 
@@ -40,15 +42,13 @@ import java.util.ArrayList;
  * Use the {@link NewListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class NewListFragment extends android.app.Fragment implements ListItemEditText.OnDelListener {
+public class NewListFragment extends android.app.Fragment implements ListItemEditText.OnDelListener, OnStartDragListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM1 = "activeItems";
+    private static final String ARG_PARAM2 = "doneItems";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+
 
     // TODO: Create and Set instance variables after init.
     private LinearLayout imageHolderLayout;
@@ -62,27 +62,49 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     private ArrayList<Bitmap> thumbs = new ArrayList<>();
     private ItemListAdapter listItemAdapter;
     private LinearLayoutManager activeItemsRecyclerViewLayoutManager;
+    private ItemTouchHelper itemTouchHelper;
+    private LinearLayoutManager doneItemsRecyclerViewLayoutManager;
+    private DoneItemListAdapter donelistItemAdapter;
+    private ArrayList<StringBuilder> activeItems;
+    private ArrayList<String> doneItems;
+
 
     public NewListFragment() {
-        // Required empty public constructor
+        super();
     }
 
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param activeItems List of StringBuilder Active Items.
+     * @param doneItems List of String Done Items.
      * @return A new instance of fragment NewListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static NewListFragment newInstance(String param1, String param2) {
+    public static NewListFragment newInstance(ArrayList<StringBuilder> activeItems, ArrayList<String> doneItems) {
         NewListFragment fragment = new NewListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putSerializable(ARG_PARAM1, activeItems);
+        args.putSerializable(ARG_PARAM2, doneItems);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    public ItemListAdapter getListItemAdapter() {
+        return listItemAdapter;
+    }
+
+    public DoneItemListAdapter getDonelistItemAdapter() {
+        return donelistItemAdapter;
+    }
+
+    public ArrayList<StringBuilder> getActiveItems() {
+        return activeItems;
+    }
+
+    public ArrayList<String> getDoneItems() {
+        return doneItems;
     }
 
     @Override
@@ -100,9 +122,13 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+
+            this.activeItems = (ArrayList<StringBuilder>) getArguments().getSerializable(ARG_PARAM1);
+
+            this.doneItems = (ArrayList<String>) getArguments().getSerializable(ARG_PARAM2);
         }
     }
 
@@ -142,11 +168,22 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
         activeItemsRecyclerView.setLayoutManager(activeItemsRecyclerViewLayoutManager);
-        listItemAdapter = new ItemListAdapter();
+        listItemAdapter = new ItemListAdapter(this.activeItems);
         listItemAdapter.setOnDelListener(this);
+        listItemAdapter.setOnStartDragListener(this);
         activeItemsRecyclerView.setAdapter(listItemAdapter);
+        ItemTouchHelper.Callback callback = new ListItemTouchHelper(this);
+        itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(activeItemsRecyclerView);
 
         doneItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.doneItemList);
+        doneItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
+        doneItemsRecyclerView.setLayoutManager(doneItemsRecyclerViewLayoutManager);
+        donelistItemAdapter = new DoneItemListAdapter(this.doneItems);
+
+        System.out.println("I am here4");
+        doneItemsRecyclerView.setAdapter(donelistItemAdapter);
+        System.out.println("I am here5");
         return rootView;
     }
 
@@ -253,4 +290,18 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
         }
     }
 
+    @Override
+    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+        itemTouchHelper.startDrag(viewHolder);
+    }
+
+
+    public void onItemRemove(int adapterPosition) {
+        StringBuilder item = activeItems.get(adapterPosition);
+        activeItems.remove(adapterPosition);
+        listItemAdapter.notifyItemRemoved(adapterPosition);
+        doneItems.add(item.toString());
+        donelistItemAdapter.notifyDataSetChanged();
+
+    }
 }

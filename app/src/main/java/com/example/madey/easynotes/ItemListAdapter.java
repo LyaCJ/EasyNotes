@@ -1,16 +1,19 @@
 package com.example.madey.easynotes;
 
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
+import com.example.madey.easynotes.NoteFragments.OnStartDragListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,22 +21,17 @@ import java.util.List;
  */
 public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private static int ITEM_TYPE_TITLE = 0;
-    private static int ITEM_TYPE_ACTIVE = 2;
-    private static int ITEM_TYPE_DONE = 4;
-    private static int ITEM_TYPE_ADD = 6;
     private List<StringBuilder> dataSet;
     private ListItemEditText.OnDelListener onDelListener;
+    private OnStartDragListener onStartDragListener;
 
     public ItemListAdapter(List<StringBuilder> dataSet) {
         super();
         this.dataSet = dataSet;
     }
 
-    public ItemListAdapter() {
-        super();
-        dataSet = new ArrayList<>();
-        addActiveListItem(0);
+    public void setOnStartDragListener(OnStartDragListener onStartDragListener) {
+        this.onStartDragListener = onStartDragListener;
     }
 
     public List<StringBuilder> getDataSet() {
@@ -79,7 +77,8 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_list_active, parent, false);
-        ((ListItemEditText) v).setOnDelListener(onDelListener);
+        ListItemEditText liet = (ListItemEditText) v.findViewById(R.id.item_list);
+        liet.setOnDelListener(onDelListener);
         return new ActiveListItemHolder(v);
     }
 
@@ -104,11 +103,22 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      * @param position The position of the item within the adapter's data set.
      */
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         String text = dataSet.get(position).toString();
         ActiveListItemHolder aclih = (ActiveListItemHolder) holder;
         aclih.et.setText(text);
         aclih.et.requestFocus();
+
+        aclih.handle.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (MotionEventCompat.getActionMasked(event) ==
+                        MotionEvent.ACTION_DOWN) {
+                    onStartDragListener.onStartDrag(holder);
+                }
+                return false;
+            }
+        });
 
     }
 
@@ -127,14 +137,17 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return dataSet.size();
     }
 
+
     public class ActiveListItemHolder extends RecyclerView.ViewHolder implements TextWatcher {
         ListItemEditText et;
+        ImageView handle;
 
         public ActiveListItemHolder(View itemView) {
             super(itemView);
-            et = (ListItemEditText) itemView;
+            et = (ListItemEditText) itemView.findViewById(R.id.item_list);
             et.setHolder(this);
             et.addTextChangedListener(this);
+            handle = (ImageView) itemView.findViewById(R.id.item_handle);
         }
 
 
