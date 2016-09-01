@@ -82,9 +82,7 @@ public class DoneItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
      */
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        DoneListItemHolder dlih = (DoneListItemHolder) holder;
 
-        dlih.et.setText(dataSet.get(position));
 
     }
 

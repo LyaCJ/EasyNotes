@@ -3,16 +3,12 @@ package com.example.madey.easynotes;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 
-import com.example.madey.easynotes.NoteFragments.NewListFragment;
-
 import java.util.Collections;
 
 /**
  * Created by madey on 8/31/2016.
  */
 public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
-    private NewListFragment newListFragment;
-
 
     /**
      * Creates a Callback for the given drag and swipe allowance. These values serve as
@@ -34,14 +30,7 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
         super(dragDirs, swipeDirs);
     }
 
-    /**
-     * Constructor
-     */
-    public ListItemTouchHelper(NewListFragment fragment) {
-        super(ItemTouchHelper.LEFT, ItemTouchHelper.RIGHT);
-        newListFragment = fragment;
 
-    }
 
     /**
      * Called when ItemTouchHelper wants to move the dragged item from its old position to
@@ -64,9 +53,9 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
      */
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
         // get the viewHolder's and target's positions in your adapter data, swap them
-        Collections.swap(newListFragment.getActiveItems(), viewHolder.getAdapterPosition(), target.getAdapterPosition());
+        Collections.swap(((ItemListAdapter) recyclerView.getAdapter()).getDataSet(), viewHolder.getAdapterPosition(), target.getAdapterPosition());
         // and notify the adapter that its dataset has changed
-        newListFragment.getListItemAdapter().notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+        recyclerView.getAdapter().notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
         return true;
     }
 
@@ -114,8 +103,20 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
     //defines the enabled move directions in each state (idle, swiping, dragging).
     @Override
     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof ItemListAdapter.ActiveListItemHolder || viewHolder instanceof ItemListAdapter.DoneListItemHolder) {
         int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
-        int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
-        return makeMovementFlags(dragFlags, swipeFlags);
+            int swipeFlags = ItemTouchHelper.END;
+            return makeMovementFlags(dragFlags, swipeFlags);
+        } else
+            return 0;
+    }
+
+
+    @Override
+    public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof ItemListAdapter.ActiveListItemHolder || viewHolder instanceof ItemListAdapter.DoneListItemHolder)
+            return super.getSwipeDirs(recyclerView, viewHolder);
+        else
+            return 0;
     }
 }

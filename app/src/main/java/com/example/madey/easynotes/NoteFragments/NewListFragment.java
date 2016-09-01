@@ -56,17 +56,13 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     private View rootView;
     private EditText etslTitle;
     private RecyclerView activeItemsRecyclerView;
-    private RecyclerView doneItemsRecyclerView;
 
     private ArrayList<Bitmap> bitmaps = new ArrayList<>();
     private ArrayList<Bitmap> thumbs = new ArrayList<>();
     private ItemListAdapter listItemAdapter;
     private LinearLayoutManager activeItemsRecyclerViewLayoutManager;
     private ItemTouchHelper itemTouchHelper;
-    private LinearLayoutManager doneItemsRecyclerViewLayoutManager;
-    private DoneItemListAdapter donelistItemAdapter;
-    private ArrayList<StringBuilder> activeItems;
-    private ArrayList<String> doneItems;
+    private ArrayList<Object> listItems;
 
 
     public NewListFragment() {
@@ -77,34 +73,20 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param activeItems List of StringBuilder Active Items.
-     * @param doneItems List of String Done Items.
+     * @param listItems List of Objects Items.
      * @return A new instance of fragment NewListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static NewListFragment newInstance(ArrayList<StringBuilder> activeItems, ArrayList<String> doneItems) {
+    public static NewListFragment newInstance(ArrayList<Object> listItems) {
         NewListFragment fragment = new NewListFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PARAM1, activeItems);
-        args.putSerializable(ARG_PARAM2, doneItems);
+        args.putSerializable(ARG_PARAM1, listItems);
         fragment.setArguments(args);
         return fragment;
     }
 
     public ItemListAdapter getListItemAdapter() {
         return listItemAdapter;
-    }
-
-    public DoneItemListAdapter getDonelistItemAdapter() {
-        return donelistItemAdapter;
-    }
-
-    public ArrayList<StringBuilder> getActiveItems() {
-        return activeItems;
-    }
-
-    public ArrayList<String> getDoneItems() {
-        return doneItems;
     }
 
     @Override
@@ -126,9 +108,7 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
         if (getArguments() != null) {
 
-            this.activeItems = (ArrayList<StringBuilder>) getArguments().getSerializable(ARG_PARAM1);
-
-            this.doneItems = (ArrayList<String>) getArguments().getSerializable(ARG_PARAM2);
+            this.listItems = (ArrayList<Object>) getArguments().getSerializable(ARG_PARAM1);
         }
     }
 
@@ -168,22 +148,18 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
         activeItemsRecyclerView.setLayoutManager(activeItemsRecyclerViewLayoutManager);
-        listItemAdapter = new ItemListAdapter(this.activeItems);
+        listItemAdapter = new ItemListAdapter(this.listItems);
         listItemAdapter.setOnDelListener(this);
         listItemAdapter.setOnStartDragListener(this);
         activeItemsRecyclerView.setAdapter(listItemAdapter);
-        ItemTouchHelper.Callback callback = new ListItemTouchHelper(this);
+        activeItemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_TITLE, 0);
+        activeItemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_SEPARATOR, 0);
+        int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+        int swipeFlags = ItemTouchHelper.END;
+        ItemTouchHelper.Callback callback = new ListItemTouchHelper(dragFlags, swipeFlags);
         itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(activeItemsRecyclerView);
 
-        doneItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.doneItemList);
-        doneItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
-        doneItemsRecyclerView.setLayoutManager(doneItemsRecyclerViewLayoutManager);
-        donelistItemAdapter = new DoneItemListAdapter(this.doneItems);
-
-        System.out.println("I am here4");
-        doneItemsRecyclerView.setAdapter(donelistItemAdapter);
-        System.out.println("I am here5");
         return rootView;
     }
 
@@ -295,13 +271,4 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
         itemTouchHelper.startDrag(viewHolder);
     }
 
-
-    public void onItemRemove(int adapterPosition) {
-        StringBuilder item = activeItems.get(adapterPosition);
-        activeItems.remove(adapterPosition);
-        listItemAdapter.notifyItemRemoved(adapterPosition);
-        doneItems.add(item.toString());
-        donelistItemAdapter.notifyDataSetChanged();
-
-    }
 }

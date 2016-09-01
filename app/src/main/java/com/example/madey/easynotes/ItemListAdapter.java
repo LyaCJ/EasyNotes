@@ -1,5 +1,6 @@
 package com.example.madey.easynotes;
 
+import android.graphics.Paint;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -8,12 +9,16 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
+import com.example.madey.easynotes.DataObject.SimpleListDataObject;
 import com.example.madey.easynotes.NoteFragments.OnStartDragListener;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,20 +26,34 @@ import java.util.List;
  */
 public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<StringBuilder> dataSet;
+
+    public static final int ITEM_TYPE_TITLE = 0;
+    public static final int ITEM_TYPE_ACTIVE = 2;
+    public static final int ITEM_TYPE_DONE = 6;
+    public static final int ITEM_TYPE_SEPARATOR = 8;
+    private int lastActiveItemPosition = 0;
+    private List<Object> dataSet;
     private ListItemEditText.OnDelListener onDelListener;
     private OnStartDragListener onStartDragListener;
 
-    public ItemListAdapter(List<StringBuilder> dataSet) {
+    public ItemListAdapter(List<Object> dataSet) {
         super();
         this.dataSet = dataSet;
+    }
+
+    public int getLastActiveItemPosition() {
+        return lastActiveItemPosition;
+    }
+
+    public void setLastActiveItemPosition(int lastActivePosition) {
+        this.lastActiveItemPosition = lastActivePosition;
     }
 
     public void setOnStartDragListener(OnStartDragListener onStartDragListener) {
         this.onStartDragListener = onStartDragListener;
     }
 
-    public List<StringBuilder> getDataSet() {
+    public List<Object> getDataSet() {
         return dataSet;
     }
 
@@ -75,11 +94,29 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      */
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_list_active, parent, false);
-        ListItemEditText liet = (ListItemEditText) v.findViewById(R.id.item_list);
-        liet.setOnDelListener(onDelListener);
-        return new ActiveListItemHolder(v);
+        View v = null;
+        switch (viewType) {
+            case ITEM_TYPE_ACTIVE:
+                v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_list_active, parent, false);
+                ListItemEditText liet = (ListItemEditText) v.findViewById(R.id.item_list);
+                liet.setOnDelListener(onDelListener);
+                return new ActiveListItemHolder(v);
+            case ITEM_TYPE_TITLE:
+                v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_list_title, parent, false);
+                return new TitleHolder(v);
+            case ITEM_TYPE_DONE:
+                v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_list_done, parent, false);
+                return new DoneListItemHolder(v);
+            case ITEM_TYPE_SEPARATOR:
+                v = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_list_separator, parent, false);
+                return new ListSeparatorHolder(v);
+            default:
+                return null;
+        }
     }
 
     /**
@@ -104,27 +141,56 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      */
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
-        String text = dataSet.get(position).toString();
-        ActiveListItemHolder aclih = (ActiveListItemHolder) holder;
-        aclih.et.setText(text);
-        aclih.et.requestFocus();
 
-        aclih.handle.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (MotionEventCompat.getActionMasked(event) ==
-                        MotionEvent.ACTION_DOWN) {
-                    onStartDragListener.onStartDrag(holder);
-                }
-                return false;
-            }
-        });
+        switch (holder.getAdapterPosition()) {
+            case ITEM_TYPE_TITLE:
+                ((TitleHolder) holder).et.setText(dataSet.get(position).toString());
+                break;
+            case ITEM_TYPE_ACTIVE:
+                String text = dataSet.get(position).toString();
+                ActiveListItemHolder aclih = (ActiveListItemHolder) holder;
+                aclih.et.setText(text);
+                aclih.et.requestFocus();
+
+                aclih.handle.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (MotionEventCompat.getActionMasked(event) ==
+                                MotionEvent.ACTION_DOWN) {
+                            onStartDragListener.onStartDrag(holder);
+                        }
+                        return false;
+                    }
+                });
+                break;
+            case ITEM_TYPE_DONE:
+                DoneListItemHolder dlih = (DoneListItemHolder) holder;
+                dlih.et.setText(dataSet.get(position).toString());
+                break;
+            case ITEM_TYPE_SEPARATOR:
+                ListSeparatorHolder lsh = (ListSeparatorHolder) holder;
+                lsh.setIsRecyclable(false);
+        }
+
 
     }
 
     @Override
     public int getItemViewType(int position) {
-        return super.getItemViewType(position);
+        if (dataSet.get(position) instanceof StringBuilder) {
+            return ITEM_TYPE_ACTIVE;
+        }
+        if (dataSet.get(position) instanceof String) {
+            return ITEM_TYPE_DONE;
+        }
+        if (dataSet.get(position) instanceof SimpleListDataObject.ListTitleDataObject) {
+            return ITEM_TYPE_TITLE;
+        }
+        if (dataSet.get(position) instanceof ListSeparatorModel) {
+            return ITEM_TYPE_SEPARATOR;
+        }
+        return -1;
+
     }
 
     /**
@@ -137,6 +203,73 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return dataSet.size();
     }
 
+
+    public static class DoneListItemHolder extends RecyclerView.ViewHolder {
+        ListItemEditText et;
+        ImageView remView;
+
+        public DoneListItemHolder(View v) {
+            super(v);
+            et = (ListItemEditText) v.findViewById(R.id.item_list);
+            et.setPaintFlags(et.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+            et.setKeyListener(null);
+            et.setCursorVisible(false);
+            et.setFocusable(false);
+            et.setFocusableInTouchMode(false);
+            remView = (ImageView) v.findViewById(R.id.delete);
+        }
+    }
+
+    public static class TitleHolder extends RecyclerView.ViewHolder {
+        EditText et;
+
+        public TitleHolder(View v) {
+            super(v);
+            et = (EditText) v.findViewById(R.id.sl_title);
+        }
+    }
+
+    public static class ListSeparatorHolder extends RecyclerView.ViewHolder {
+        TextView buttonText;
+        TextView activeCount;
+        TextView doneCount;
+        TextView modified;
+
+        public ListSeparatorHolder(View v) {
+            super(v);
+            buttonText = (EditText) v.findViewById(R.id.sl_title);
+            // TODO
+        }
+    }
+
+    private static class ListSeparatorModel {
+        String buttonText;
+        Date lastUpdated;
+
+        public ListSeparatorModel(String buttonText, Date lastUpdated) {
+            this.buttonText = buttonText;
+            this.lastUpdated = lastUpdated;
+        }
+
+        public ListSeparatorModel() {
+        }
+
+        public Date getLastUpdated() {
+            return lastUpdated;
+        }
+
+        public void setLastUpdated(Date lastUpdated) {
+            this.lastUpdated = lastUpdated;
+        }
+
+        public String getButtonText() {
+            return buttonText;
+        }
+
+        public void setButtonText(String buttonText) {
+            this.buttonText = buttonText;
+        }
+    }
 
     public class ActiveListItemHolder extends RecyclerView.ViewHolder implements TextWatcher {
         ListItemEditText et;
@@ -203,17 +336,17 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public void afterTextChanged(Editable s) {
 
             int position = getAdapterPosition();
-            dataSet.get(position).delete(0, dataSet.get(position).length());
-            dataSet.get(position).append(s.toString());
+            StringBuilder item = (StringBuilder) dataSet.get(position);
+            item.delete(0, item.length());
+            item.append(s.toString());
             if (s.length() > 0 && s.charAt(s.length() - 1) == '\n') {
                 s.delete(s.length() - 1, s.length());
                 dataSet.add(position + 1, new StringBuilder());
                 ItemListAdapter.this.notifyItemInserted(position + 1);
+                lastActiveItemPosition++;
             }
         }
 
 
     }
-
-
 }
