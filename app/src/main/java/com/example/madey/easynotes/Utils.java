@@ -19,6 +19,7 @@ public class Utils {
     public static final int PICTURE_REQUEST = 1188;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     public static Point dimension;
+    public static int COUNTER = 0;
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE

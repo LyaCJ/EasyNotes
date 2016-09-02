@@ -133,17 +133,8 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
             }
         });
 
-        etslTitle = (EditText) rootView.findViewById(R.id.sl_title);
-        etslTitle.setNextFocusForwardId(R.id.item_list);
-        addItemButton = (TextView) rootView.findViewById(R.id.newItemTextView);
         imageHolderLayout = (LinearLayout) rootView.findViewById(R.id.pictures_holder);
-        addItemButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NewListFragment.this.listItemAdapter.addActiveListItem();
-                activeItemsRecyclerView.scrollToPosition(listItemAdapter.getItemCount() - 1);
-            }
-        });
+
         activeItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
@@ -156,10 +147,10 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
         activeItemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_SEPARATOR, 0);
         int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
         int swipeFlags = ItemTouchHelper.END;
-        ItemTouchHelper.Callback callback = new ListItemTouchHelper(dragFlags, swipeFlags);
+        ListItemTouchHelper callback = new ListItemTouchHelper(dragFlags, swipeFlags);
+        callback.setOnItemSwipedListener(listItemAdapter);
         itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(activeItemsRecyclerView);
-
         return rootView;
     }
 

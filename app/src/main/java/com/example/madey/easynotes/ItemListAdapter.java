@@ -18,13 +18,12 @@ import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.DataObject.SimpleListDataObject;
 import com.example.madey.easynotes.NoteFragments.OnStartDragListener;
 
-import java.util.Date;
 import java.util.List;
 
 /**
  * Created by madey on 8/23/2016.
  */
-public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements OnItemSwipedListener {
 
 
     public static final int ITEM_TYPE_TITLE = 0;
@@ -67,8 +66,9 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void addActiveListItem() {
-        dataSet.add(new StringBuilder());
+        dataSet.add(lastActiveItemPosition, new StringBuilder());
         notifyItemInserted(dataSet.size() - 1);
+        lastActiveItemPosition++;
 
     }
 
@@ -142,7 +142,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
 
-        switch (holder.getAdapterPosition()) {
+        switch (holder.getItemViewType()) {
             case ITEM_TYPE_TITLE:
                 ((TitleHolder) holder).et.setText(dataSet.get(position).toString());
                 break;
@@ -151,7 +151,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 ActiveListItemHolder aclih = (ActiveListItemHolder) holder;
                 aclih.et.setText(text);
                 aclih.et.requestFocus();
-
                 aclih.handle.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
@@ -162,14 +161,18 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         return false;
                     }
                 });
+
                 break;
             case ITEM_TYPE_DONE:
                 DoneListItemHolder dlih = (DoneListItemHolder) holder;
                 dlih.et.setText(dataSet.get(position).toString());
+
                 break;
             case ITEM_TYPE_SEPARATOR:
                 ListSeparatorHolder lsh = (ListSeparatorHolder) holder;
-                lsh.setIsRecyclable(false);
+
+                break;
+
         }
 
 
@@ -203,6 +206,18 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return dataSet.size();
     }
 
+    @Override
+    public void itemSwiped(int position) {
+        Object item = this.dataSet.get(position);
+        if (item instanceof StringBuilder) {
+            this.dataSet.remove(position);
+            this.notifyItemRemoved(position);
+            this.lastActiveItemPosition--;
+            this.dataSet.add(item.toString());
+            this.notifyItemInserted(dataSet.size());
+        }
+    }
+
 
     public static class DoneListItemHolder extends RecyclerView.ViewHolder {
         ListItemEditText et;
@@ -225,41 +240,44 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public TitleHolder(View v) {
             super(v);
-            et = (EditText) v.findViewById(R.id.sl_title);
+            et = (EditText) v;
+        }
+
+        @Override
+        public String toString() {
+            return et.getText().toString();
         }
     }
 
-    public static class ListSeparatorHolder extends RecyclerView.ViewHolder {
+    public static class ListSeparatorHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView buttonText;
-        TextView activeCount;
-        TextView doneCount;
-        TextView modified;
 
         public ListSeparatorHolder(View v) {
             super(v);
-            buttonText = (EditText) v.findViewById(R.id.sl_title);
+            buttonText = (TextView) v.findViewById(R.id.addItemButton);
+            buttonText.setOnClickListener(this);
             // TODO
+        }
+
+        /**
+         * Called when a view has been clicked.
+         *
+         * @param v The view that was clicked.
+         */
+        @Override
+        public void onClick(View v) {
+
         }
     }
 
-    private static class ListSeparatorModel {
+    public static class ListSeparatorModel {
         String buttonText;
-        Date lastUpdated;
 
-        public ListSeparatorModel(String buttonText, Date lastUpdated) {
+        public ListSeparatorModel(String buttonText) {
             this.buttonText = buttonText;
-            this.lastUpdated = lastUpdated;
         }
 
         public ListSeparatorModel() {
-        }
-
-        public Date getLastUpdated() {
-            return lastUpdated;
-        }
-
-        public void setLastUpdated(Date lastUpdated) {
-            this.lastUpdated = lastUpdated;
         }
 
         public String getButtonText() {
@@ -339,8 +357,9 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             StringBuilder item = (StringBuilder) dataSet.get(position);
             item.delete(0, item.length());
             item.append(s.toString());
-            if (s.length() > 0 && s.charAt(s.length() - 1) == '\n') {
-                s.delete(s.length() - 1, s.length());
+            if (s.length() > 0 && s.toString().contains("\n")) {
+                int index = s.toString().indexOf("\n");
+                s.delete(index, index + 1);
                 dataSet.add(position + 1, new StringBuilder());
                 ItemListAdapter.this.notifyItemInserted(position + 1);
                 lastActiveItemPosition++;

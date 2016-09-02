@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.example.madey.easynotes.DataObject.SimpleListDataObject;
 import com.example.madey.easynotes.NoteFragments.NewListFragment;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
@@ -47,9 +48,12 @@ public class MainFragment extends android.app.Fragment{
                     menuRed.close(true);
                     break;
                 case R.id.fab_list:
-                    ArrayList<StringBuilder> asb = new ArrayList<>();
+                    ArrayList<Object> asb = new ArrayList<>();
+                    asb.add(new SimpleListDataObject.ListTitleDataObject());
                     asb.add(new StringBuilder());
-                    NewListFragment nlf = NewListFragment.newInstance(asb, new ArrayList<String>());
+                    asb.add(new ItemListAdapter.ListSeparatorModel());
+
+                    NewListFragment nlf = NewListFragment.newInstance(asb);
                     getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nlf).commit();
                     menuRed.close(true);
             }

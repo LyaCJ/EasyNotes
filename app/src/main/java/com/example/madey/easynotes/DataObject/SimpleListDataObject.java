@@ -47,7 +47,7 @@ public class SimpleListDataObject {
 
 
     public static class ListTitleDataObject {
-        String title;
+        String title = new String();
 
         public String getTitle() {
             return title;
@@ -55,6 +55,12 @@ public class SimpleListDataObject {
 
         public void setTitle(String title) {
             this.title = title;
+        }
+
+
+        @Override
+        public String toString() {
+            return title;
         }
 
     }

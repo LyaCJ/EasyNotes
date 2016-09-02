@@ -10,6 +10,9 @@ import java.util.Collections;
  */
 public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
 
+    private OnItemSwipedListener onItemSwipedListener;
+
+
     /**
      * Creates a Callback for the given drag and swipe allowance. These values serve as
      * defaults
@@ -30,7 +33,9 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
         super(dragDirs, swipeDirs);
     }
 
-
+    public void setOnItemSwipedListener(OnItemSwipedListener onItemSwipedListener) {
+        this.onItemSwipedListener = onItemSwipedListener;
+    }
 
     /**
      * Called when ItemTouchHelper wants to move the dragged item from its old position to
@@ -59,6 +64,10 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
         return true;
     }
 
+    @Override
+    public boolean canDropOver(RecyclerView recyclerView, RecyclerView.ViewHolder current, RecyclerView.ViewHolder target) {
+        return (current instanceof ItemListAdapter.ActiveListItemHolder && target instanceof ItemListAdapter.ActiveListItemHolder) || (current instanceof ItemListAdapter.DoneListItemHolder && target instanceof ItemListAdapter.DoneListItemHolder);
+    }
 
     /**
      * Called when a ViewHolder is swiped by the user.
@@ -86,8 +95,7 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
      */
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-
-        newListFragment.onItemRemove(viewHolder.getAdapterPosition());
+        onItemSwipedListener.itemSwiped(viewHolder.getAdapterPosition());
     }
 
     @Override
@@ -116,6 +124,14 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
     public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
         if (viewHolder instanceof ItemListAdapter.ActiveListItemHolder || viewHolder instanceof ItemListAdapter.DoneListItemHolder)
             return super.getSwipeDirs(recyclerView, viewHolder);
+        else
+            return 0;
+    }
+
+    @Override
+    public int getDragDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+        if (viewHolder instanceof ItemListAdapter.ActiveListItemHolder || viewHolder instanceof ItemListAdapter.DoneListItemHolder)
+            return super.getDragDirs(recyclerView, viewHolder);
         else
             return 0;
     }
