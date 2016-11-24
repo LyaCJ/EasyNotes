@@ -11,8 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.madey.easynotes.DataObject.SimpleListDataObject;
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
+import com.example.madey.easynotes.data.SimpleListDataObject;
+import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

@@ -15,10 +15,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
-import com.example.madey.easynotes.DataObject.SimpleListDataObject;
 import com.example.madey.easynotes.NoteFragments.OnStartDragListener;
+import com.example.madey.easynotes.data.HeterogeneousArrayList;
+import com.example.madey.easynotes.data.SimpleListDataObject;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
  * Created by madey on 8/23/2016.
@@ -31,11 +32,11 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int ITEM_TYPE_DONE = 6;
     public static final int ITEM_TYPE_SEPARATOR = 8;
     private int lastActiveItemPosition = 0;
-    private List<Object> dataSet;
+    private HeterogeneousArrayList<Object> dataSet;
     private ListItemEditText.OnDelListener onDelListener;
     private OnStartDragListener onStartDragListener;
 
-    public ItemListAdapter(List<Object> dataSet) {
+    public ItemListAdapter(HeterogeneousArrayList<Object> dataSet) {
         super();
         this.dataSet = dataSet;
     }
@@ -52,7 +53,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.onStartDragListener = onStartDragListener;
     }
 
-    public List<Object> getDataSet() {
+    public HeterogeneousArrayList<Object> getDataSet() {
         return dataSet;
     }
 
@@ -270,7 +271,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
-    public static class ListSeparatorModel {
+    public static class ListSeparatorModel implements Serializable {
         String buttonText;
 
         public ListSeparatorModel(String buttonText) {

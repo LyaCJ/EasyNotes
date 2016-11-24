@@ -5,8 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

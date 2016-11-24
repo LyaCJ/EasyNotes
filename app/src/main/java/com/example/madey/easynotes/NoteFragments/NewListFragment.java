@@ -29,6 +29,7 @@ import com.example.madey.easynotes.ItemListAdapter;
 import com.example.madey.easynotes.ListItemTouchHelper;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.data.HeterogeneousArrayList;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -55,14 +56,14 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     private TextView addItemButton;
     private View rootView;
     private EditText etslTitle;
-    private RecyclerView activeItemsRecyclerView;
+    private RecyclerView itemsRecyclerView;
 
     private ArrayList<Bitmap> bitmaps = new ArrayList<>();
     private ArrayList<Bitmap> thumbs = new ArrayList<>();
     private ItemListAdapter listItemAdapter;
     private LinearLayoutManager activeItemsRecyclerViewLayoutManager;
     private ItemTouchHelper itemTouchHelper;
-    private ArrayList<Object> listItems;
+    private HeterogeneousArrayList<Object> listItems;
 
 
     public NewListFragment() {
@@ -77,10 +78,10 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
      * @return A new instance of fragment NewListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static NewListFragment newInstance(ArrayList<Object> listItems) {
+    public static NewListFragment newInstance(HeterogeneousArrayList<Object> listItems) {
         NewListFragment fragment = new NewListFragment();
         Bundle args = new Bundle();
-        args.putSerializable(ARG_PARAM1, listItems);
+        args.putParcelable(ARG_PARAM1, listItems);
         fragment.setArguments(args);
         return fragment;
     }
@@ -91,14 +92,16 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
     @Override
     public void delPressed(int position) {
-        listItemAdapter.getDataSet().remove(position);
-        listItemAdapter.notifyItemRemoved(position);
-        listItemAdapter.notifyItemRangeChanged(position, listItemAdapter.getDataSet().size());
-        if (position > 0)
-            activeItemsRecyclerView.getLayoutManager().findViewByPosition(position - 1).requestFocus();
-        else
-            etslTitle.requestFocus();
-
+        System.out.println(listItemAdapter.getDataSet().getCount(listItemAdapter.getDataSet().get(position).getClass()));
+        if (listItemAdapter.getDataSet().getCount(listItemAdapter.getDataSet().get(position).getClass()) > 1) {
+            listItemAdapter.getDataSet().remove(position);
+            listItemAdapter.notifyItemRemoved(position);
+            listItemAdapter.notifyItemRangeChanged(position, listItemAdapter.getDataSet().size());
+            if (position > 0)
+                itemsRecyclerView.getLayoutManager().findViewByPosition(position - 1).requestFocus();
+            else
+                etslTitle.requestFocus();
+        }
     }
 
     @Override
@@ -108,7 +111,7 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
         if (getArguments() != null) {
 
-            this.listItems = (ArrayList<Object>) getArguments().getSerializable(ARG_PARAM1);
+            this.listItems = getArguments().getParcelable(ARG_PARAM1);
         }
     }
 
@@ -135,22 +138,22 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
         imageHolderLayout = (LinearLayout) rootView.findViewById(R.id.pictures_holder);
 
-        activeItemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
+        itemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
-        activeItemsRecyclerView.setLayoutManager(activeItemsRecyclerViewLayoutManager);
+        itemsRecyclerView.setLayoutManager(activeItemsRecyclerViewLayoutManager);
         listItemAdapter = new ItemListAdapter(this.listItems);
         listItemAdapter.setOnDelListener(this);
         listItemAdapter.setOnStartDragListener(this);
-        activeItemsRecyclerView.setAdapter(listItemAdapter);
-        activeItemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_TITLE, 0);
-        activeItemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_SEPARATOR, 0);
+        itemsRecyclerView.setAdapter(listItemAdapter);
+        itemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_TITLE, 0);
+        itemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_SEPARATOR, 0);
         int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
         int swipeFlags = ItemTouchHelper.END;
         ListItemTouchHelper callback = new ListItemTouchHelper(dragFlags, swipeFlags);
         callback.setOnItemSwipedListener(listItemAdapter);
         itemTouchHelper = new ItemTouchHelper(callback);
-        itemTouchHelper.attachToRecyclerView(activeItemsRecyclerView);
+        itemTouchHelper.attachToRecyclerView(itemsRecyclerView);
         return rootView;
     }
 
@@ -200,60 +203,62 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        int width = imageHolderLayout.getWidth();
-        imageHolderLayout.setMinimumHeight(width / 4);
-        ImageView imageView = new ImageView(getActivity());
-        imageView.setAdjustViewBounds(false);
-        imageView.setMaxWidth(width / 4);
-        imageView.setMaxHeight(width / 4);
-        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
-        int THUMBSIZE = width / 4;
-        if (requestCode == Utils.CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-            bitmaps.add(photo);
-            Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-            thumbs.add(thumb);
-            imageView.setImageBitmap(thumb);
-            imageHolderLayout.addView(imageView);
-        }
-        if (requestCode == Utils.PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getData() != null) {
-            Bitmap photo = null;
-            try {
-                photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
-            } catch (FileNotFoundException e) {
-                System.out.println("FileNotFoundException: " + e.getMessage());
-            }
-            bitmaps.add(photo);
-            Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-            thumbs.add(thumb);
-            imageView.setImageBitmap(thumb);
-            imageHolderLayout.addView(imageView);
-        }
-        if (requestCode == Utils.PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getClipData() != null) {
-            System.out.println("Clip Data:" + data.getClipData());
-            for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
-                imageView = new ImageView(getActivity());
-                imageView.setAdjustViewBounds(false);
-                imageView.setMaxWidth(width / 4);
-                imageView.setMaxHeight(width / 4);
-                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                ClipData.Item item = data.getClipData().getItemAt(i);
-                InputStream is = null;
-                try {
-                    is = getActivity().getContentResolver().openInputStream(item.getUri());
-                } catch (FileNotFoundException e) {
-                    System.out.println("Exception: " + e.getMessage());
-                }
-                Bitmap photo = BitmapFactory.decodeStream(is);
+        int width = 0;
+        ImageView imageView;
+        if (resultCode == Activity.RESULT_OK) {
+            width = imageHolderLayout.getWidth();
+            imageHolderLayout.setMinimumHeight(width / 4);
+            imageView = new ImageView(getActivity());
+            imageView.setAdjustViewBounds(false);
+            imageView.setMaxWidth(width / 4);
+            imageView.setMaxHeight(width / 4);
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
+            int THUMBSIZE = width / 4;
+            if (requestCode == Utils.CAMERA_REQUEST) {
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 thumbs.add(thumb);
                 imageView.setImageBitmap(thumb);
                 imageHolderLayout.addView(imageView);
             }
-
-
+            if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
+                Bitmap photo = null;
+                try {
+                    photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
+                } catch (FileNotFoundException e) {
+                    System.out.println("FileNotFoundException: " + e.getMessage());
+                }
+                bitmaps.add(photo);
+                Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+                thumbs.add(thumb);
+                imageView.setImageBitmap(thumb);
+                imageHolderLayout.addView(imageView);
+            }
+            if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
+                System.out.println("Clip Data:" + data.getClipData());
+                for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
+                    imageView = new ImageView(getActivity());
+                    imageView.setAdjustViewBounds(false);
+                    imageView.setMaxWidth(width / 4);
+                    imageView.setMaxHeight(width / 4);
+                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                    ClipData.Item item = data.getClipData().getItemAt(i);
+                    InputStream is = null;
+                    try {
+                        is = getActivity().getContentResolver().openInputStream(item.getUri());
+                    } catch (FileNotFoundException e) {
+                        System.out.println("Exception: " + e.getMessage());
+                    }
+                    Bitmap photo = BitmapFactory.decodeStream(is);
+                    bitmaps.add(photo);
+                    Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+                    thumbs.add(thumb);
+                    imageView.setImageBitmap(thumb);
+                    imageHolderLayout.addView(imageView);
+                }
+            }
         }
     }
 

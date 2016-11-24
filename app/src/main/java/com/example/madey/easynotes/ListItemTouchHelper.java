@@ -3,8 +3,6 @@ package com.example.madey.easynotes;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 
-import java.util.Collections;
-
 /**
  * Created by madey on 8/31/2016.
  */
@@ -58,7 +56,7 @@ public class ListItemTouchHelper extends ItemTouchHelper.SimpleCallback {
      */
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
         // get the viewHolder's and target's positions in your adapter data, swap them
-        Collections.swap(((ItemListAdapter) recyclerView.getAdapter()).getDataSet(), viewHolder.getAdapterPosition(), target.getAdapterPosition());
+        ((ItemListAdapter) recyclerView.getAdapter()).getDataSet().swap(viewHolder.getAdapterPosition(), target.getAdapterPosition());
         // and notify the adapter that its dataset has changed
         recyclerView.getAdapter().notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
         return true;

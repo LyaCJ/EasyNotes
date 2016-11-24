@@ -1,20 +1,21 @@
-package com.example.madey.easynotes.DataObject;
+package com.example.madey.easynotes.data;
 
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.media.ThumbnailUtils;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 
 /**
  * Created by madey on 8/6/2016.
  */
-public class SimpleNoteDataObject implements Serializable {
+public class SimpleNoteDataObject implements Parcelable {
     private String title;
     private String content;
     private Date creationDate;
@@ -161,4 +162,13 @@ public class SimpleNoteDataObject implements Serializable {
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+    }
 }

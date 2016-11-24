@@ -59,7 +59,8 @@ public class ListItemEditText extends EditText {
         @Override
         public boolean sendKeyEvent(KeyEvent event) {
 
-            if (event.getKeyCode() == KeyEvent.KEYCODE_DEL && ListItemEditText.this.getText().toString().length() == 0 && holder.getAdapterPosition() > -1) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_DEL && ListItemEditText.this.getText().toString().length() == 0 && holder.getAdapterPosition() > 0) {
+                System.out.println(holder.getAdapterPosition());
                 onDelListener.delPressed(holder.getAdapterPosition());
                 return true;
             }

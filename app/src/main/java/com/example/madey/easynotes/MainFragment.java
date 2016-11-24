@@ -13,13 +13,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.example.madey.easynotes.DataObject.SimpleListDataObject;
 import com.example.madey.easynotes.NoteFragments.NewListFragment;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
+import com.example.madey.easynotes.data.HeterogeneousArrayList;
+import com.example.madey.easynotes.data.SimpleListDataObject;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
-
-import java.util.ArrayList;
 
 
 /**
@@ -48,7 +47,7 @@ public class MainFragment extends android.app.Fragment{
                     menuRed.close(true);
                     break;
                 case R.id.fab_list:
-                    ArrayList<Object> asb = new ArrayList<>();
+                    HeterogeneousArrayList<Object> asb = new HeterogeneousArrayList<>();
                     asb.add(new SimpleListDataObject.ListTitleDataObject());
                     asb.add(new StringBuilder());
                     asb.add(new ItemListAdapter.ListSeparatorModel());

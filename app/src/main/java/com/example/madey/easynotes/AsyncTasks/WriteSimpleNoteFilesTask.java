@@ -6,7 +6,7 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
+import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

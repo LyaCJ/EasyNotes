@@ -22,10 +22,10 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -152,60 +152,60 @@ public class NewNoteFragment extends android.app.Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        int width = imageHolderLayout.getWidth();
-        imageHolderLayout.setMinimumHeight(width / 4);
-        ImageView imageView = new ImageView(getActivity());
-        imageView.setAdjustViewBounds(false);
-        imageView.setMaxWidth(width / 4);
-        imageView.setMaxHeight(width / 4);
-        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
-        int THUMBSIZE = width / 4;
-        if (requestCode == Utils.CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-            bitmaps.add(photo);
-            Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-            thumbs.add(thumb);
-            imageView.setImageBitmap(thumb);
-            imageHolderLayout.addView(imageView);
-        }
-        if (requestCode == Utils.PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getData() != null) {
-            Bitmap photo = null;
-            try {
-                photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
-            } catch (FileNotFoundException e) {
-                System.out.println("FileNotFoundException: " + e.getMessage());
-            }
-            bitmaps.add(photo);
-            Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-            thumbs.add(thumb);
-            imageView.setImageBitmap(thumb);
-            imageHolderLayout.addView(imageView);
-        }
-        if (requestCode == Utils.PICTURE_REQUEST && resultCode == Activity.RESULT_OK && null != data && data.getClipData() != null) {
-            System.out.println("Clip Data:" + data.getClipData());
-            for (int i = 0; bitmaps.size() <= 4 && i<data.getClipData().getItemCount(); i++) {
-                imageView = new ImageView(getActivity());
-                imageView.setAdjustViewBounds(false);
-                imageView.setMaxWidth(width / 4);
-                imageView.setMaxHeight(width / 4);
-                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                ClipData.Item item = data.getClipData().getItemAt(i);
-                InputStream is = null;
-                try {
-                    is = getActivity().getContentResolver().openInputStream(item.getUri());
-                } catch (FileNotFoundException e) {
-                    System.out.println("Exception: " + e.getMessage());
-                }
-                Bitmap photo = BitmapFactory.decodeStream(is);
+        if (resultCode == Activity.RESULT_OK) {
+            int width = imageHolderLayout.getWidth();
+            imageHolderLayout.setMinimumHeight(width / 4);
+            ImageView imageView = new ImageView(getActivity());
+            imageView.setAdjustViewBounds(false);
+            imageView.setMaxWidth(width / 4);
+            imageView.setMaxHeight(width / 4);
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
+            int THUMBSIZE = width / 4;
+            if (requestCode == Utils.CAMERA_REQUEST) {
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 thumbs.add(thumb);
                 imageView.setImageBitmap(thumb);
                 imageHolderLayout.addView(imageView);
             }
-
-
+            if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
+                Bitmap photo = null;
+                try {
+                    photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
+                } catch (FileNotFoundException e) {
+                    System.out.println("FileNotFoundException: " + e.getMessage());
+                }
+                bitmaps.add(photo);
+                Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+                thumbs.add(thumb);
+                imageView.setImageBitmap(thumb);
+                imageHolderLayout.addView(imageView);
+            }
+            if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
+                System.out.println("Clip Data:" + data.getClipData());
+                for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
+                    imageView = new ImageView(getActivity());
+                    imageView.setAdjustViewBounds(false);
+                    imageView.setMaxWidth(width / 4);
+                    imageView.setMaxHeight(width / 4);
+                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                    ClipData.Item item = data.getClipData().getItemAt(i);
+                    InputStream is = null;
+                    try {
+                        is = getActivity().getContentResolver().openInputStream(item.getUri());
+                    } catch (FileNotFoundException e) {
+                        System.out.println("Exception: " + e.getMessage());
+                    }
+                    Bitmap photo = BitmapFactory.decodeStream(is);
+                    bitmaps.add(photo);
+                    Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
+                    thumbs.add(thumb);
+                    imageView.setImageBitmap(thumb);
+                    imageHolderLayout.addView(imageView);
+                }
+            }
         }
     }
 

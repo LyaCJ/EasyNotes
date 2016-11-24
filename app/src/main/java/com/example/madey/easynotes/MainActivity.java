@@ -9,7 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteFilesTask;
-import com.example.madey.easynotes.DataObject.SimpleNoteDataObject;
+import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.io.File;
 import java.io.FilenameFilter;
