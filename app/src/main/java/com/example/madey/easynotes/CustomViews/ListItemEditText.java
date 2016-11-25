@@ -3,6 +3,7 @@ package com.example.madey.easynotes.CustomViews;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
@@ -13,7 +14,7 @@ import com.example.madey.easynotes.ItemListAdapter;
 /**
  * Created by madey on 8/29/2016.
  */
-public class ListItemEditText extends EditText {
+public class ListItemEditText extends EditText implements View.OnKeyListener {
 
     private ItemListAdapter.ActiveListItemHolder holder;
     private OnDelListener onDelListener = null;
@@ -45,6 +46,15 @@ public class ListItemEditText extends EditText {
         this.onDelListener = onDelListener;
     }
 
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        System.out.println("Hardware Key: " + event.getKeyCode());
+        if (event.getKeyCode() == KeyEvent.KEYCODE_DEL && ListItemEditText.this.getText().toString().length() == 0 && holder.getAdapterPosition() > 0) {
+            onDelListener.delPressed(holder.getAdapterPosition());
+        }
+        return false;
+    }
+
     public interface OnDelListener {
         void delPressed(int position);
     }
@@ -58,9 +68,8 @@ public class ListItemEditText extends EditText {
 
         @Override
         public boolean sendKeyEvent(KeyEvent event) {
-
+            System.out.println("Software Key: " + event.getKeyCode());
             if (event.getKeyCode() == KeyEvent.KEYCODE_DEL && ListItemEditText.this.getText().toString().length() == 0 && holder.getAdapterPosition() > 0) {
-                System.out.println(holder.getAdapterPosition());
                 onDelListener.delPressed(holder.getAdapterPosition());
                 return true;
             }

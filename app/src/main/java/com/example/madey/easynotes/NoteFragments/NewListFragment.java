@@ -92,8 +92,9 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
 
     @Override
     public void delPressed(int position) {
-        System.out.println(listItemAdapter.getDataSet().getCount(listItemAdapter.getDataSet().get(position).getClass()));
-        if (listItemAdapter.getDataSet().getCount(listItemAdapter.getDataSet().get(position).getClass()) > 1) {
+        int count = listItemAdapter.getDataSet().getCount(listItemAdapter.getDataSet().get(position).getClass());
+        System.out.println(count);
+        if (count > 1) {
             listItemAdapter.getDataSet().remove(position);
             listItemAdapter.notifyItemRemoved(position);
             listItemAdapter.notifyItemRangeChanged(position, listItemAdapter.getDataSet().size());

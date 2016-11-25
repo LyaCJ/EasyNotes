@@ -55,6 +55,12 @@ public class HeterogeneousArrayList<E extends Object> implements Parcelable {
         return delegate.remove(obj);
     }
 
+    public E remove(int position) {
+        Object obj = delegate.get(position);
+        Integer value = counters.get(obj.getClass()) != null ? counters.put(obj.getClass(), counters.get(obj.getClass()) - 1) : counters.put(obj.getClass(), 0);
+        return delegate.remove(position);
+    }
+
     public void add(int position, E obj) {
         Integer value = counters.get(obj.getClass()) != null ? counters.put(obj.getClass(), counters.get(obj.getClass()) + 1) : counters.put(obj.getClass(), 1);
         delegate.add(position, obj);
