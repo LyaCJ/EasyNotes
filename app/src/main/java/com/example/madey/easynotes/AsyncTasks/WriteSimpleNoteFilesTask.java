@@ -1,31 +1,29 @@
 package com.example.madey.easynotes.AsyncTasks;
 
-import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.support.design.widget.Snackbar;
+import android.text.TextUtils;
 
+import com.example.madey.easynotes.contract.NoteReaderContract;
+import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
 import com.example.madey.easynotes.data.SimpleNoteDataObject;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 
 /**
  * Created by madey on 8/9/2016.
  */
-public class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject,Integer,Boolean>{
+public abstract class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject, Integer, Boolean> {
 
     private Context ctx;
-    public WriteSimpleNoteFilesTask(Context ctx, AsyncResponse delegate){
+
+    public WriteSimpleNoteFilesTask(Context ctx) {
         this.ctx=ctx;
         //this.delegate=delegate;
     }
 
     //public AsyncResponse delegate;
+    public abstract void onSaved(Boolean success);
 
     /**
      * Override this method to perform a computation on a background thread. The
@@ -43,60 +41,27 @@ public class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject,Int
      */
     @Override
     protected Boolean doInBackground(SimpleNoteDataObject... params) {
+        NoteReaderDbHelper mDbHelper = new NoteReaderDbHelper(ctx);
 
+        // Gets the data repository in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
         for(SimpleNoteDataObject sndo:params) {
-            FileOutputStream fos=null;
-            try {
-                ArrayList<String> fileNames=new ArrayList<>();
-                for (Bitmap bmp : sndo.getImageList()) {
-                    String fileName = "Image_" + System.currentTimeMillis()+".png";
-                    fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
-                    bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                    fos.flush();
-                    fos.close();
-                    fileNames.add(fileName);
-                }
-                sndo.setImagePath(fileNames);
-            } catch (FileNotFoundException e) {
-                Snackbar.make(((Activity) ctx).getCurrentFocus(), "Error Saving Images", Snackbar.LENGTH_SHORT);
-            } catch (IOException ioe) {
-                Snackbar.make(((Activity) ctx).getCurrentFocus(), "I/O Error Saving Images", Snackbar.LENGTH_SHORT);
-            } finally {
-                if (fos != null)
-                    try {
-                        fos.close();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-            }
-
-            fos = null;
-            ObjectOutputStream oos = null;
-            String fileName="Sndo_"+System.currentTimeMillis()+".snote";
-            try {
-                fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
-                oos =new ObjectOutputStream(fos);
-                oos.writeObject(sndo);
-                oos.flush();
-                sndo.setNoteFile(ctx.getFileStreamPath(fileName));
 
 
-            } catch (FileNotFoundException e) {
-                Snackbar.make(((Activity) ctx).getCurrentFocus(),"Unable to Save Note",Snackbar.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                Snackbar.make(((Activity) ctx).getCurrentFocus(),"Error Saving Note",Snackbar.LENGTH_SHORT).show();
-            }
-            finally {
-                try {
-                    if(oos != null)
-                        oos.close();
-                    if(fos != null)
-                        fos.close();
-                } catch (IOException e) {
-                    Snackbar.make(((Activity) ctx).getCurrentFocus(),"An I/O Error Occurred",Snackbar.LENGTH_SHORT).show();
-                }
-            }
+// Create a new map of values, where column names are the keys
+            ContentValues values = new ContentValues();
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_TITLE, sndo.getTitle());
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT, sndo.getContent());
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED, sndo.getCreationDate());
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED, sndo.getLastModifiedDate());
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI, TextUtils.join(",", sndo.getImagePath()));
+
+// Insert the new row, returning the primary key value of the new row
+            long newRowId = db.insert(NoteReaderContract.NoteEntry.TABLE_NAME, null, values);
+
+            System.out.println("Row ID: " + newRowId);
         }
+        db.close();
         return true;
     }
 
@@ -114,11 +79,9 @@ public class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject,Int
     @Override
     protected void onPostExecute(Boolean success) {
         super.onPostExecute(success);
-        //delegate.processFinish(success);
-    }
+        onSaved(success);
 
-    public interface AsyncResponse {
-        void processFinish(Boolean success);
+        //delegate.processFinish(success);
     }
 
 

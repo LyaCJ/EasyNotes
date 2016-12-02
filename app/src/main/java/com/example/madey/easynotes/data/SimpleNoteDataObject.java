@@ -1,32 +1,41 @@
 package com.example.madey.easynotes.data;
 
 import android.graphics.Bitmap;
-import android.graphics.Point;
-import android.media.ThumbnailUtils;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
-import java.util.Date;
 
 /**
  * Created by madey on 8/6/2016.
  */
 public class SimpleNoteDataObject implements Parcelable {
+    public static final Parcelable.Creator<SimpleNoteDataObject> CREATOR
+            = new Parcelable.Creator<SimpleNoteDataObject>() {
+        public SimpleNoteDataObject createFromParcel(Parcel in) {
+            return new SimpleNoteDataObject(in);
+        }
+
+        public SimpleNoteDataObject[] newArray(int size) {
+            return new SimpleNoteDataObject[size];
+        }
+    };
+    private Bitmap thumb;
+    private long id;
     private String title;
     private String content;
-    private Date creationDate;
-    private Date lastModifiedDate;
-    private transient ArrayList<Bitmap> imageList = new ArrayList<>();
-    private transient File noteFile;
-    private transient boolean dataLoaded = false;
-    private transient boolean imageLoaded = false;
-    private transient ArrayList<Bitmap> imageThumbs = new ArrayList<>();
-    private ArrayList<String> imagePath;
+    private long creationDate = 0;
+    private long lastModifiedDate = 0;
+    //private transient ArrayList<Bitmap> imageList = new ArrayList<>();
+    //private transient File noteFile;
+    //private transient boolean dataLoaded = false;
+    //private transient boolean imageLoaded = false;
+    //private transient ArrayList<Bitmap> imageThumbs = new ArrayList<>();
+    private ArrayList<String> imagePath = new ArrayList<>();
     public SimpleNoteDataObject(String title, String content) {
+
         this.title = title;
         this.content = content;
     }
@@ -34,7 +43,15 @@ public class SimpleNoteDataObject implements Parcelable {
     public SimpleNoteDataObject() {
     }
 
-    public File getNoteFile() {
+    private SimpleNoteDataObject(Parcel in) {
+        title = in.readString();
+        content = in.readString();
+        creationDate = in.readLong();
+        lastModifiedDate = in.readLong();
+        in.readList(imagePath, null);
+    }
+
+    /*public File getNoteFile() {
         return noteFile;
     }
 
@@ -72,6 +89,14 @@ public class SimpleNoteDataObject implements Parcelable {
 
     public void setImageThumbs(ArrayList<Bitmap> imageThumbs) {
         this.imageThumbs = imageThumbs;
+    }*/
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public ArrayList<String> getImagePath() {
@@ -98,22 +123,21 @@ public class SimpleNoteDataObject implements Parcelable {
         this.content = content;
     }
 
-    public Date getCreationDate() {
+    public long getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(long creationDate) {
         this.creationDate = creationDate;
     }
 
-    public Date getLastModifiedDate() {
+    public long getLastModifiedDate() {
         return lastModifiedDate;
     }
 
-    public void setLastModifiedDate(Date lastModifiedDate) {
+    public void setLastModifiedDate(long lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
     }
-
 
     public void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException {
         is.defaultReadObject();
@@ -127,7 +151,7 @@ public class SimpleNoteDataObject implements Parcelable {
         out.defaultWriteObject();
     }
 
-    public void removeFromDisk() {
+    /*public void removeFromDisk() {
         if (noteFile != null)
             noteFile.delete();
         for (String f : SimpleNoteDataObject.this.getImagePath()) {
@@ -138,7 +162,7 @@ public class SimpleNoteDataObject implements Parcelable {
     }
 
     public void createThumbs(Point dim) {
-        /*if (imageList.size() == 1) {
+        if (imageList.size() == 1) {
             this.createThumb(dim.x / 3, dim.x / 3);
         }
         if (imageList.size() == 2) {
@@ -148,10 +172,9 @@ public class SimpleNoteDataObject implements Parcelable {
             this.createThumb(dim.x / 12, dim.x / 3);
         } else {
             this.createThumb(dim.x / 6, dim.x / 6);
-        }*/
+        }
         createThumb(dim.x / 3, dim.x / 3);
     }
-
     private void createThumb(int width, int height) {
         if (getImageList().size() > 0 && getImageThumbs().size() == 0) {
             for (Bitmap bmp : getImageList()) {
@@ -161,6 +184,8 @@ public class SimpleNoteDataObject implements Parcelable {
         }
     }
 
+    */
+
 
     @Override
     public int describeContents() {
@@ -169,6 +194,19 @@ public class SimpleNoteDataObject implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeString(content);
+        dest.writeLong(creationDate);
+        dest.writeLong(lastModifiedDate);
+        dest.writeList(imagePath);
 
+    }
+
+    public Bitmap getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(Bitmap thumb) {
+        this.thumb = thumb;
     }
 }

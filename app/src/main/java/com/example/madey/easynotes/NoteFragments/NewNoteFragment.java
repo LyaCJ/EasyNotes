@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
@@ -19,8 +20,9 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
+import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
+import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
@@ -31,15 +33,17 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 
 public class NewNoteFragment extends android.app.Fragment {
 
 
     private LinearLayout imageHolderLayout;
-    private ArrayList<Bitmap> bitmaps = new ArrayList<>();
-    private ArrayList<Bitmap> thumbs = new ArrayList<>();
 
+    private ArrayList<String> fileNames = new ArrayList<>();
+
+    private boolean imageWrittenFlag = false;
 
     public NewNoteFragment() {
         // Required empty public constructor
@@ -55,6 +59,7 @@ public class NewNoteFragment extends android.app.Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+        MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWNOTE;
         setRetainInstance(true);
         View v = inflater.inflate(R.layout.fragment_new_note, container, false);
         // Inflate the layout for this fragment
@@ -71,8 +76,6 @@ public class NewNoteFragment extends android.app.Fragment {
             }
         });
         imageHolderLayout = (LinearLayout) v.findViewById(R.id.pictures_holder);
-
-
         return v;
     }
 
@@ -113,8 +116,6 @@ public class NewNoteFragment extends android.app.Fragment {
             case R.id.action_done:
                 saveNote();
 
-                getActivity().getFragmentManager().popBackStack();
-                getActivity().getFragmentManager().beginTransaction().remove(this).commit();
 
             default:
                 return super.onOptionsItemSelected(item);
@@ -126,49 +127,53 @@ public class NewNoteFragment extends android.app.Fragment {
         Utils.verifyStoragePermissions(getActivity());
         EditText title= (EditText) getView().findViewById(R.id.editText);
         EditText content= (EditText) getView().findViewById(R.id.editText2);
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && bitmaps.size() == 0) {
-            Toast.makeText(title.getContext(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0) {
+            Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
             return;
         }
         final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
-        sndo.setImageList(bitmaps);
+        //sndo.setImageList(bitmaps);
         Calendar c = Calendar.getInstance();
-        if(sndo.getCreationDate()== null){
-            sndo.setCreationDate(c.getTime());
+        if (sndo.getCreationDate() == 0) {
+            sndo.setCreationDate(System.currentTimeMillis());
         }
-        sndo.setLastModifiedDate(c.getTime());
-        Point dim = Utils.dimension;
-        sndo.createThumbs(dim);
+        sndo.setLastModifiedDate(System.currentTimeMillis());
+        sndo.setImagePath(fileNames);
+        //Point dim = Utils.dimension;
+        //sndo.createThumbs(dim);
         ((MainActivity)getActivity()).getNotes().add(0,sndo);
-        //write images asynchronously
 
-        WriteSimpleNoteFilesTask wft=new WriteSimpleNoteFilesTask(getActivity(), new WriteSimpleNoteFilesTask.AsyncResponse() {
+        //write note asynchronously to SQLite
+        WriteSimpleNoteFilesTask wft = new WriteSimpleNoteFilesTask(getActivity()) {
             @Override
-            public void processFinish(Boolean success) {
+            public void onSaved(Boolean success) {
+                //Let the activity know the current fragment
+                if (success) {
+                    Snackbar.make(getActivity().getCurrentFocus(), "Note Saved :)", Snackbar.LENGTH_SHORT).show();
+                } else {
+                    Snackbar.make(getActivity().getCurrentFocus(), "Error Saving Note :(", Snackbar.LENGTH_SHORT).show();
+                }
+
+                getActivity().getFragmentManager().popBackStack();
+                getActivity().getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
             }
-        });
+        };
         wft.execute(sndo);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        List<Bitmap> bitmaps = new ArrayList<>();
+        List<Bitmap> thumbs = new ArrayList<>();
+        imageWrittenFlag = false;
         if (resultCode == Activity.RESULT_OK) {
-            int width = imageHolderLayout.getWidth();
-            imageHolderLayout.setMinimumHeight(width / 4);
-            ImageView imageView = new ImageView(getActivity());
-            imageView.setAdjustViewBounds(false);
-            imageView.setMaxWidth(width / 4);
-            imageView.setMaxHeight(width / 4);
-            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-            imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
-            int THUMBSIZE = width / 4;
+            int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
             if (requestCode == Utils.CAMERA_REQUEST) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 thumbs.add(thumb);
-                imageView.setImageBitmap(thumb);
-                imageHolderLayout.addView(imageView);
+                imageHolderLayout.addView(createImageView(thumb));
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
                 Bitmap photo = null;
@@ -180,17 +185,11 @@ public class NewNoteFragment extends android.app.Fragment {
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 thumbs.add(thumb);
-                imageView.setImageBitmap(thumb);
-                imageHolderLayout.addView(imageView);
+                imageHolderLayout.addView(createImageView(thumb));
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
                 System.out.println("Clip Data:" + data.getClipData());
                 for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
-                    imageView = new ImageView(getActivity());
-                    imageView.setAdjustViewBounds(false);
-                    imageView.setMaxWidth(width / 4);
-                    imageView.setMaxHeight(width / 4);
-                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                     ClipData.Item item = data.getClipData().getItemAt(i);
                     InputStream is = null;
                     try {
@@ -202,31 +201,99 @@ public class NewNoteFragment extends android.app.Fragment {
                     bitmaps.add(photo);
                     Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                     thumbs.add(thumb);
-                    imageView.setImageBitmap(thumb);
-                    imageHolderLayout.addView(imageView);
+                    imageHolderLayout.addView(createImageView(thumb));
                 }
             }
+            //Write any images to disk asynchronously
+            WriteFileTask eft = new WriteFileTask(this.getActivity()) {
+                @Override
+                public void onResponseReceived(Object obj) {
+                    fileNames = (ArrayList<String>) obj;
+                    System.out.println("File Names: " + fileNames.toString());
+                    imageWrittenFlag = true;
+                }
+            };
+            //execute the task
+            Bitmap[] params = new Bitmap[bitmaps.size()];
+            params = bitmaps.toArray(params);
+            eft.execute(params);
         }
     }
 
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putSerializable("bitmap_files", fileNames);
 
     }
 
+    /**
+     * creates a square ImageView with dimensions equal to device width/4
+     *
+     * @param bmp Bitmap to set for tis image view
+     * @return ImageView with the Bitmap set to it.
+     */
+    private ImageView createImageView(Bitmap bmp) {
+        ImageView imageView = new ImageView(getActivity());
+        imageView.setAdjustViewBounds(false);
+        int width = Utils.dimension.x < Utils.dimension.y ? Utils.dimension.x : Utils.dimension.y;
+        imageView.setMaxWidth(width / 4);
+        imageView.setMaxHeight(width / 4);
+        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
+        imageView.setImageBitmap(bmp);
+        return imageView;
+    }
+
+    /**
+     * creates a square ImageView with dimensions equal to device width/4
+     *
+     * @param uri Uri to set for tis image view
+     * @return ImageView with the Uri set to it.
+     */
+    private ImageView createImageView(Uri uri) {
+        ImageView imageView = new ImageView(getActivity());
+        imageView.setAdjustViewBounds(false);
+        int width = Utils.DEVICE_WIDTH;
+        imageView.setMaxWidth(width / 4);
+        imageView.setMaxHeight(width / 4);
+        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
+        imageView.setImageURI(uri);
+        return imageView;
+    }
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            fileNames = (ArrayList<String>) savedInstanceState.getSerializable("bitmap_files");
+            for (String name : fileNames) {
+                new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
+                    @Override
+                    public void onCompleted(Bitmap bmp) {
+                        imageHolderLayout.addView(createImageView(bmp));
+                    }
+                }.execute(name);
+            }
+        }
     }
 
+    /*private static abstract class PreviewGeneratorTask extends AsyncTask<List<Object>,Integer, Boolean>{
 
-    /**
-     * Interface to send Data back to MainActivity
-     */
-    public interface NoteOnSaveListener {
-        void onNoteSaved();
-    }
+        @Override
+        protected Boolean doInBackground(List<Object>... params) {
+            boolean success = false;
 
 
+            return success;
+        }
+
+        public abstract void onComplete(Boolean aBoolean);
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            onComplete(aBoolean);
+        }
+    }*/
 }

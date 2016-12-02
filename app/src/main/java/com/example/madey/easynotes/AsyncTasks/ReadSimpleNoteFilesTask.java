@@ -1,36 +1,32 @@
 package com.example.madey.easynotes.AsyncTasks;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 
-import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.contract.NoteReaderContract;
+import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
 import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.StreamCorruptedException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by madey on 8/9/2016.
  */
-public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNoteDataObject>{
+public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer, List<Object>> {
 
-    private SimpleNoteDataObject sndo;
+    //private SimpleNoteDataObject sndo;
     private Activity ctx;
-    private OnNoteLoadedListener onNoteLoadedListener;
 
-    public ReadSimpleNoteFilesTask(SimpleNoteDataObject sndo, Activity ctx){
-        this.sndo=sndo;
+    public ReadSimpleNoteFilesTask(Activity ctx) {
+        //this.sndo=sndo;
         this.ctx=ctx;
     }
 
-    public void setOnNoteLoadedListener(OnNoteLoadedListener onNoteLoadedListener) {
-        this.onNoteLoadedListener = onNoteLoadedListener;
-    }
+
 
     /**
      * Override this method to perform a computation on a background thread. The
@@ -47,62 +43,74 @@ public class ReadSimpleNoteFilesTask extends AsyncTask<String,Integer,SimpleNote
      * @see #publishProgress
      */
     @Override
-    protected SimpleNoteDataObject doInBackground(String... params) {
+    protected List<Object> doInBackground(String... params) {
+        NoteReaderDbHelper nrdh = new NoteReaderDbHelper(ctx);
+        SQLiteDatabase db = nrdh.getReadableDatabase();
 
-        String fileName=params[0];
-        SimpleNoteDataObject read=null;
-        ObjectInputStream ois=null;
-            try {
-                FileInputStream fis=ctx.openFileInput(fileName);
-                ois=new ObjectInputStream(fis);
-                read=(SimpleNoteDataObject) ois.readObject();
-                ois.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (StreamCorruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        finally {
-                if(read!=null){
-                    try {
-                        ois.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    sndo.setImagePath(read.getImagePath());
-                    sndo.setLastModifiedDate(read.getLastModifiedDate());
-                    sndo.setCreationDate(read.getCreationDate());
-                    sndo.setTitle(read.getTitle());
-                    sndo.setContent(read.getContent());
-                }
-            }
+// Define a projection that specifies which columns from the database
+// you will actually use after this query.
+        String[] projection = {
+                NoteReaderContract.NoteEntry._ID,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_TITLE,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI
+        };
 
-        for(String path:sndo.getImagePath()){
-            Bitmap bmp= null;
-            try {
-                bmp = BitmapFactory.decodeStream(ctx.openFileInput(path));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+// Filter results WHERE "title" = 'My Title'
+        String selection = NoteReaderContract.NoteEntry.COLUMN_NAME_TITLE + " = ?";
+        String[] selectionArgs = {"%"};
+
+// How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED + " DESC";
+
+        Cursor cursor = db.query(
+                NoteReaderContract.NoteEntry.TABLE_NAME,                     // The table to query
+                projection,                               // The columns to return
+                null,                                // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                sortOrder                                 // The sort order
+        );
+        //list to store read notes
+        List<Object> notes = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                long itemId = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry._ID));
+                String title = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_TITLE));
+                String content = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT));
+                long created = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED));
+                long modified = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED));
+                List<String> fileName = new ArrayList<String>(Arrays.asList(cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI)).split(",")));
+
+                //log id
+                //System.out.println("Str SIze: " + fileName.get(0).length());
+
+                //create object
+                SimpleNoteDataObject sndo = new SimpleNoteDataObject(title, content);
+                sndo.setId(itemId);
+                sndo.setCreationDate(created);
+                sndo.setLastModifiedDate(modified);
+                sndo.setImagePath((ArrayList<String>) fileName);
+                notes.add(sndo);
             }
-            sndo.getImageList().add(bmp);
+            while (cursor.moveToNext());
         }
-        sndo.createThumbs(Utils.dimension);
-
-        return sndo;
+        cursor.close();
+        db.close();
+        nrdh.close();
+        return notes;
     }
+
+    public abstract void onResponseReceived(List<Object> obj);
 
     @Override
-    protected void onPostExecute(SimpleNoteDataObject simpleNoteDataObject) {
+    protected void onPostExecute(List<Object> simpleNoteDataObject) {
         super.onPostExecute(simpleNoteDataObject);
-        onNoteLoadedListener.onNoteLoaded(simpleNoteDataObject);
-    }
-
-    public interface OnNoteLoadedListener{
-        void onNoteLoaded(SimpleNoteDataObject sndo);
+        onResponseReceived(simpleNoteDataObject);
     }
 
 

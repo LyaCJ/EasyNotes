@@ -13,13 +13,22 @@ import android.view.WindowManager;
 /**
  * Created by madey on 8/13/2016.
  */
-public class Utils {
+public final class Utils {
 
     public static final int CAMERA_REQUEST = 1088;
     public static final int PICTURE_REQUEST = 1188;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     public static Point dimension;
+    public static int DEVICE_WIDTH;
     public static int COUNTER = 0;
+
+    //FRAGMENT TAGS
+    public static String FRAGMENT_TAG_MAIN = "main_fragment";
+    public static String FRAGMENT_TAG_NEWNOTE = "newnote_fragment";
+    public static String FRAGMENT_TAG_NEWLIST = "newlist_fragment";
+    public static String FRAGMENT_TAG_NEWAUDIO = "newaudio_fragment";
+    public static String FRAGMENT_TAG_SEARCH = "search_fragment";
+
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -33,6 +42,7 @@ public class Utils {
         int width = metrics.widthPixels;
         int height = metrics.heightPixels;
         dimension = new Point(width, height);
+        DEVICE_WIDTH = width < height ? width : height;
     }
 
     /**
