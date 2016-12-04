@@ -31,14 +31,19 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int ITEM_TYPE_ACTIVE = 2;
     public static final int ITEM_TYPE_DONE = 6;
     public static final int ITEM_TYPE_SEPARATOR = 8;
-    private int lastActiveItemPosition = 0;
-    private HeterogeneousArrayList<Object> dataSet;
+    private static int lastActiveItemPosition = 0;
+    private static HeterogeneousArrayList<Object> dataSet;
     private ListItemEditText.OnDelListener onDelListener;
     private OnStartDragListener onStartDragListener;
+    private ActiveListItemAddedListener activeListItemAddedListener;
 
     public ItemListAdapter(HeterogeneousArrayList<Object> dataSet) {
         super();
-        this.dataSet = dataSet;
+        ItemListAdapter.dataSet = dataSet;
+    }
+
+    public void setActiveListItemAddedListener(ActiveListItemAddedListener activeListItemAddedListener) {
+        this.activeListItemAddedListener = activeListItemAddedListener;
     }
 
     public int getLastActiveItemPosition() {
@@ -46,7 +51,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void setLastActiveItemPosition(int lastActivePosition) {
-        this.lastActiveItemPosition = lastActivePosition;
+        lastActiveItemPosition = lastActivePosition;
     }
 
     public void setOnStartDragListener(OnStartDragListener onStartDragListener) {
@@ -106,6 +111,8 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case ITEM_TYPE_TITLE:
                 v = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_list_title, parent, false);
+                TitleHolder th = new TitleHolder(v);
+                th.setIsRecyclable(false);
                 return new TitleHolder(v);
             case ITEM_TYPE_DONE:
                 v = LayoutInflater.from(parent.getContext())
@@ -114,7 +121,9 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case ITEM_TYPE_SEPARATOR:
                 v = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.item_list_separator, parent, false);
-                return new ListSeparatorHolder(v);
+                ListSeparatorHolder lsh = new ListSeparatorHolder(v);
+                lsh.setIsRecyclable(false);
+                return lsh;
             default:
                 return null;
         }
@@ -151,7 +160,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 String text = dataSet.get(position).toString();
                 ActiveListItemHolder aclih = (ActiveListItemHolder) holder;
                 aclih.et.setText(text);
-                aclih.et.requestFocus();
+                //aclih.et.requestFocus();
                 aclih.handle.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
@@ -167,11 +176,9 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case ITEM_TYPE_DONE:
                 DoneListItemHolder dlih = (DoneListItemHolder) holder;
                 dlih.et.setText(dataSet.get(position).toString());
-
                 break;
             case ITEM_TYPE_SEPARATOR:
                 ListSeparatorHolder lsh = (ListSeparatorHolder) holder;
-
                 break;
 
         }
@@ -209,16 +216,26 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void itemSwiped(int position) {
-        Object item = this.dataSet.get(position);
+        Object item = dataSet.get(position);
         if (item instanceof StringBuilder) {
-            this.dataSet.remove(position);
+            dataSet.remove(position);
             this.notifyItemRemoved(position);
-            this.lastActiveItemPosition--;
-            this.dataSet.add(item.toString());
+            lastActiveItemPosition--;
+            dataSet.add(item.toString());
+            this.notifyItemInserted(dataSet.size());
+        }
+        if (item instanceof String) {
+            dataSet.remove(position);
+            this.notifyItemRemoved(position);
+            dataSet.add(lastActiveItemPosition, new StringBuilder(item.toString()));
+            lastActiveItemPosition++;
             this.notifyItemInserted(dataSet.size());
         }
     }
 
+    public interface ActiveListItemAddedListener {
+        void ActiveListItemAdded(int position);
+    }
 
     public static class DoneListItemHolder extends RecyclerView.ViewHolder {
         ListItemEditText et;
@@ -256,7 +273,11 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         public ListSeparatorHolder(View v) {
             super(v);
             buttonText = (TextView) v.findViewById(R.id.addItemButton);
-            buttonText.setOnClickListener(this);
+            buttonText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                }
+            });
             // TODO
         }
 
@@ -267,7 +288,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
          */
         @Override
         public void onClick(View v) {
-
         }
     }
 
@@ -364,6 +384,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 dataSet.add(position + 1, new StringBuilder());
                 ItemListAdapter.this.notifyItemInserted(position + 1);
                 lastActiveItemPosition++;
+                activeListItemAddedListener.ActiveListItemAdded(position + 1);
             }
         }
 

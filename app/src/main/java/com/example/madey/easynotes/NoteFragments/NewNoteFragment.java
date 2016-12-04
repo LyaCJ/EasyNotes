@@ -7,10 +7,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.media.ThumbnailUtils;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,7 +18,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
@@ -36,7 +35,7 @@ import java.util.Calendar;
 import java.util.List;
 
 
-public class NewNoteFragment extends android.app.Fragment {
+public class NewNoteFragment extends NoteFragment {
 
 
     private LinearLayout imageHolderLayout;
@@ -70,8 +69,8 @@ public class NewNoteFragment extends android.app.Fragment {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
                 getFragmentManager().popBackStack();
+                getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
 
             }
         });
@@ -122,7 +121,8 @@ public class NewNoteFragment extends android.app.Fragment {
         }
     }
 
-    private void saveNote() {
+    @Override
+    protected void saveNote() {
 
         Utils.verifyStoragePermissions(getActivity());
         EditText title= (EditText) getView().findViewById(R.id.editText);
@@ -132,15 +132,12 @@ public class NewNoteFragment extends android.app.Fragment {
             return;
         }
         final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
-        //sndo.setImageList(bitmaps);
         Calendar c = Calendar.getInstance();
         if (sndo.getCreationDate() == 0) {
             sndo.setCreationDate(System.currentTimeMillis());
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
         sndo.setImagePath(fileNames);
-        //Point dim = Utils.dimension;
-        //sndo.createThumbs(dim);
         ((MainActivity)getActivity()).getNotes().add(0,sndo);
 
         //write note asynchronously to SQLite
@@ -227,41 +224,8 @@ public class NewNoteFragment extends android.app.Fragment {
 
     }
 
-    /**
-     * creates a square ImageView with dimensions equal to device width/4
-     *
-     * @param bmp Bitmap to set for tis image view
-     * @return ImageView with the Bitmap set to it.
-     */
-    private ImageView createImageView(Bitmap bmp) {
-        ImageView imageView = new ImageView(getActivity());
-        imageView.setAdjustViewBounds(false);
-        int width = Utils.dimension.x < Utils.dimension.y ? Utils.dimension.x : Utils.dimension.y;
-        imageView.setMaxWidth(width / 4);
-        imageView.setMaxHeight(width / 4);
-        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
-        imageView.setImageBitmap(bmp);
-        return imageView;
-    }
 
-    /**
-     * creates a square ImageView with dimensions equal to device width/4
-     *
-     * @param uri Uri to set for tis image view
-     * @return ImageView with the Uri set to it.
-     */
-    private ImageView createImageView(Uri uri) {
-        ImageView imageView = new ImageView(getActivity());
-        imageView.setAdjustViewBounds(false);
-        int width = Utils.DEVICE_WIDTH;
-        imageView.setMaxWidth(width / 4);
-        imageView.setMaxHeight(width / 4);
-        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-        imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
-        imageView.setImageURI(uri);
-        return imageView;
-    }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -296,4 +260,18 @@ public class NewNoteFragment extends android.app.Fragment {
             onComplete(aBoolean);
         }
     }*/
+
+    private Bitmap decodeBitmap(InputStream is, Size size) {
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        //decode only withing bounds
+        options.inJustDecodeBounds = true;
+
+        Bitmap bmp = BitmapFactory.decodeStream(is);
+        int imageHeight = options.outHeight;
+        int imageWidth = options.outWidth;
+        String imageType = options.outMimeType;
+
+        return bmp;
+    }
 }

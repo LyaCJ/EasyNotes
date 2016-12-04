@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -24,9 +25,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
+import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
 import com.example.madey.easynotes.ListItemTouchHelper;
+import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.data.HeterogeneousArrayList;
@@ -43,15 +47,16 @@ import java.util.ArrayList;
  * Use the {@link NewListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class NewListFragment extends android.app.Fragment implements ListItemEditText.OnDelListener, OnStartDragListener {
-    // TODO: Rename parameter arguments, choose names that match
+public class NewListFragment extends NoteFragment implements ListItemEditText.OnDelListener, OnStartDragListener {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "activeItems";
     private static final String ARG_PARAM2 = "doneItems";
 
+    private boolean imageWrittenFlag = false;
+
+    private ArrayList<String> fileNames = new ArrayList<>();
 
 
-    // TODO: Create and Set instance variables after init.
     private LinearLayout imageHolderLayout;
     private TextView addItemButton;
     private View rootView;
@@ -77,7 +82,7 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
      * @param listItems List of Objects Items.
      * @return A new instance of fragment NewListFragment.
      */
-    // TODO: Rename and change types and number of parameters
+
     public static NewListFragment newInstance(HeterogeneousArrayList<Object> listItems) {
         NewListFragment fragment = new NewListFragment();
         Bundle args = new Bundle();
@@ -108,10 +113,7 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
         if (getArguments() != null) {
-
             this.listItems = getArguments().getParcelable(ARG_PARAM1);
         }
     }
@@ -119,6 +121,9 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
+        MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWLIST;
+        setRetainInstance(true);
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_new_list, container, false);
 
@@ -133,7 +138,6 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
             public void onClick(View v) {
                 getFragmentManager().beginTransaction().remove(NewListFragment.this).commit();
                 getFragmentManager().popBackStack();
-
             }
         });
 
@@ -147,8 +151,15 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
         listItemAdapter.setOnDelListener(this);
         listItemAdapter.setOnStartDragListener(this);
         itemsRecyclerView.setAdapter(listItemAdapter);
-        itemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_TITLE, 0);
-        itemsRecyclerView.getRecycledViewPool().setMaxRecycledViews(ItemListAdapter.ITEM_TYPE_SEPARATOR, 0);
+        listItemAdapter.setActiveListItemAddedListener(new ItemListAdapter.ActiveListItemAddedListener() {
+            @Override
+            public void ActiveListItemAdded(int position) {
+                activeItemsRecyclerViewLayoutManager.scrollToPosition(position);
+                if (itemsRecyclerView.getChildAt(position) != null)
+                    itemsRecyclerView.getChildAt(position).requestFocus();
+
+            }
+        });
         int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
         int swipeFlags = ItemTouchHelper.END;
         ListItemTouchHelper callback = new ListItemTouchHelper(dragFlags, swipeFlags);
@@ -156,6 +167,11 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
         itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(itemsRecyclerView);
         return rootView;
+    }
+
+    @Override
+    protected void saveNote() {
+
     }
 
     @Override
@@ -206,23 +222,14 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         int width = 0;
         ImageView imageView;
+        int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
         if (resultCode == Activity.RESULT_OK) {
-            width = imageHolderLayout.getWidth();
-            imageHolderLayout.setMinimumHeight(width / 4);
-            imageView = new ImageView(getActivity());
-            imageView.setAdjustViewBounds(false);
-            imageView.setMaxWidth(width / 4);
-            imageView.setMaxHeight(width / 4);
-            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-            imageView.setBackgroundColor(getResources().getColor(R.color.accent_dark));
-            int THUMBSIZE = width / 4;
             if (requestCode == Utils.CAMERA_REQUEST) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 thumbs.add(thumb);
-                imageView.setImageBitmap(thumb);
-                imageHolderLayout.addView(imageView);
+                imageHolderLayout.addView(createImageView(thumb));
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
                 Bitmap photo = null;
@@ -234,17 +241,11 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
                 bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 thumbs.add(thumb);
-                imageView.setImageBitmap(thumb);
-                imageHolderLayout.addView(imageView);
+                imageHolderLayout.addView(createImageView(thumb));
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
                 System.out.println("Clip Data:" + data.getClipData());
                 for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
-                    imageView = new ImageView(getActivity());
-                    imageView.setAdjustViewBounds(false);
-                    imageView.setMaxWidth(width / 4);
-                    imageView.setMaxHeight(width / 4);
-                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
                     ClipData.Item item = data.getClipData().getItemAt(i);
                     InputStream is = null;
                     try {
@@ -256,10 +257,22 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
                     bitmaps.add(photo);
                     Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                     thumbs.add(thumb);
-                    imageView.setImageBitmap(thumb);
-                    imageHolderLayout.addView(imageView);
+                    imageHolderLayout.addView(createImageView(thumb));
                 }
             }
+            //Write any images to disk asynchronously
+            WriteFileTask eft = new WriteFileTask(this.getActivity()) {
+                @Override
+                public void onResponseReceived(Object obj) {
+                    fileNames = (ArrayList<String>) obj;
+                    System.out.println("File Names: " + fileNames.toString());
+                    imageWrittenFlag = true;
+                }
+            };
+            //execute the task
+            Bitmap[] params = new Bitmap[bitmaps.size()];
+            params = bitmaps.toArray(params);
+            eft.execute(params);
         }
     }
 
@@ -268,4 +281,28 @@ public class NewListFragment extends android.app.Fragment implements ListItemEdi
         itemTouchHelper.startDrag(viewHolder);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("dataset", getListItemAdapter().getDataSet());
+        outState.putSerializable("bitmap_files", fileNames);
+
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            listItems = savedInstanceState.getParcelable("dataset");
+            fileNames = (ArrayList<String>) savedInstanceState.getSerializable("bitmap_files");
+            for (String name : fileNames) {
+                new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
+                    @Override
+                    public void onCompleted(Bitmap bmp) {
+                        imageHolderLayout.addView(createImageView(bmp));
+                    }
+                }.execute(name);
+            }
+        }
+    }
 }

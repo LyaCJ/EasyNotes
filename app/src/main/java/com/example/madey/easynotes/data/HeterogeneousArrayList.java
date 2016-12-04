@@ -18,17 +18,6 @@ import java.util.HashMap;
 
 public class HeterogeneousArrayList<E extends Object> implements Parcelable {
 
-    /* All Objects will be stored within this delegate.*/
-    private ArrayList<E> delegate;
-
-    /*HashSet for counters*/
-    private HashMap<Object, Integer> counters;
-
-    public HeterogeneousArrayList() {
-        delegate = new ArrayList<>();
-        counters = new HashMap<>(5);
-    }
-
     public static final Parcelable.Creator<HeterogeneousArrayList> CREATOR
             = new Parcelable.Creator<HeterogeneousArrayList>() {
         public HeterogeneousArrayList createFromParcel(Parcel in) {
@@ -39,6 +28,15 @@ public class HeterogeneousArrayList<E extends Object> implements Parcelable {
             return new HeterogeneousArrayList[size];
         }
     };
+    /* All Objects will be stored within this delegate.*/
+    private ArrayList<E> delegate;
+    /*HashSet for counters*/
+    private HashMap<Object, Integer> counters;
+
+    public HeterogeneousArrayList() {
+        delegate = new ArrayList<>();
+        counters = new HashMap<>(5);
+    }
 
     private HeterogeneousArrayList(Parcel in) {
         delegate = in.readArrayList(null);
@@ -92,4 +90,6 @@ public class HeterogeneousArrayList<E extends Object> implements Parcelable {
         dest.writeList(delegate);
         dest.writeMap(counters);
     }
+
+
 }
