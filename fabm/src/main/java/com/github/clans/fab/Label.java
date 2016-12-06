@@ -46,6 +46,26 @@ public class Label extends TextView {
     private Animation mShowAnimation;
     private Animation mHideAnimation;
     private boolean mUsingStyle;
+    GestureDetector mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            onActionDown();
+            if (mFab != null) {
+                mFab.onActionDown();
+            }
+            return super.onDown(e);
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            onActionUp();
+            if (mFab != null) {
+                mFab.onActionUp();
+            }
+            return super.onSingleTapUp(e);
+        }
+    });
     private boolean mHandleVisibilityChanges = true;
 
     public Label(Context context) {
@@ -273,12 +293,12 @@ public class Label extends TextView {
         mUsingStyle = usingStyle;
     }
 
-    void setHandleVisibilityChanges(boolean handle) {
-        mHandleVisibilityChanges = handle;
-    }
-
     boolean isHandleVisibilityChanges() {
         return mHandleVisibilityChanges;
+    }
+
+    void setHandleVisibilityChanges(boolean handle) {
+        mHandleVisibilityChanges = handle;
     }
 
     @Override
@@ -303,27 +323,6 @@ public class Label extends TextView {
         mGestureDetector.onTouchEvent(event);
         return super.onTouchEvent(event);
     }
-
-    GestureDetector mGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-            onActionDown();
-            if (mFab != null) {
-                mFab.onActionDown();
-            }
-            return super.onDown(e);
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            onActionUp();
-            if (mFab != null) {
-                mFab.onActionUp();
-            }
-            return super.onSingleTapUp(e);
-        }
-    });
 
     private class Shadow extends Drawable {
 

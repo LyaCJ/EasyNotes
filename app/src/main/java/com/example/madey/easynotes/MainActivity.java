@@ -17,8 +17,13 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static FRAGMENTS CURRENT_FRAGMENT = FRAGMENTS.MAIN;
+
     private MainFragment mf;
     private List<Object> notes = new ArrayList<>(5);
+
+    public enum FRAGMENTS {
+        MAIN, NEWNOTE, NEWLIST, NEWAUDIO, SEARCH
+    }
 
     public List<Object> getNotes() {
         return notes;
@@ -65,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
             mf.getmAdapter().notifyItemRangeInserted(0, notes.size());
             mf.getmRecyclerView().setVisibility(View.VISIBLE);
             ((View) mf.getmRecyclerView().getParent()).findViewById(R.id.empty_view).setVisibility(View.GONE);
-            System.out.println("Instance Resored: " + mf.getmAdapter().getItemCount());
+            System.out.println("Instance Restored: " + mf.getmAdapter().getItemCount());
         }
 
 
@@ -86,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-
         return true;
     }
 
@@ -108,6 +112,4 @@ public class MainActivity extends AppCompatActivity {
         outState.putSerializable("notes", (ArrayList<Object>) notes);
         outState.putSerializable("curr_fragment", CURRENT_FRAGMENT);
     }
-
-    public enum FRAGMENTS {MAIN, NEWNOTE, NEWLIST, NEWAUDIO, SEARCH}
 }

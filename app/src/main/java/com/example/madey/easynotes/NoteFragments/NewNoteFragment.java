@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
@@ -40,7 +41,8 @@ public class NewNoteFragment extends NoteFragment {
 
     private LinearLayout imageHolderLayout;
 
-    private ArrayList<String> fileNames = new ArrayList<>();
+    private ArrayList<Uri> fileUris = new ArrayList<>();
+    private ArrayList<Bitmap> thumbs=new ArrayList<>();
 
     private boolean imageWrittenFlag = false;
 
@@ -123,23 +125,26 @@ public class NewNoteFragment extends NoteFragment {
 
     @Override
     protected void saveNote() {
-
+        //check storage permissions on the main thread.
         Utils.verifyStoragePermissions(getActivity());
-        EditText title= (EditText) getView().findViewById(R.id.editText);
-        EditText content= (EditText) getView().findViewById(R.id.editText2);
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0) {
+        EditText title = (EditText) getView().findViewById(R.id.editText);
+        EditText content = (EditText) getView().findViewById(R.id.editText2);
+        //Validate note if it's worth saving.
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileUris.size() == 0) {
             Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
             return;
         }
-        final SimpleNoteDataObject sndo=new SimpleNoteDataObject(title.getText().toString(),content.getText().toString());
+        //create a data object holding this note.
+        final SimpleNoteDataObject sndo = new SimpleNoteDataObject(title.getText().toString(), content.getText().toString());
         Calendar c = Calendar.getInstance();
+        //date of creation as long millsiseconds.
         if (sndo.getCreationDate() == 0) {
             sndo.setCreationDate(System.currentTimeMillis());
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
-        sndo.setImagePath(fileNames);
-        ((MainActivity)getActivity()).getNotes().add(0,sndo);
-
+        sndo.setImagePath(fileUris);
+        // we will add the note once it is written successfully in SQLIte.
+        //((MainActivity) getActivity()).getNotes().add(0, sndo);
         //write note asynchronously to SQLite
         WriteSimpleNoteFilesTask wft = new WriteSimpleNoteFilesTask(getActivity()) {
             @Override
@@ -160,33 +165,39 @@ public class NewNoteFragment extends NoteFragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        List<Bitmap> bitmaps = new ArrayList<>();
         List<Bitmap> thumbs = new ArrayList<>();
         imageWrittenFlag = false;
         if (resultCode == Activity.RESULT_OK) {
             int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
+            //images from camera should be written to external/internal storage, and a Uri should be retrieved.
+            //As soon as an image is captured, write it to disk asynchronously. Generate the thumb asap.
+            //image uri won't be available until the bitmap is written to the internal storage. For that, temporarily store
+            //the thumbnail in a list and show it post rotation. When the Uri is available, we will remove the thumb from
+            //the list and generate thumbnails for subsequent rotations using the Uri available in the fileUris list.
+            //PS1: Need to make Thumbnail generation asynchronous? Maybe??.
+
             if (requestCode == Utils.CAMERA_REQUEST) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
-                bitmaps.add(photo);
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-                thumbs.add(thumb);
                 imageHolderLayout.addView(createImageView(thumb));
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
                 Bitmap photo = null;
                 try {
                     photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
+                    //save the Uri from data.getData into list of Uris
+                    fileUris.add(data.getData());
                 } catch (FileNotFoundException e) {
                     System.out.println("FileNotFoundException: " + e.getMessage());
                 }
-                bitmaps.add(photo);
+                //extracting thumbnail on main thread
                 Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-                thumbs.add(thumb);
                 imageHolderLayout.addView(createImageView(thumb));
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
                 System.out.println("Clip Data:" + data.getClipData());
-                for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
+                //multiple images from gallery
+                for (int i = 0; bitmaps.size() < 4 && i < data.getClipData().getItemCount(); i++) {
                     ClipData.Item item = data.getClipData().getItemAt(i);
                     InputStream is = null;
                     try {
@@ -201,12 +212,12 @@ public class NewNoteFragment extends NoteFragment {
                     imageHolderLayout.addView(createImageView(thumb));
                 }
             }
-            //Write any images to disk asynchronously
+            //Write any images captured using camera to disk asynchronously
             WriteFileTask eft = new WriteFileTask(this.getActivity()) {
                 @Override
                 public void onResponseReceived(Object obj) {
-                    fileNames = (ArrayList<String>) obj;
-                    System.out.println("File Names: " + fileNames.toString());
+                    fileUris = (ArrayList<Uri>) obj;
+                    System.out.println("File Names: " + fileUris.toString());
                     imageWrittenFlag = true;
                 }
             };
@@ -220,24 +231,23 @@ public class NewNoteFragment extends NoteFragment {
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("bitmap_files", fileNames);
+        outState.putSerializable("bitmap_files", fileUris);
 
     }
-
 
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            fileNames = (ArrayList<String>) savedInstanceState.getSerializable("bitmap_files");
-            for (String name : fileNames) {
+            fileUris = (ArrayList<Uri>) savedInstanceState.getParcelable("bitmap_files");
+            for (Uri uri : fileUris) {
                 new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                     @Override
                     public void onCompleted(Bitmap bmp) {
                         imageHolderLayout.addView(createImageView(bmp));
                     }
-                }.execute(name);
+                }.execute(uri);
             }
         }
     }

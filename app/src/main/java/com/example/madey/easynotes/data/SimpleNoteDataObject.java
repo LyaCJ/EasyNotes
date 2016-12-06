@@ -1,6 +1,7 @@
 package com.example.madey.easynotes.data;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -33,7 +34,8 @@ public class SimpleNoteDataObject implements Parcelable {
     //private transient boolean dataLoaded = false;
     //private transient boolean imageLoaded = false;
     //private transient ArrayList<Bitmap> imageThumbs = new ArrayList<>();
-    private ArrayList<String> imagePath = new ArrayList<>();
+    private ArrayList<Uri> imagePath = new ArrayList<>();
+
     public SimpleNoteDataObject(String title, String content) {
 
         this.title = title;
@@ -99,11 +101,11 @@ public class SimpleNoteDataObject implements Parcelable {
         this.id = id;
     }
 
-    public ArrayList<String> getImagePath() {
+    public ArrayList<Uri> getImagePath() {
         return imagePath;
     }
 
-    public void setImagePath(ArrayList<String> imagePath) {
+    public void setImagePath(ArrayList<Uri> imagePath) {
         this.imagePath = imagePath;
     }
 

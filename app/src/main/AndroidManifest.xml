@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.madey.easynotes">
-    <uses-feature android:name="android.hardware.camera" android:required="false"></uses-feature>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18"/>
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false"></uses-feature>
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
 
     <application
         android:allowBackup="true"
@@ -13,7 +19,8 @@
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
 
         >
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode">
             <!--android:screenOrientation="portrait"-->
             <intent-filter>

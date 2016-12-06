@@ -2,8 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/pictures_holder"
@@ -12,9 +11,8 @@
         android:layout_gravity="center|bottom"
         android:background="@color/Transparent"
         android:gravity="start"
-        android:orientation="horizontal"
-        >
-    </LinearLayout>
+        android:orientation="horizontal"></LinearLayout>
+
     <EditText
         android:id="@+id/editText"
         android:layout_width="match_parent"
@@ -28,24 +26,23 @@
         android:minLines="1"
         android:padding="10dp"
         android:singleLine="true"
-        android:textStyle="bold"
-        />
+        android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/editText2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/editText"
-                android:background="@color/Transparent"
-                android:ems="10"
-                android:gravity="top"
-                android:hint="@string/content"
-                android:inputType="textMultiLine"
-                android:linksClickable="true"
-                android:minLines="20"
-                android:padding="10dp"
-                android:scrollIndicators="top"
-                android:textAlignment="viewStart" />
+    <EditText
+        android:id="@+id/editText2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editText"
+        android:background="@color/Transparent"
+        android:ems="10"
+        android:gravity="top"
+        android:hint="@string/content"
+        android:inputType="textMultiLine"
+        android:linksClickable="true"
+        android:minLines="20"
+        android:padding="10dp"
+        android:scrollIndicators="top"
+        android:textAlignment="viewStart" />
 
 
 </RelativeLayout>

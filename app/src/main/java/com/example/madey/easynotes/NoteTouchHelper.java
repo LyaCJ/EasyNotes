@@ -13,9 +13,9 @@ public class NoteTouchHelper extends ItemTouchHelper.SimpleCallback {
     /**
      * Constructor
      */
-    public NoteTouchHelper(MainFragmentAdapter adapter){
-        super(ItemTouchHelper.LEFT , ItemTouchHelper.RIGHT);
-        mainFragmentAdapter=adapter;
+    public NoteTouchHelper(MainFragmentAdapter adapter) {
+        super(ItemTouchHelper.LEFT, ItemTouchHelper.RIGHT);
+        mainFragmentAdapter = adapter;
 
     }
 

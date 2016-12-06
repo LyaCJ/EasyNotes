@@ -2,31 +2,29 @@
 
     xmlns:tools="http://schemas.android.com/tools"
 
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     tools:context="com.example.madey.easynotes.NoteFragments.NewListFragment"
 
     >
 
-        <LinearLayout
-            android:id="@+id/pictures_holder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|bottom"
-            android:background="@color/Transparent"
-            android:contextClickable="false"
-            android:focusableInTouchMode="false"
-            android:gravity="start"
-            android:orientation="horizontal"></LinearLayout>
+    <LinearLayout
+        android:id="@+id/pictures_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:background="@color/Transparent"
+        android:contextClickable="false"
+        android:focusableInTouchMode="false"
+        android:gravity="start"
+        android:orientation="horizontal"></LinearLayout>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/activeItemsList"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/Transparent"></android.support.v7.widget.RecyclerView>
-
-
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/activeItemsList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/Transparent"></android.support.v7.widget.RecyclerView>
 
 
-    </LinearLayout>
+</LinearLayout>

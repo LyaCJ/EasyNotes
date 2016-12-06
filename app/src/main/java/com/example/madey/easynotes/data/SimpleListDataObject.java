@@ -11,6 +11,16 @@ import java.util.List;
  * Created by madey on 8/6/2016.
  */
 public class SimpleListDataObject implements Parcelable {
+    public static final Parcelable.Creator<SimpleListDataObject> CREATOR
+            = new Parcelable.Creator<SimpleListDataObject>() {
+        public SimpleListDataObject createFromParcel(Parcel in) {
+            return new SimpleListDataObject(in);
+        }
+
+        public SimpleListDataObject[] newArray(int size) {
+            return new SimpleListDataObject[size];
+        }
+    };
     private String title;
     private List<String> activeItems;
     private List<String> doneItems;
@@ -23,6 +33,17 @@ public class SimpleListDataObject implements Parcelable {
         this.doneItems = done;
     }
 
+    private SimpleListDataObject(Parcel in) {
+        title = in.readString();
+        activeItems = new ArrayList<>();
+        doneItems = new ArrayList<>();
+        in.readList(activeItems, null);
+        in.readList(doneItems, null);
+        lastModifiedDate = (Date) in.readSerializable();
+        creationDate = (Date) in.readSerializable();
+
+    }
+
     public String getTitle() {
         return title;
     }
@@ -30,7 +51,6 @@ public class SimpleListDataObject implements Parcelable {
     public void setTitle(String title) {
         this.title = title;
     }
-
 
     public Date getCreationDate() {
         return creationDate;
@@ -46,28 +66,6 @@ public class SimpleListDataObject implements Parcelable {
 
     public void setLastModifiedDate(Date lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
-    }
-
-    public static final Parcelable.Creator<SimpleListDataObject> CREATOR
-            = new Parcelable.Creator<SimpleListDataObject>() {
-        public SimpleListDataObject createFromParcel(Parcel in) {
-            return new SimpleListDataObject(in);
-        }
-
-        public SimpleListDataObject[] newArray(int size) {
-            return new SimpleListDataObject[size];
-        }
-    };
-
-    private SimpleListDataObject(Parcel in) {
-        title = in.readString();
-        activeItems = new ArrayList<>();
-        doneItems = new ArrayList<>();
-        in.readList(activeItems, null);
-        in.readList(doneItems, null);
-        lastModifiedDate = (Date) in.readSerializable();
-        creationDate = (Date) in.readSerializable();
-
     }
 
     @Override
@@ -87,30 +85,6 @@ public class SimpleListDataObject implements Parcelable {
 
 
     public static class ListTitleDataObject implements Parcelable {
-        String title = new String();
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public ListTitleDataObject() {
-
-        }
-
-        @Override
-        public String toString() {
-            return title;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
         public static final Parcelable.Creator<ListTitleDataObject> CREATOR
                 = new Parcelable.Creator<ListTitleDataObject>() {
             public ListTitleDataObject createFromParcel(Parcel in) {
@@ -121,9 +95,32 @@ public class SimpleListDataObject implements Parcelable {
                 return new ListTitleDataObject[size];
             }
         };
+        String title = new String();
+
+        public ListTitleDataObject() {
+
+        }
 
         private ListTitleDataObject(Parcel in) {
             title = in.readString();
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        @Override
+        public String toString() {
+            return title;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
         }
 
         @Override

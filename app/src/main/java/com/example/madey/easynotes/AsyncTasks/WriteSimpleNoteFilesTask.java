@@ -18,7 +18,7 @@ public abstract class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataO
     private Context ctx;
 
     public WriteSimpleNoteFilesTask(Context ctx) {
-        this.ctx=ctx;
+        this.ctx = ctx;
         //this.delegate=delegate;
     }
 
@@ -45,7 +45,7 @@ public abstract class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataO
 
         // Gets the data repository in write mode
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        for(SimpleNoteDataObject sndo:params) {
+        for (SimpleNoteDataObject sndo : params) {
 
 
 // Create a new map of values, where column names are the keys

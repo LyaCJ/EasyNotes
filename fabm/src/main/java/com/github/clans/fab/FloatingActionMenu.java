@@ -14,7 +14,6 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -105,10 +104,6 @@ public class FloatingActionMenu extends ViewGroup {
     private Context mLabelsContext;
     private String mMenuLabelText;
     private boolean mUsingMenuLabel;
-
-    public interface OnMenuToggleListener {
-        void onMenuToggle(boolean opened);
-    }
 
     public FloatingActionMenu(Context context) {
         this(context, null);
@@ -608,11 +603,11 @@ public class FloatingActionMenu extends ViewGroup {
         return super.onTouchEvent(event);
     }
 
-    /* ===== API methods ===== */
-
     public boolean isOpened() {
         return mMenuOpened;
     }
+
+    /* ===== API methods ===== */
 
     public void toggle(boolean animate) {
         if (isOpened()) {
@@ -752,6 +747,10 @@ public class FloatingActionMenu extends ViewGroup {
         mCloseAnimatorSet.setInterpolator(closeInterpolator);
     }
 
+    public boolean isAnimated() {
+        return mIsAnimated;
+    }
+
     /**
      * Sets whether open and close actions should be animated
      *
@@ -763,40 +762,36 @@ public class FloatingActionMenu extends ViewGroup {
         mCloseAnimatorSet.setDuration(animated ? ANIMATION_DURATION : 0);
     }
 
-    public boolean isAnimated() {
-        return mIsAnimated;
+    public int getAnimationDelayPerItem() {
+        return mAnimationDelayPerItem;
     }
 
     public void setAnimationDelayPerItem(int animationDelayPerItem) {
         mAnimationDelayPerItem = animationDelayPerItem;
     }
 
-    public int getAnimationDelayPerItem() {
-        return mAnimationDelayPerItem;
-    }
-
     public void setOnMenuToggleListener(OnMenuToggleListener listener) {
         mToggleListener = listener;
-    }
-
-    public void setIconAnimated(boolean animated) {
-        mIconAnimated = animated;
     }
 
     public boolean isIconAnimated() {
         return mIconAnimated;
     }
 
+    public void setIconAnimated(boolean animated) {
+        mIconAnimated = animated;
+    }
+
     public ImageView getMenuIconView() {
         return mImageToggle;
     }
 
-    public void setIconToggleAnimatorSet(AnimatorSet toggleAnimatorSet) {
-        mIconToggleSet = toggleAnimatorSet;
-    }
-
     public AnimatorSet getIconToggleAnimatorSet() {
         return mIconToggleSet;
+    }
+
+    public void setIconToggleAnimatorSet(AnimatorSet toggleAnimatorSet) {
+        mIconToggleSet = toggleAnimatorSet;
     }
 
     public void setMenuButtonShowAnimation(Animation showAnimation) {
@@ -916,11 +911,6 @@ public class FloatingActionMenu extends ViewGroup {
         mIsSetClosedOnTouchOutside = close;
     }
 
-    public void setMenuButtonColorNormal(int color) {
-        mMenuColorNormal = color;
-        mMenuButton.setColorNormal(color);
-    }
-
     public void setMenuButtonColorNormalResId(int colorResId) {
         mMenuColorNormal = getResources().getColor(colorResId);
         mMenuButton.setColorNormalResId(colorResId);
@@ -930,9 +920,9 @@ public class FloatingActionMenu extends ViewGroup {
         return mMenuColorNormal;
     }
 
-    public void setMenuButtonColorPressed(int color) {
-        mMenuColorPressed = color;
-        mMenuButton.setColorPressed(color);
+    public void setMenuButtonColorNormal(int color) {
+        mMenuColorNormal = color;
+        mMenuButton.setColorNormal(color);
     }
 
     public void setMenuButtonColorPressedResId(int colorResId) {
@@ -944,9 +934,9 @@ public class FloatingActionMenu extends ViewGroup {
         return mMenuColorPressed;
     }
 
-    public void setMenuButtonColorRipple(int color) {
-        mMenuColorRipple = color;
-        mMenuButton.setColorRipple(color);
+    public void setMenuButtonColorPressed(int color) {
+        mMenuColorPressed = color;
+        mMenuButton.setColorPressed(color);
     }
 
     public void setMenuButtonColorRippleResId(int colorResId) {
@@ -956,6 +946,11 @@ public class FloatingActionMenu extends ViewGroup {
 
     public int getMenuButtonColorRipple() {
         return mMenuColorRipple;
+    }
+
+    public void setMenuButtonColorRipple(int color) {
+        mMenuColorRipple = color;
+        mMenuButton.setColorRipple(color);
     }
 
     public void addMenuButton(FloatingActionButton fab) {
@@ -985,7 +980,7 @@ public class FloatingActionMenu extends ViewGroup {
 
     public void removeAllMenuButtons() {
         close(true);
-        
+
         List<FloatingActionButton> viewsToRemove = new ArrayList<>();
         for (int i = 0; i < getChildCount(); i++) {
             View v = getChildAt(i);
@@ -998,12 +993,12 @@ public class FloatingActionMenu extends ViewGroup {
         }
     }
 
-    public void setMenuButtonLabelText(String text) {
-        mMenuButton.setLabelText(text);
-    }
-
     public String getMenuButtonLabelText() {
         return mMenuLabelText;
+    }
+
+    public void setMenuButtonLabelText(String text) {
+        mMenuButton.setLabelText(text);
     }
 
     public void setOnMenuButtonClickListener(OnClickListener clickListener) {
@@ -1012,5 +1007,9 @@ public class FloatingActionMenu extends ViewGroup {
 
     public void setOnMenuButtonLongClickListener(OnLongClickListener longClickListener) {
         mMenuButton.setOnLongClickListener(longClickListener);
+    }
+
+    public interface OnMenuToggleListener {
+        void onMenuToggle(boolean opened);
     }
 }

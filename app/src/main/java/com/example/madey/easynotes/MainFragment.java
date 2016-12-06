@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MainFragment extends android.app.Fragment{
+public class MainFragment extends android.app.Fragment {
 
     private FloatingActionMenu menuRed;
     private FloatingActionButton fab1;
@@ -43,7 +43,7 @@ public class MainFragment extends android.app.Fragment{
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.fab_note:
-                    NewNoteFragment nnf=new NewNoteFragment();
+                    NewNoteFragment nnf = new NewNoteFragment();
                     getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
                     MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWNOTE;
 
@@ -115,14 +115,14 @@ public class MainFragment extends android.app.Fragment{
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
-            mRecyclerView = (RecyclerView) v.findViewById(R.id.main_recycler_view);
+        mRecyclerView = (RecyclerView) v.findViewById(R.id.main_recycler_view);
 
-            // use a linear layout manager
+        // use a linear layout manager
 
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this.getActivity()));
 
 
-            // specify an adapter (see also next example)
+        // specify an adapter (see also next example)
 
 
         mLayoutManager = new LinearLayoutManager(ctx);
@@ -151,9 +151,9 @@ public class MainFragment extends android.app.Fragment{
         mRecyclerView.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
             @Override
             public void onChildViewAttachedToWindow(View view) {
-                    mRecyclerView.setVisibility(View.VISIBLE);
-                    v.findViewById(R.id.empty_view).setVisibility(View.GONE);
-                }
+                mRecyclerView.setVisibility(View.VISIBLE);
+                v.findViewById(R.id.empty_view).setVisibility(View.GONE);
+            }
 
             @Override
             public void onChildViewDetachedFromWindow(View view) {

@@ -131,6 +131,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         // Inflate the layout for this fragment
         setHasOptionsMenu(true);
         Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+
         toolbar.setTitle("Create List");
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -142,7 +143,6 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         });
 
         imageHolderLayout = (LinearLayout) rootView.findViewById(R.id.pictures_holder);
-
         itemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
@@ -220,8 +220,6 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        int width = 0;
-        ImageView imageView;
         int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == Utils.CAMERA_REQUEST) {
@@ -245,7 +243,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
                 System.out.println("Clip Data:" + data.getClipData());
-                for (int i = 0; bitmaps.size() <= 4 && i < data.getClipData().getItemCount(); i++) {
+                for (int i = 0; bitmaps.size() < 4 && i < data.getClipData().getItemCount(); i++) {
                     ClipData.Item item = data.getClipData().getItemAt(i);
                     InputStream is = null;
                     try {

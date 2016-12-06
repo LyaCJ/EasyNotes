@@ -29,8 +29,7 @@
         android:paddingRight="10dp"
         fab:menu_backgroundColor="#ccffffff"
         fab:menu_labels_ellipsize="end"
-        fab:menu_labels_singleLine="true"
-        >
+        fab:menu_labels_singleLine="true">
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/fab_list"

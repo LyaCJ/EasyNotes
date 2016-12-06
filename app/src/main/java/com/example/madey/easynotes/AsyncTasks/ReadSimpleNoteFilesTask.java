@@ -23,9 +23,8 @@ public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer,
 
     public ReadSimpleNoteFilesTask(Activity ctx) {
         //this.sndo=sndo;
-        this.ctx=ctx;
+        this.ctx = ctx;
     }
-
 
 
     /**

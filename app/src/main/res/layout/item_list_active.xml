@@ -13,17 +13,18 @@
         android:padding="0dp"
         android:scaleType="center"
         android:src="@drawable/ic_reorder_black_24dp" />
-<com.example.madey.easynotes.CustomViews.ListItemEditText xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/item_list"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/Transparent"
-    android:drawableLeft="@drawable/bullet"
-    android:drawablePadding="16dip"
-    android:inputType="textCapSentences|textMultiLine"
-    android:padding="5dip"
-    android:scrollHorizontally="false"
-    android:textSize="18sp">
 
-</com.example.madey.easynotes.CustomViews.ListItemEditText>
+    <com.example.madey.easynotes.CustomViews.ListItemEditText xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/item_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/Transparent"
+        android:drawableLeft="@drawable/bullet"
+        android:drawablePadding="16dip"
+        android:inputType="textCapSentences|textMultiLine"
+        android:padding="5dip"
+        android:scrollHorizontally="false"
+        android:textSize="18sp">
+
+    </com.example.madey.easynotes.CustomViews.ListItemEditText>
 </LinearLayout>
