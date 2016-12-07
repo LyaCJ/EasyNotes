@@ -1,5 +1,6 @@
 package com.example.madey.easynotes.data;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -21,50 +22,85 @@ public class SimpleListDataObject implements Parcelable {
             return new SimpleListDataObject[size];
         }
     };
-    private String title;
+
+    public SimpleListDataObject(){
+        activeItems=new ArrayList<>();
+        doneItems=new ArrayList<>();
+        fileNames=new ArrayList<>();
+    }
+
+    private SimpleListDataObject.ListTitleDataObject title;
+
+    public List<String> getActiveItems() {
+        return activeItems;
+    }
+
+    public void setActiveItems(List<String> activeItems) {
+        this.activeItems = activeItems;
+    }
+
+    public List<String> getDoneItems() {
+        return doneItems;
+    }
+
+    public void setDoneItems(List<String> doneItems) {
+        this.doneItems = doneItems;
+    }
+
+    public List<Uri> getFileNames() {
+        return fileNames;
+    }
+
+    public void setFileNames(List<Uri> fileNames) {
+        this.fileNames = fileNames;
+    }
+
     private List<String> activeItems;
     private List<String> doneItems;
-    private Date lastModifiedDate;
-    private Date creationDate;
+    private long lastModifiedDate;
+    private long creationDate;
+    private List<Uri> fileNames;
 
-    public SimpleListDataObject(String title, List<String> active, List<String> done) {
+    public SimpleListDataObject(SimpleListDataObject.ListTitleDataObject title, List<String> active, List<String> done) {
         this.title = title;
         this.activeItems = active;
         this.doneItems = done;
     }
 
     private SimpleListDataObject(Parcel in) {
-        title = in.readString();
+        title = (SimpleListDataObject.ListTitleDataObject) in.readParcelable(null);
         activeItems = new ArrayList<>();
         doneItems = new ArrayList<>();
         in.readList(activeItems, null);
         in.readList(doneItems, null);
-        lastModifiedDate = (Date) in.readSerializable();
-        creationDate = (Date) in.readSerializable();
+        lastModifiedDate = in.readLong();
+        creationDate = in.readLong();
+        fileNames=new ArrayList<>();
+        in.readList(fileNames,null);
 
     }
 
-    public String getTitle() {
+    public SimpleListDataObject.ListTitleDataObject getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(SimpleListDataObject.ListTitleDataObject title) {
         this.title = title;
     }
 
-    public Date getCreationDate() {
+    public long getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(long creationDate) {
         this.creationDate = creationDate;
     }
 
-    public Date getLastModifiedDate() {
+    public long getLastModifiedDate() {
         return lastModifiedDate;
     }
 
-    public void setLastModifiedDate(Date lastModifiedDate) {
+    public void setLastModifiedDate(long lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
     }
 
@@ -75,11 +111,12 @@ public class SimpleListDataObject implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(title);
+        dest.writeParcelable(title,flags);
         dest.writeList(activeItems);
         dest.writeList(doneItems);
-        dest.writeSerializable(lastModifiedDate);
-        dest.writeSerializable(creationDate);
+        dest.writeLong(lastModifiedDate);
+        dest.writeLong(creationDate);
+        dest.writeList(fileNames);
 
     }
 
@@ -97,8 +134,8 @@ public class SimpleListDataObject implements Parcelable {
         };
         String title = new String();
 
-        public ListTitleDataObject() {
-
+        public ListTitleDataObject(String title) {
+            this.title=title;
         }
 
         private ListTitleDataObject(Parcel in) {

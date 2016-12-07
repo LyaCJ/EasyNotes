@@ -52,7 +52,7 @@ public class MainFragment extends android.app.Fragment {
                     break;
                 case R.id.fab_list:
                     HeterogeneousArrayList<Object> asb = new HeterogeneousArrayList<>();
-                    asb.add(new SimpleListDataObject.ListTitleDataObject());
+                    asb.add(new SimpleListDataObject.ListTitleDataObject(new String()));
                     asb.add(new StringBuilder());
                     asb.add(new ItemListAdapter.ListSeparatorModel());
 

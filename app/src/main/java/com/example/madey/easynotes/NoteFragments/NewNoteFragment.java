@@ -64,7 +64,8 @@ public class NewNoteFragment extends NoteFragment {
             public void onClick(View v) {
                 getFragmentManager().popBackStack();
                 getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
-
+                //save note here.
+                saveNote();
             }
         });
         imageHolderLayout = (LinearLayout) v.findViewById(R.id.pictures_holder);

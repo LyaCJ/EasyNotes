@@ -22,6 +22,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
+import com.example.madey.easynotes.AsyncTasks.WriteSimpleListTask;
+import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
 import com.example.madey.easynotes.ListItemTouchHelper;
@@ -29,8 +31,11 @@ import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.data.HeterogeneousArrayList;
+import com.example.madey.easynotes.data.SimpleListDataObject;
+import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -120,7 +125,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_new_list, container, false);
 
-        //Menu Bar
+        // Menu Bar
         // Inflate the layout for this fragment
         setHasOptionsMenu(true);
         Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
@@ -165,7 +170,54 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
 
     @Override
     protected void saveNote() {
+        //check storage permissions on the main thread.
+        Utils.verifyStoragePermissions(getActivity());
+        final SimpleListDataObject sldo=new SimpleListDataObject();
+        SimpleListDataObject.ListTitleDataObject title = (SimpleListDataObject.ListTitleDataObject)listItems.get(0);
+        sldo.setTitle(title);
+        int i=1;
+        while(listItems.get(i) instanceof StringBuilder){
+            sldo.getActiveItems().add(listItems.get(i).toString());
+            i++;
+        }
+        i++;
+        while(listItems.get(i) instanceof String){
+            sldo.getActiveItems().add(listItems.get(i).toString());
+            i++;
+        }
+        sldo.setFileNames(fileUris);
 
+        //Validate note if it's worth saving.
+        if (title.getTitle().toString().length() == 0 && sldo.getActiveItems().size() == 0 &&
+                sldo.getDoneItems().size() == 0 && fileUris.size() == 0) {
+            Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+
+        Calendar c = Calendar.getInstance();
+        //date of creation as long millsiseconds.
+        if (sldo.getCreationDate() == 0) {
+            sldo.setCreationDate(System.currentTimeMillis());
+        }
+        sldo.setLastModifiedDate(System.currentTimeMillis());
+        // we will add the note once it is written successfully in SQLIte.
+        //((MainActivity) getActivity()).getNotes().add(0, sndo);
+        //write note asynchronously to SQLite
+        WriteSimpleListTask wft = new WriteSimpleListTask(getActivity()) {
+            @Override
+            public void onSaved(Boolean success) {
+                //Let the activity know the current fragment
+                if (success) {
+                    ((MainActivity) getActivity()).getNotes().add(0, sldo);
+                    Snackbar.make(getActivity().getCurrentFocus(), "Note Saved :)", Snackbar.LENGTH_SHORT).show();
+                } else {
+                    Snackbar.make(getActivity().getCurrentFocus(), "Error Saving Note :(", Snackbar.LENGTH_SHORT).show();
+                }
+                getActivity().getFragmentManager().popBackStack();
+                getActivity().getFragmentManager().beginTransaction().remove(NewListFragment.this).commit();
+            }
+        };
+        wft.execute(sldo);
     }
 
     @Override
