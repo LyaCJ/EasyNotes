@@ -3,6 +3,7 @@ package com.example.madey.easynotes.AsyncTasks;
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
@@ -83,7 +84,10 @@ public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer,
                 String content = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT));
                 long created = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED));
                 long modified = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED));
-                List<String> fileName = new ArrayList<String>(Arrays.asList(cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI)).split(",")));
+                ArrayList<Uri> fileUris = new ArrayList<>();
+                for (String s : Arrays.asList(cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI)).split(","))) {
+                    fileUris.add(Uri.parse(s));
+                }
 
                 //log id
                 //System.out.println("Str SIze: " + fileName.get(0).length());
@@ -93,7 +97,7 @@ public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer,
                 sndo.setId(itemId);
                 sndo.setCreationDate(created);
                 sndo.setLastModifiedDate(modified);
-                sndo.setImagePath((ArrayList<String>) fileName);
+                sndo.setImagePath(fileUris);
                 notes.add(sndo);
             }
             while (cursor.moveToNext());

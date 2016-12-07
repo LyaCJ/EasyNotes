@@ -1,12 +1,9 @@
 package com.example.madey.easynotes.NoteFragments;
 
-import android.app.Activity;
-import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Point;
-import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -21,12 +18,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
-import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
 import com.example.madey.easynotes.ListItemTouchHelper;
@@ -35,8 +30,6 @@ import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.data.HeterogeneousArrayList;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -54,7 +47,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
 
     private boolean imageWrittenFlag = false;
 
-    private ArrayList<String> fileNames = new ArrayList<>();
+    private ArrayList<Uri> fileUris = new ArrayList<>();
 
 
     private LinearLayout imageHolderLayout;
@@ -143,6 +136,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         });
 
         imageHolderLayout = (LinearLayout) rootView.findViewById(R.id.pictures_holder);
+        System.out.println("Holder Layoput is: " + imageHolderLayout);
         itemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
@@ -199,7 +193,6 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                 return true;
             case R.id.action_pictures:
                 if (imageHolderLayout.getChildCount() < 4) {
-                    Utils.verifyStoragePermissions(getActivity());
                     Intent intent = new Intent();
                     intent.setType("image/*");
                     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -217,62 +210,71 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                 return super.onOptionsItemSelected(item);
         }
     }
-
+/*
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
+        imageWrittenFlag = false;
         if (resultCode == Activity.RESULT_OK) {
+            int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
+            //images from camera should be written to external/internal storage, and a Uri should be retrieved.
+            //As soon as an image is captured, write it to disk asynchronously. Generate the thumb asap.
+            //image uri won't be available until the bitmap is written to the internal storage. For that, temporarily store
+            //the thumbnail in a list and show it post rotation. When the Uri is available, we will remove the thumb from
+            //the list and generate thumbnails for subsequent rotations using the Uri available in the fileUris list.
+            //PS1: Need to make Thumbnail generation asynchronous? Maybe??.
+
             if (requestCode == Utils.CAMERA_REQUEST) {
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
-                bitmaps.add(photo);
-                Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-                thumbs.add(thumb);
+                final Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
                 imageHolderLayout.addView(createImageView(thumb));
+                //write photo to disk, and rerieve URI
+                new WriteFileTask(getActivity()){
+                    @Override
+                    public void onResponseReceived(Object obj) {
+                        if(((List<Uri>)obj).size()>0){
+                            Snackbar.make(getActivity().getCurrentFocus(), "Captured Image saved!", Snackbar.LENGTH_SHORT).show();
+                            //add the Uri to the existing Uri list
+                            fileUris.addAll(((List<Uri>)obj));
+                            //remove the thumbnail from the bitmaps list
+                            thumbs.remove(thumb);
+                        }
+                        else
+                            Snackbar.make(getActivity().getCurrentFocus(), "Captured image not saved", Snackbar.LENGTH_SHORT).show();
+                    }
+                }.execute(photo);
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
-                Bitmap photo = null;
-                try {
-                    photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
-                } catch (FileNotFoundException e) {
-                    System.out.println("FileNotFoundException: " + e.getMessage());
-                }
-                bitmaps.add(photo);
-                Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-                thumbs.add(thumb);
-                imageHolderLayout.addView(createImageView(thumb));
+                //generate thumb asynchronously
+                new CreateThumbsTask(getActivity(), new Point(THUMBSIZE,THUMBSIZE)) {
+                    @Override
+                    public void onCompleted(ArrayList<Bitmap> bitmaps) {
+                        for(Bitmap bmp : bitmaps)
+                            imageHolderLayout.addView(createImageView(bmp));
+                    }
+                }.execute(data.getData());
+                //save the Uri from data.getData into list of Uris
+                fileUris.add(data.getData());
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
                 System.out.println("Clip Data:" + data.getClipData());
-                for (int i = 0; bitmaps.size() < 4 && i < data.getClipData().getItemCount(); i++) {
+                //multiple images from gallery
+                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
                     ClipData.Item item = data.getClipData().getItemAt(i);
-                    InputStream is = null;
-                    try {
-                        is = getActivity().getContentResolver().openInputStream(item.getUri());
-                    } catch (FileNotFoundException e) {
-                        System.out.println("Exception: " + e.getMessage());
-                    }
-                    Bitmap photo = BitmapFactory.decodeStream(is);
-                    bitmaps.add(photo);
-                    Bitmap thumb = ThumbnailUtils.extractThumbnail(photo, THUMBSIZE, THUMBSIZE);
-                    thumbs.add(thumb);
-                    imageHolderLayout.addView(createImageView(thumb));
+                    //generate thumb asynchronously
+                    new CreateThumbsTask(getActivity(), new Point(THUMBSIZE,THUMBSIZE)) {
+                        @Override
+                        public void onCompleted(ArrayList<Bitmap> bitmaps) {
+                            for(Bitmap bmp : bitmaps)
+                                imageHolderLayout.addView(createImageView(bmp));
+                        }
+                    }.execute(item.getUri());
+                    //save the Uri from data.getData into list of Uris
+                    fileUris.add(data.getData());
                 }
             }
-            //Write any images to disk asynchronously
-            WriteFileTask eft = new WriteFileTask(this.getActivity()) {
-                @Override
-                public void onResponseReceived(Object obj) {
-                    fileNames = (ArrayList<String>) obj;
-                    System.out.println("File Names: " + fileNames.toString());
-                    imageWrittenFlag = true;
-                }
-            };
-            //execute the task
-            Bitmap[] params = new Bitmap[bitmaps.size()];
-            params = bitmaps.toArray(params);
-            eft.execute(params);
         }
     }
+    */
 
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
@@ -280,10 +282,11 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("dataset", getListItemAdapter().getDataSet());
-        outState.putSerializable("bitmap_files", fileNames);
+        outState.putParcelableArrayList("bitmap_files", fileUris);
+        outState.putParcelableArrayList("bitmap_thumbs", thumbs);
 
     }
 
@@ -291,16 +294,23 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            listItems = savedInstanceState.getParcelable("dataset");
-            fileNames = (ArrayList<String>) savedInstanceState.getSerializable("bitmap_files");
-            for (String name : fileNames) {
+            fileUris = savedInstanceState.getParcelableArrayList("bitmap_files");
+            System.out.println("FileUris: " + fileUris);
+            for (Uri uri : fileUris) {
                 new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                     @Override
-                    public void onCompleted(Bitmap bmp) {
-                        imageHolderLayout.addView(createImageView(bmp));
+                    public void onCompleted(ArrayList<Bitmap> bitmaps) {
+                        for (Bitmap bmp : bitmaps)
+                            imageHolderLayout.addView(createImageView(bmp));
                     }
-                }.execute(name);
+                }.execute(uri);
             }
+            thumbs = savedInstanceState.getParcelableArrayList("bitmap_thumbs");
+            for (Bitmap bmp : thumbs)
+                imageHolderLayout.addView(createImageView(bmp));
+
+            listItems = savedInstanceState.getParcelable("dataset");
+
         }
     }
 }

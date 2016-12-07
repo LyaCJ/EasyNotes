@@ -3,6 +3,7 @@ package com.example.madey.easynotes.AsyncTasks;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 
@@ -16,7 +17,11 @@ import java.util.List;
  * Created by Madeyedexter on 26-11-2016.
  */
 
-public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<String>> {
+/**
+ * Writes Bitmaps to internal storage and return the Uri of the files written
+ */
+
+public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Uri>> {
     Context ctx;
 
     public WriteFileTask(Context ctx) {
@@ -27,18 +32,17 @@ public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Stri
     public abstract void onResponseReceived(Object obj);
 
     @Override
-    protected List<String> doInBackground(Bitmap... params) {
+    protected List<Uri> doInBackground(Bitmap... params) {
         FileOutputStream fos = null;
-        ArrayList<String> fileNames = null;
+        ArrayList<Uri> fileNames = new ArrayList<>();
         try {
-            fileNames = new ArrayList<>();
             for (Bitmap bmp : params) {
                 String fileName = "Image_" + System.currentTimeMillis() + ".png";
                 fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
                 bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
                 fos.flush();
                 fos.close();
-                fileNames.add(fileName);
+                fileNames.add(Uri.fromFile(ctx.getFileStreamPath(fileName)));
             }
         } catch (FileNotFoundException e) {
             Snackbar.make(((Activity) ctx).getCurrentFocus(), "Error Saving Images", Snackbar.LENGTH_SHORT);
@@ -56,7 +60,7 @@ public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Stri
     }
 
     @Override
-    protected void onPostExecute(List<String> strings) {
+    protected void onPostExecute(List<Uri> strings) {
         onResponseReceived(strings);
     }
 }

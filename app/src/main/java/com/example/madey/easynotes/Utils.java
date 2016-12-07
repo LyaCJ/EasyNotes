@@ -18,6 +18,7 @@ public final class Utils {
     public static final int CAMERA_REQUEST = 1088;
     public static final int PICTURE_REQUEST = 1188;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int REQUEST_MANAGE_DOCUMENTS = 2;
     public static Point dimension;
     public static int DEVICE_WIDTH;
     public static int COUNTER = 0;
@@ -33,6 +34,7 @@ public final class Utils {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+
 
     public static void init(Context ctx) {
         WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
@@ -64,6 +66,10 @@ public final class Utils {
                         PERMISSIONS_STORAGE,
                         REQUEST_EXTERNAL_STORAGE
                 );
+            }
+            int manageDocumentsPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.MANAGE_DOCUMENTS);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.MANAGE_DOCUMENTS}, REQUEST_MANAGE_DOCUMENTS);
             }
 
         }

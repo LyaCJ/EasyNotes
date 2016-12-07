@@ -191,6 +191,8 @@ public class MainFragment extends android.app.Fragment {
             }
         });
         menuRed.showMenuButton(true);
+        //check storage permissions on the main thread.
+        Utils.verifyStoragePermissions(getActivity());
         return v;
         //System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
     }
