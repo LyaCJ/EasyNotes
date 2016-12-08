@@ -80,6 +80,7 @@ public class MainFragment extends android.app.Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final MainActivity ctx = (MainActivity) this.getActivity();
+
         if (savedInstanceState == null) {
             ReadSimpleNoteFilesTask rsnft = new ReadSimpleNoteFilesTask(this.getActivity()) {
                 @Override
@@ -88,9 +89,11 @@ public class MainFragment extends android.app.Fragment {
                     //mRecyclerView.smoothScrollToPosition(0);
                     mAdapter.getMDataSet().addAll(obj);
                     mAdapter.notifyItemRangeInserted(0, obj.size());
-                    mRecyclerView.setVisibility(View.VISIBLE);
-                    //Will need to be changed if recycler view is nested inside something other than MainFragment
-                    ((View) mRecyclerView.getParent()).findViewById(R.id.empty_view).setVisibility(View.GONE);
+                    if (obj.size() > 0) {
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        //Will need to be changed if recycler view is nested inside something other than MainFragment
+                        ((View) mRecyclerView.getParent()).findViewById(R.id.empty_view).setVisibility(View.GONE);
+                    }
                 }
             };
             rsnft.execute();
@@ -191,8 +194,8 @@ public class MainFragment extends android.app.Fragment {
             }
         });
         menuRed.showMenuButton(true);
-        //check storage permissions on the main thread.
-        Utils.verifyStoragePermissions(getActivity());
+        //Utils.verifyStoragePermissions(getActivity());
+
         return v;
         //System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
     }

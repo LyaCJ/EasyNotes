@@ -118,6 +118,7 @@ public abstract class NoteFragment extends android.app.Fragment {
                 new CreateThumbsTask(getActivity(), new Point(THUMBSIZE, THUMBSIZE)) {
                     @Override
                     public void onCompleted(ArrayList<Bitmap> bitmaps) {
+                        System.out.println("Holder Layoput is: " + imageHolderLayout);
                         for (Bitmap bmp : bitmaps)
                             imageHolderLayout.addView(createImageView(bmp));
                     }

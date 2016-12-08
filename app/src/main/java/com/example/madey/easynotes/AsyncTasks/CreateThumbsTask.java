@@ -45,6 +45,7 @@ public abstract class CreateThumbsTask extends AsyncTask<Uri, Integer, ArrayList
     private Bitmap createThumbFromUri(Uri uri) {
         System.out.println("Uri is : " + uri);
         InputStream is = null;
+
         try {
             is = ctx.getContentResolver().openInputStream(uri);
 
