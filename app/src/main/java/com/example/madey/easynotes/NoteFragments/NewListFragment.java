@@ -197,6 +197,10 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                 // do s.th.
                 return true;
             case R.id.action_camera:
+                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, Utils.CAMERA_REQUEST);
+                return true;
+            case R.id.action_pictures:
                 Utils.verifyStoragePermissions(getActivity());
                 Utils.verifyManageDocumentsPermissions(getActivity());
                 Intent intent = null;
