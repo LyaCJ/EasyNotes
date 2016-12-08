@@ -26,6 +26,7 @@ public abstract class WriteSimpleListTask extends AsyncTask<SimpleListDataObject
 
     @Override
     protected Boolean doInBackground(SimpleListDataObject... params) {
+
         return null;
     }
 }

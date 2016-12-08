@@ -19,6 +19,9 @@ public class NoteReaderContract {
         public static final String COLUMN_NAME_CREATED = "created";
         public static final String COLUMN_NAME_MODIFIED = "modified";
         public static final String COLUMN_NAME_IMGURI = "imguri";
+        public static final String COLUMN_NAME_AUDIOURI = "audiouri";
+        public static final String COLUMN_NAME_NOTETYPE = "notetype";
+
         public static final String SQL_DELETE_ENTRIES =
                 "DROP TABLE IF EXISTS " + NoteEntry.TABLE_NAME;
         private static final String TEXT_TYPE = " TEXT";

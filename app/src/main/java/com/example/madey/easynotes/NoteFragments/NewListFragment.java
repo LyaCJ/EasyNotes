@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
+import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleListTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
@@ -40,6 +41,7 @@ import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -191,7 +193,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         }
         i++;
         while(listItems.get(i) instanceof String){
-            sldo.getActiveItems().add(listItems.get(i).toString());
+            sldo.getDoneItems().add(listItems.get(i).toString());
             i++;
         }
         sldo.setFileNames(fileUris);
