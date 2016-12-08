@@ -21,10 +21,6 @@ public class MainActivity extends AppCompatActivity {
     private MainFragment mf;
     private List<Object> notes = new ArrayList<>(5);
 
-    public enum FRAGMENTS {
-        MAIN, NEWNOTE, NEWLIST, NEWAUDIO, SEARCH
-    }
-
     public List<Object> getNotes() {
         return notes;
     }
@@ -33,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Utils.init(this);
+        //check storage permissions on the main thread.
+        //Utils.verifyStoragePermissions(this);
+
         setContentView(R.layout.activity_main);
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -42,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
             mf = new MainFragment();
             getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
         } else {
+
             CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
             System.out.println("MainActivity: " + CURRENT_FRAGMENT);
             switch (CURRENT_FRAGMENT) {
@@ -111,5 +111,9 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putSerializable("notes", (ArrayList<Object>) notes);
         outState.putSerializable("curr_fragment", CURRENT_FRAGMENT);
+    }
+
+    public enum FRAGMENTS {
+        MAIN, NEWNOTE, NEWLIST, NEWAUDIO, SEARCH
     }
 }

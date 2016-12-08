@@ -7,7 +7,9 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -152,10 +154,15 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         itemsRecyclerView.setAdapter(listItemAdapter);
         listItemAdapter.setActiveListItemAddedListener(new ItemListAdapter.ActiveListItemAddedListener() {
             @Override
-            public void ActiveListItemAdded(int position) {
+            public void ActiveListItemAdded(final int position) {
                 activeItemsRecyclerViewLayoutManager.scrollToPosition(position);
-                if (itemsRecyclerView.getChildAt(position) != null)
-                    itemsRecyclerView.getChildAt(position).requestFocus();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (itemsRecyclerView.getChildAt(position) != null)
+                            itemsRecyclerView.getChildAt(position).requestFocus();
+                    }
+                }, 100);
 
             }
         });
@@ -190,21 +197,21 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                 // do s.th.
                 return true;
             case R.id.action_camera:
-                if (imageHolderLayout.getChildCount() < 4) {
-                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, Utils.CAMERA_REQUEST);
-                } else
-                    Snackbar.make(getView(), "Image Limit Reached", Snackbar.LENGTH_SHORT).show();
-                return true;
-            case R.id.action_pictures:
-                if (imageHolderLayout.getChildCount() < 4) {
-                    Intent intent = new Intent();
+                Utils.verifyStoragePermissions(getActivity());
+                Utils.verifyManageDocumentsPermissions(getActivity());
+                Intent intent = null;
+                if (Build.VERSION.SDK_INT < 19) {
+                    intent = new Intent();
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
                     intent.setType("image/*");
                     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(Intent.createChooser(intent, "Select Picture"), Utils.PICTURE_REQUEST);
-                } else
-                    Snackbar.make(getView(), "Image Limit Reached", Snackbar.LENGTH_SHORT).show();
+                } else {
+                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/*");
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                }
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), Utils.PICTURE_REQUEST);
                 return true;
             case R.id.action_done:
 
