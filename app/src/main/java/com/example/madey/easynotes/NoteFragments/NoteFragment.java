@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +34,7 @@ public abstract class NoteFragment extends android.app.Fragment {
 
     protected LinearLayout imageHolderLayout;
 
-    protected ArrayList<Uri> fileUris = new ArrayList<>();
+    protected ArrayList<String> fileNames = new ArrayList<>();
     protected ArrayList<Bitmap> thumbs = new ArrayList<>();
 
     public NoteFragment() {
@@ -87,11 +89,11 @@ public abstract class NoteFragment extends android.app.Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
-            //images from camera should be written to external/internal storage, and a Uri should be retrieved.
+            //images from camera should be written to external/internal storage, and a file name should be retrieved.
             //As soon as an image is captured, write it to disk asynchronously. Generate the thumb asap.
             //image uri won't be available until the bitmap is written to the internal storage. For that, temporarily store
             //the thumbnail in a list and show it post rotation. When the Uri is available, we will remove the thumb from
-            //the list and generate thumbnails for subsequent rotations using the Uri available in the fileUris list.
+            //the list and generate thumbnails for subsequent rotations using the Uri available in the fileNames list.
             //PS1: Need to make Thumbnail generation asynchronous? Maybe??.
 
             if (requestCode == Utils.CAMERA_REQUEST) {
@@ -102,10 +104,10 @@ public abstract class NoteFragment extends android.app.Fragment {
                 new WriteFileTask(getActivity()) {
                     @Override
                     public void onResponseReceived(Object obj) {
-                        if (((List<Uri>) obj).size() > 0) {
+                        if (((List<String>) obj).size() > 0) {
                             Snackbar.make(getActivity().getCurrentFocus(), "Captured Image saved!", Snackbar.LENGTH_SHORT).show();
                             //add the Uri to the existing Uri list
-                            fileUris.addAll(((List<Uri>) obj));
+                            fileNames.addAll(((List<String>) obj));
                             //remove the thumbnail from the bitmaps list
                             thumbs.remove(thumb);
                         } else
@@ -114,7 +116,21 @@ public abstract class NoteFragment extends android.app.Fragment {
                 }.execute(photo);
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
+                Bitmap photo = null;
+                try {
+                    photo = BitmapFactory.decodeStream(getActivity().getContentResolver().openInputStream(data.getData()));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
                 //generate thumb asynchronously
+                new WriteFileTask(getActivity()) {
+                    @Override
+                    public void onResponseReceived(Object obj) {
+                        Snackbar.make(getActivity().getCurrentFocus(), "Image Saved!", Snackbar.LENGTH_SHORT).show();
+                        //add the Uri to the existing Uri list
+                        fileNames.addAll(((List<String>) obj));
+                    }
+                }.execute();
                 new CreateThumbsTask(getActivity(), new Point(THUMBSIZE, THUMBSIZE)) {
                     @Override
                     public void onCompleted(ArrayList<Bitmap> bitmaps) {
@@ -124,7 +140,7 @@ public abstract class NoteFragment extends android.app.Fragment {
                     }
                 }.execute(data.getData());
                 //save the Uri from data.getData into list of Uris
-                fileUris.add(data.getData());
+
             }
             if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
                 System.out.println("Clip Data:" + data.getClipData());
@@ -140,7 +156,7 @@ public abstract class NoteFragment extends android.app.Fragment {
                         }
                     }.execute(item.getUri());
                     //save the Uri from data.getData into list of Uris
-                    fileUris.add(item.getUri());
+                    //fileNames.add(item.getUri());
                 }
             }
         }

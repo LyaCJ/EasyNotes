@@ -7,7 +7,6 @@ import android.graphics.Point;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.annotation.Nullable;
 
 import com.example.madey.easynotes.Utils;
 
@@ -20,7 +19,7 @@ import java.util.ArrayList;
  * Created by Madeyedexter on 26-11-2016.
  */
 
-public abstract class CreateThumbsTask extends AsyncTask<Uri, Integer, ArrayList<Bitmap>> {
+public abstract class CreateThumbsTask extends AsyncTask<Object, Integer, ArrayList<Bitmap>> {
     Context ctx;
     Point dim;
 
@@ -33,16 +32,68 @@ public abstract class CreateThumbsTask extends AsyncTask<Uri, Integer, ArrayList
     public abstract void onCompleted(ArrayList<Bitmap> bmp);
 
     @Override
-    protected ArrayList<Bitmap> doInBackground(Uri... params) {
+    protected ArrayList<Bitmap> doInBackground(Object... params) {
         ArrayList<Bitmap> thumbs = new ArrayList<>(5);
-        for (Uri uri : params)
-            thumbs.add(createThumbFromUri(uri));
+        for (Object name : params) {
+            if (name instanceof Uri) {
+                thumbs.add(createThumb((Uri) name));
+            }
+            if (name instanceof String) {
+                thumbs.add(createThumb((String) name));
+            }
+        }
         return thumbs;
     }
 
 
-    @Nullable
-    private Bitmap createThumbFromUri(Uri uri) {
+    private Bitmap createThumb(String fileName) {
+        InputStream is = null;
+
+        try {
+            is = Utils.getFileInputStream(ctx, fileName);
+
+            BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+            bitmapOptions.inJustDecodeBounds = true; // obtain the size of the image, without loading it in memory
+
+
+            BitmapFactory.decodeStream(is, null, bitmapOptions);
+
+            // find the best scaling factor for the desired dimensions
+            int desiredWidth = Utils.DEVICE_WIDTH / 4;
+            int desiredHeight = Utils.DEVICE_WIDTH / 4;
+            float widthScale = (float) bitmapOptions.outWidth / desiredWidth;
+            float heightScale = (float) bitmapOptions.outHeight / desiredHeight;
+            float scale = Math.min(widthScale, heightScale);
+            int sampleSize = 1;
+            while (sampleSize < scale) {
+                sampleSize *= 2;
+            }
+            bitmapOptions.inSampleSize = sampleSize; // this value must be a power of 2,
+            // this is why you can not have an image scaled as you would like to have
+            bitmapOptions.inJustDecodeBounds = false; // now we want to load the image
+
+            // Let's load just the part of the image necessary for creating the thumbnail, not the whole image
+            is.close();
+            is = Utils.getFileInputStream(ctx, fileName);
+            Bitmap thumbnail = BitmapFactory.decodeStream(is, null, bitmapOptions);
+            thumbnail = ThumbnailUtils.extractThumbnail(thumbnail, Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4);
+            return thumbnail;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (is != null)
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+        return null;
+    }
+
+    private Bitmap createThumb(Uri uri) {
         System.out.println("Uri is : " + uri);
         InputStream is = null;
 

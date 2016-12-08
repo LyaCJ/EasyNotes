@@ -3,9 +3,10 @@ package com.example.madey.easynotes.AsyncTasks;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
+
+import com.example.madey.easynotes.Utils;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -21,7 +22,7 @@ import java.util.List;
  * Writes Bitmaps to internal storage and return the Uri of the files written
  */
 
-public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Uri>> {
+public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<String>> {
     Context ctx;
 
     public WriteFileTask(Context ctx) {
@@ -32,17 +33,17 @@ public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Uri>
     public abstract void onResponseReceived(Object obj);
 
     @Override
-    protected List<Uri> doInBackground(Bitmap... params) {
+    protected List<String> doInBackground(Bitmap... params) {
         FileOutputStream fos = null;
-        ArrayList<Uri> fileNames = new ArrayList<>();
+        ArrayList<String> fileNames = new ArrayList<>();
         try {
             for (Bitmap bmp : params) {
                 String fileName = "Image_" + System.currentTimeMillis() + ".png";
-                fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
+                fos = Utils.getFileOutputStream(ctx, fileName);
                 bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
                 fos.flush();
                 fos.close();
-                fileNames.add(Uri.fromFile(ctx.getFileStreamPath(fileName)));
+                fileNames.add(fileName);
             }
         } catch (FileNotFoundException e) {
             Snackbar.make(((Activity) ctx).getCurrentFocus(), "Error Saving Images", Snackbar.LENGTH_SHORT);
@@ -60,7 +61,7 @@ public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Uri>
     }
 
     @Override
-    protected void onPostExecute(List<Uri> strings) {
+    protected void onPostExecute(List<String> strings) {
         onResponseReceived(strings);
     }
 }

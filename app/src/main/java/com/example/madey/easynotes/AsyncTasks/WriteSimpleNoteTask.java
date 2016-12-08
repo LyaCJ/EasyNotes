@@ -8,16 +8,16 @@ import android.text.TextUtils;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
-import com.example.madey.easynotes.data.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteDataObject;
 
 /**
  * Created by madey on 8/9/2016.
  */
-public abstract class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataObject, Integer, Boolean> {
+public abstract class WriteSimpleNoteTask extends AsyncTask<SimpleNoteDataObject, Integer, Boolean> {
 
     private Context ctx;
 
-    public WriteSimpleNoteFilesTask(Context ctx) {
+    public WriteSimpleNoteTask(Context ctx) {
         this.ctx = ctx;
         //this.delegate=delegate;
     }
@@ -54,12 +54,12 @@ public abstract class WriteSimpleNoteFilesTask extends AsyncTask<SimpleNoteDataO
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT, sndo.getContent());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED, sndo.getCreationDate());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED, sndo.getLastModifiedDate());
-            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI, TextUtils.join(",", sndo.getImagePath()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH, TextUtils.join(",", sndo.getImagePath()));
 
 // Insert the new row, returning the primary key value of the new row
             long newRowId = db.insert(NoteReaderContract.NoteEntry.TABLE_NAME, null, values);
-
-            System.out.println("Row ID: " + newRowId);
+            //we have the row id for this note from SQLite
+            sndo.setId(newRowId);
         }
         db.close();
         return true;

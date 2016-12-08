@@ -28,7 +28,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Utils.init(this);
+        Utils.initDimensions(this);
+        Utils.initStoragePreference(this);
         //check storage permissions on the main thread.
         //Utils.verifyStoragePermissions(this);
 

@@ -16,8 +16,8 @@ import android.widget.TextView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.NoteFragments.OnStartDragListener;
-import com.example.madey.easynotes.data.HeterogeneousArrayList;
-import com.example.madey.easynotes.data.SimpleListDataObject;
+import com.example.madey.easynotes.models.HeterogeneousArrayList;
+import com.example.madey.easynotes.models.SimpleListDataObject;
 
 import java.io.Serializable;
 
@@ -32,18 +32,18 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public static final int ITEM_TYPE_DONE = 6;
     public static final int ITEM_TYPE_SEPARATOR = 8;
     private static int lastActiveItemPosition = 0;
-    private static HeterogeneousArrayList<Object> dataSet;
+    private static ActiveListItemAddedListener activeListItemAddedListener;
+    private HeterogeneousArrayList<Object> dataSet;
     private ListItemEditText.OnDelListener onDelListener;
     private OnStartDragListener onStartDragListener;
-    private ActiveListItemAddedListener activeListItemAddedListener;
 
     public ItemListAdapter(HeterogeneousArrayList<Object> dataSet) {
         super();
-        ItemListAdapter.dataSet = dataSet;
+        this.dataSet = dataSet;
     }
 
     public void setActiveListItemAddedListener(ActiveListItemAddedListener activeListItemAddedListener) {
-        this.activeListItemAddedListener = activeListItemAddedListener;
+        ItemListAdapter.activeListItemAddedListener = activeListItemAddedListener;
     }
 
     public int getLastActiveItemPosition() {
@@ -154,7 +154,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         switch (holder.getItemViewType()) {
             case ITEM_TYPE_TITLE:
-                ((TitleHolder) holder).et.setText(dataSet.get(position).toString());
+                ((TitleHolder) holder).et.setText(((SimpleListDataObject.ListTitleDataObject) dataSet.get(0)).getTitle());
                 break;
             case ITEM_TYPE_ACTIVE:
                 String text = dataSet.get(position).toString();
@@ -225,9 +225,10 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             this.notifyItemInserted(dataSet.size());
         }
         if (item instanceof String) {
+            StringBuilder itemVal = new StringBuilder(item.toString());
             dataSet.remove(position);
             this.notifyItemRemoved(position);
-            dataSet.add(lastActiveItemPosition, new StringBuilder(item.toString()));
+            dataSet.add(lastActiveItemPosition, itemVal);
             lastActiveItemPosition++;
             this.notifyItemInserted(dataSet.size());
         }
@@ -250,20 +251,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             et.setFocusable(false);
             et.setFocusableInTouchMode(false);
             remView = (ImageView) v.findViewById(R.id.delete);
-        }
-    }
-
-    public static class TitleHolder extends RecyclerView.ViewHolder {
-        EditText et;
-
-        public TitleHolder(View v) {
-            super(v);
-            et = (EditText) v;
-        }
-
-        @Override
-        public String toString() {
-            return et.getText().toString();
         }
     }
 
@@ -307,6 +294,51 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         public void setButtonText(String buttonText) {
             this.buttonText = buttonText;
+        }
+    }
+
+    public class TitleHolder extends RecyclerView.ViewHolder implements TextWatcher {
+        EditText et;
+
+        public TitleHolder(View v) {
+            super(v);
+            et = (EditText) v;
+            et.addTextChangedListener(this);
+        }
+
+
+        @Override
+        public String toString() {
+            return et.getText().toString();
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            int position = getAdapterPosition();
+            if (position > -1 && position < dataSet.size()) {
+                SimpleListDataObject.ListTitleDataObject item = (SimpleListDataObject.ListTitleDataObject) dataSet.get(position);
+                StringBuilder title = item.getTitle();
+                title.delete(0, title.length());
+                title.append(s.toString());
+                if (s.length() > 0 && s.toString().contains("\n")) {
+                    int index = s.toString().indexOf("\n");
+                    s.delete(index, index + 1);
+                    dataSet.add(position + 1, new StringBuilder());
+                    ItemListAdapter.this.notifyItemInserted(position + 1);
+                    lastActiveItemPosition++;
+                    activeListItemAddedListener.ActiveListItemAdded(position + 1);
+                }
+            }
         }
     }
 

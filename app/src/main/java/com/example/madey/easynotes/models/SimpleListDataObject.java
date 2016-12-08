@@ -1,16 +1,16 @@
-package com.example.madey.easynotes.data;
+package com.example.madey.easynotes.models;
 
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
  * Created by madey on 8/6/2016.
  */
+
 public class SimpleListDataObject implements Parcelable {
     public static final Parcelable.Creator<SimpleListDataObject> CREATOR
             = new Parcelable.Creator<SimpleListDataObject>() {
@@ -22,6 +22,13 @@ public class SimpleListDataObject implements Parcelable {
             return new SimpleListDataObject[size];
         }
     };
+    private long id;
+    private SimpleListDataObject.ListTitleDataObject title;
+    private List<String> activeItems;
+    private List<String> doneItems;
+    private long lastModifiedDate;
+    private long creationDate;
+    private List<Uri> fileNames;
 
     public SimpleListDataObject(){
         activeItems=new ArrayList<>();
@@ -29,7 +36,33 @@ public class SimpleListDataObject implements Parcelable {
         fileNames=new ArrayList<>();
     }
 
-    private SimpleListDataObject.ListTitleDataObject title;
+    public SimpleListDataObject(SimpleListDataObject.ListTitleDataObject title, List<String> active, List<String> done) {
+        this.title = title;
+        this.activeItems = active;
+        this.doneItems = done;
+    }
+
+    private SimpleListDataObject(Parcel in) {
+        id = in.readLong();
+        title = in.readParcelable(null);
+        activeItems = new ArrayList<>();
+        doneItems = new ArrayList<>();
+        in.readList(activeItems, null);
+        in.readList(doneItems, null);
+        lastModifiedDate = in.readLong();
+        creationDate = in.readLong();
+        fileNames = new ArrayList<>();
+        in.readList(fileNames, null);
+
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public List<String> getActiveItems() {
         return activeItems;
@@ -53,31 +86,6 @@ public class SimpleListDataObject implements Parcelable {
 
     public void setFileNames(List<Uri> fileNames) {
         this.fileNames = fileNames;
-    }
-
-    private List<String> activeItems;
-    private List<String> doneItems;
-    private long lastModifiedDate;
-    private long creationDate;
-    private List<Uri> fileNames;
-
-    public SimpleListDataObject(SimpleListDataObject.ListTitleDataObject title, List<String> active, List<String> done) {
-        this.title = title;
-        this.activeItems = active;
-        this.doneItems = done;
-    }
-
-    private SimpleListDataObject(Parcel in) {
-        title = (SimpleListDataObject.ListTitleDataObject) in.readParcelable(null);
-        activeItems = new ArrayList<>();
-        doneItems = new ArrayList<>();
-        in.readList(activeItems, null);
-        in.readList(doneItems, null);
-        lastModifiedDate = in.readLong();
-        creationDate = in.readLong();
-        fileNames=new ArrayList<>();
-        in.readList(fileNames,null);
-
     }
 
     public SimpleListDataObject.ListTitleDataObject getTitle() {
@@ -111,6 +119,7 @@ public class SimpleListDataObject implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
         dest.writeParcelable(title,flags);
         dest.writeList(activeItems);
         dest.writeList(doneItems);
@@ -132,27 +141,27 @@ public class SimpleListDataObject implements Parcelable {
                 return new ListTitleDataObject[size];
             }
         };
-        String title = new String();
+        StringBuilder title = new StringBuilder();
 
-        public ListTitleDataObject(String title) {
+        public ListTitleDataObject(StringBuilder title) {
             this.title=title;
         }
 
         private ListTitleDataObject(Parcel in) {
-            title = in.readString();
+            title = new StringBuilder(in.readString());
         }
 
-        public String getTitle() {
+        public StringBuilder getTitle() {
             return title;
         }
 
         public void setTitle(String title) {
-            this.title = title;
+            this.title = new StringBuilder(title);
         }
 
         @Override
         public String toString() {
-            return title;
+            return title.toString();
         }
 
         @Override
@@ -162,7 +171,7 @@ public class SimpleListDataObject implements Parcelable {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(title);
+            dest.writeString(title.toString());
         }
     }
 

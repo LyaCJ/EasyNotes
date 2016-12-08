@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
+import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleListTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
@@ -34,12 +35,12 @@ import com.example.madey.easynotes.ListItemTouchHelper;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
-import com.example.madey.easynotes.data.HeterogeneousArrayList;
-import com.example.madey.easynotes.data.SimpleListDataObject;
-import com.example.madey.easynotes.data.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.HeterogeneousArrayList;
+import com.example.madey.easynotes.models.SimpleListDataObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -191,7 +192,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         }
         i++;
         while(listItems.get(i) instanceof String){
-            sldo.getActiveItems().add(listItems.get(i).toString());
+            sldo.getDoneItems().add(listItems.get(i).toString());
             i++;
         }
         sldo.setFileNames(fileUris);
@@ -270,6 +271,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
 
                 getActivity().getFragmentManager().popBackStack();
                 getActivity().getFragmentManager().beginTransaction().remove(this).commit();
+                saveNote();
 
             default:
                 return super.onOptionsItemSelected(item);
@@ -285,7 +287,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
             //As soon as an image is captured, write it to disk asynchronously. Generate the thumb asap.
             //image uri won't be available until the bitmap is written to the internal storage. For that, temporarily store
             //the thumbnail in a list and show it post rotation. When the Uri is available, we will remove the thumb from
-            //the list and generate thumbnails for subsequent rotations using the Uri available in the fileUris list.
+            //the list and generate thumbnails for subsequent rotations using the Uri available in the fileNames list.
             //PS1: Need to make Thumbnail generation asynchronous? Maybe??.
 
             if (requestCode == Utils.CAMERA_REQUEST) {

@@ -4,10 +4,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -18,13 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
-import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
+import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteTask;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
-import com.example.madey.easynotes.data.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteDataObject;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -119,8 +118,8 @@ public class NewNoteFragment extends NoteFragment {
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
         //Validate note if it's worth saving.
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileUris.size() == 0) {
-            Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0) {
+            Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
             return;
         }
         //create a data object holding this note.
@@ -131,19 +130,19 @@ public class NewNoteFragment extends NoteFragment {
             sndo.setCreationDate(System.currentTimeMillis());
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
-        sndo.setImagePath(fileUris);
+        sndo.setImagePath(fileNames);
         // we will add the note once it is written successfully in SQLIte.
         //((MainActivity) getActivity()).getNotes().add(0, sndo);
         //write note asynchronously to SQLite
-        WriteSimpleNoteFilesTask wft = new WriteSimpleNoteFilesTask(getActivity()) {
+        WriteSimpleNoteTask wft = new WriteSimpleNoteTask(getActivity()) {
             @Override
             public void onSaved(Boolean success) {
                 //Let the activity know the current fragment
                 if (success) {
                     ((MainActivity) getActivity()).getNotes().add(0, sndo);
-                    Snackbar.make(getActivity().getCurrentFocus(), "Note Saved :)", Snackbar.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Note Saved :)", Toast.LENGTH_SHORT).show();
                 } else {
-                    Snackbar.make(getActivity().getCurrentFocus(), "Error Saving Note :(", Snackbar.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Error Saving Note :)", Toast.LENGTH_SHORT).show();
                 }
 
                 getActivity().getFragmentManager().popBackStack();
@@ -158,7 +157,7 @@ public class NewNoteFragment extends NoteFragment {
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("bitmap_files", fileUris);
+        outState.putStringArrayList("bitmap_files", fileNames);
         outState.putParcelableArrayList("bitmap_thumbs", thumbs);
 
     }
@@ -168,16 +167,16 @@ public class NewNoteFragment extends NoteFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            fileUris = savedInstanceState.getParcelableArrayList("bitmap_files");
-            System.out.println("FileUris: " + fileUris);
-            for (Uri uri : fileUris) {
+            fileNames = savedInstanceState.getStringArrayList("bitmap_files");
+            System.out.println("FileUris: " + fileNames);
+            for (String name : fileNames) {
                 new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                     @Override
                     public void onCompleted(ArrayList<Bitmap> bitmaps) {
                         for (Bitmap bmp : bitmaps)
                             imageHolderLayout.addView(createImageView(bmp));
                     }
-                }.execute(uri);
+                }.execute(name);
             }
             thumbs = savedInstanceState.getParcelableArrayList("bitmap_thumbs");
             for (Bitmap bmp : thumbs)

@@ -18,7 +18,10 @@ public class NoteReaderContract {
         public static final String COLUMN_NAME_CONTENT = "content";
         public static final String COLUMN_NAME_CREATED = "created";
         public static final String COLUMN_NAME_MODIFIED = "modified";
-        public static final String COLUMN_NAME_IMGURI = "imguri";
+        public static final String COLUMN_NAME_IMGPATH = "imgpath";
+        public static final String COLUMN_NAME_AUDIOPATH = "audiopath";
+        public static final String COLUMN_NAME_NOTETYPE = "notetype";
+
         public static final String SQL_DELETE_ENTRIES =
                 "DROP TABLE IF EXISTS " + NoteEntry.TABLE_NAME;
         private static final String TEXT_TYPE = " TEXT";
@@ -31,6 +34,9 @@ public class NoteReaderContract {
                         NoteEntry.COLUMN_NAME_CONTENT + TEXT_TYPE + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_CREATED + INT_TYPE + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_MODIFIED + INT_TYPE + COMMA_SEP +
-                        NoteEntry.COLUMN_NAME_IMGURI + TEXT_TYPE + " )";
+                        NoteEntry.COLUMN_NAME_IMGPATH + TEXT_TYPE + COMMA_SEP +
+                        NoteEntry.COLUMN_NAME_AUDIOPATH + TEXT_TYPE + COMMA_SEP +
+                        NoteEntry.COLUMN_NAME_NOTETYPE + TEXT_TYPE +
+                        " )";
     }
 }

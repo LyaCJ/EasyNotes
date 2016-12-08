@@ -3,7 +3,7 @@ package com.example.madey.easynotes;
 import android.app.Application;
 import android.test.ApplicationTestCase;
 
-import com.example.madey.easynotes.data.HeterogeneousArrayList;
+import com.example.madey.easynotes.models.HeterogeneousArrayList;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
