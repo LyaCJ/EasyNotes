@@ -1,8 +1,11 @@
 package com.example.madey.easynotes.NoteFragments;
 
+import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -22,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
+import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
 import com.example.madey.easynotes.ListItemTouchHelper;
@@ -31,6 +35,7 @@ import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.data.HeterogeneousArrayList;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -136,7 +141,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
         });
 
         imageHolderLayout = (LinearLayout) rootView.findViewById(R.id.pictures_holder);
-        System.out.println("Holder Layoput is: " + imageHolderLayout);
+
         itemsRecyclerView = (RecyclerView) rootView.findViewById(R.id.activeItemsList);
 
         activeItemsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity());
@@ -210,7 +215,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                 return super.onOptionsItemSelected(item);
         }
     }
-/*
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         imageWrittenFlag = false;
@@ -269,12 +274,12 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                         }
                     }.execute(item.getUri());
                     //save the Uri from data.getData into list of Uris
-                    fileUris.add(data.getData());
+                    fileUris.add(item.getUri());
                 }
             }
         }
     }
-    */
+
 
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
