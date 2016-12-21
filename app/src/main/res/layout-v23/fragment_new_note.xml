@@ -4,20 +4,33 @@
     android:background="@color/white"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/pictures_holder"
+
+    <FrameLayout
+        android:id="@+id/pictures_holder_wrapper"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/pictures_holder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|bottom"
+            android:background="@color/Transparent"
+            android:gravity="start"
+            android:orientation="horizontal"></LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/pictures_holder_progressbar"
+            android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center|bottom"
-        android:background="@color/Transparent"
-        android:gravity="start"
-        android:orientation="horizontal"></LinearLayout>
+            android:visibility="visible" />
+    </FrameLayout>
 
     <EditText
         android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/pictures_holder"
+        android:layout_below="@+id/pictures_holder_wrapper"
         android:background="@color/Transparent"
         android:hint="@string/title"
         android:lines="1"

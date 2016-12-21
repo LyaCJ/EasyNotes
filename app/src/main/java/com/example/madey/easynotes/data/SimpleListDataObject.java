@@ -1,11 +1,9 @@
 package com.example.madey.easynotes.data;
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -22,6 +20,12 @@ public class SimpleListDataObject implements Parcelable {
             return new SimpleListDataObject[size];
         }
     };
+    private SimpleListDataObject.ListTitleDataObject title;
+    private List<String> activeItems;
+    private List<String> doneItems;
+    private long lastModifiedDate;
+    private long creationDate;
+    private List<String> fileNames;
 
     public SimpleListDataObject(){
         activeItems=new ArrayList<>();
@@ -29,7 +33,24 @@ public class SimpleListDataObject implements Parcelable {
         fileNames=new ArrayList<>();
     }
 
-    private SimpleListDataObject.ListTitleDataObject title;
+    public SimpleListDataObject(SimpleListDataObject.ListTitleDataObject title, List<String> active, List<String> done) {
+        this.title = title;
+        this.activeItems = active;
+        this.doneItems = done;
+    }
+
+    private SimpleListDataObject(Parcel in) {
+        title = in.readParcelable(null);
+        activeItems = new ArrayList<>();
+        doneItems = new ArrayList<>();
+        in.readList(activeItems, null);
+        in.readList(doneItems, null);
+        lastModifiedDate = in.readLong();
+        creationDate = in.readLong();
+        fileNames = new ArrayList<>();
+        in.readList(fileNames, null);
+
+    }
 
     public List<String> getActiveItems() {
         return activeItems;
@@ -47,37 +68,12 @@ public class SimpleListDataObject implements Parcelable {
         this.doneItems = doneItems;
     }
 
-    public List<Uri> getFileNames() {
+    public List<String> getFileNames() {
         return fileNames;
     }
 
-    public void setFileNames(List<Uri> fileNames) {
+    public void setFileNames(List<String> fileNames) {
         this.fileNames = fileNames;
-    }
-
-    private List<String> activeItems;
-    private List<String> doneItems;
-    private long lastModifiedDate;
-    private long creationDate;
-    private List<Uri> fileNames;
-
-    public SimpleListDataObject(SimpleListDataObject.ListTitleDataObject title, List<String> active, List<String> done) {
-        this.title = title;
-        this.activeItems = active;
-        this.doneItems = done;
-    }
-
-    private SimpleListDataObject(Parcel in) {
-        title = (SimpleListDataObject.ListTitleDataObject) in.readParcelable(null);
-        activeItems = new ArrayList<>();
-        doneItems = new ArrayList<>();
-        in.readList(activeItems, null);
-        in.readList(doneItems, null);
-        lastModifiedDate = in.readLong();
-        creationDate = in.readLong();
-        fileNames=new ArrayList<>();
-        in.readList(fileNames,null);
-
     }
 
     public SimpleListDataObject.ListTitleDataObject getTitle() {

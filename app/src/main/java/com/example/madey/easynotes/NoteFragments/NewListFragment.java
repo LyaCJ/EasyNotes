@@ -1,12 +1,8 @@
 package com.example.madey.easynotes.NoteFragments;
 
-import android.app.Activity;
-import android.content.ClipData;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
-import android.media.ThumbnailUtils;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,7 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
-import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleListTask;
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.ItemListAdapter;
@@ -37,11 +32,9 @@ import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.data.HeterogeneousArrayList;
 import com.example.madey.easynotes.data.SimpleListDataObject;
-import com.example.madey.easynotes.data.SimpleNoteDataObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -58,7 +51,6 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
 
     private boolean imageWrittenFlag = false;
 
-    private ArrayList<Uri> fileUris = new ArrayList<>();
 
 
     private LinearLayout imageHolderLayout;
@@ -196,11 +188,11 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
             sldo.getDoneItems().add(listItems.get(i).toString());
             i++;
         }
-        sldo.setFileNames(fileUris);
+        sldo.setFileNames(fileNames);
 
         //Validate note if it's worth saving.
         if (title.getTitle().toString().length() == 0 && sldo.getActiveItems().size() == 0 &&
-                sldo.getDoneItems().size() == 0 && fileUris.size() == 0) {
+                sldo.getDoneItems().size() == 0 && fileNames.size() == 0) {
             Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
             return;
         }
@@ -277,7 +269,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                 return super.onOptionsItemSelected(item);
         }
     }
-
+/*
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         imageWrittenFlag = false;
@@ -341,7 +333,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
             }
         }
     }
-
+*/
 
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
@@ -352,8 +344,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("dataset", getListItemAdapter().getDataSet());
-        outState.putParcelableArrayList("bitmap_files", fileUris);
-        outState.putParcelableArrayList("bitmap_thumbs", thumbs);
+        outState.putStringArrayList("bitmap_files", fileNames);
 
     }
 
@@ -361,16 +352,15 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            fileUris = savedInstanceState.getParcelableArrayList("bitmap_files");
-            System.out.println("FileUris: " + fileUris);
-            for (Uri uri : fileUris) {
+            fileNames = savedInstanceState.getStringArrayList("bitmap_files");
+            for (String fileName : fileNames) {
                 new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                     @Override
                     public void onCompleted(ArrayList<Bitmap> bitmaps) {
                         for (Bitmap bmp : bitmaps)
                             imageHolderLayout.addView(createImageView(bmp));
                     }
-                }.execute(uri);
+                }.execute(fileName);
             }
             thumbs = savedInstanceState.getParcelableArrayList("bitmap_thumbs");
             for (Bitmap bmp : thumbs)

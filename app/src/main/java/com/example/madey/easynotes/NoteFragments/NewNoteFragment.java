@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -18,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteFilesTask;
@@ -65,6 +65,7 @@ public class NewNoteFragment extends NoteFragment {
             }
         });
         imageHolderLayout = (LinearLayout) v.findViewById(R.id.pictures_holder);
+        imageHolderProgressBar = (ProgressBar) v.findViewById(R.id.pictures_holder_progressbar);
         return v;
     }
 
@@ -119,7 +120,7 @@ public class NewNoteFragment extends NoteFragment {
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
         //Validate note if it's worth saving.
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileUris.size() == 0) {
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0) {
             Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
             return;
         }
@@ -131,7 +132,7 @@ public class NewNoteFragment extends NoteFragment {
             sndo.setCreationDate(System.currentTimeMillis());
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
-        sndo.setImagePath(fileUris);
+        sndo.setImagePath(fileNames);
         // we will add the note once it is written successfully in SQLIte.
         //((MainActivity) getActivity()).getNotes().add(0, sndo);
         //write note asynchronously to SQLite
@@ -158,8 +159,7 @@ public class NewNoteFragment extends NoteFragment {
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("bitmap_files", fileUris);
-        outState.putParcelableArrayList("bitmap_thumbs", thumbs);
+        outState.putStringArrayList("bitmap_files", fileNames);
 
     }
 
@@ -168,21 +168,16 @@ public class NewNoteFragment extends NoteFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            fileUris = savedInstanceState.getParcelableArrayList("bitmap_files");
-            System.out.println("FileUris: " + fileUris);
-            for (Uri uri : fileUris) {
+            fileNames = savedInstanceState.getStringArrayList("bitmap_files");
+            for (String file : fileNames) {
                 new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                     @Override
                     public void onCompleted(ArrayList<Bitmap> bitmaps) {
                         for (Bitmap bmp : bitmaps)
                             imageHolderLayout.addView(createImageView(bmp));
                     }
-                }.execute(uri);
+                }.execute(file);
             }
-            thumbs = savedInstanceState.getParcelableArrayList("bitmap_thumbs");
-            for (Bitmap bmp : thumbs)
-                imageHolderLayout.addView(createImageView(bmp));
-
         }
     }
 
