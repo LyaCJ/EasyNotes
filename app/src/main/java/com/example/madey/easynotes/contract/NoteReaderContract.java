@@ -18,6 +18,8 @@ public class NoteReaderContract {
         public static final String COLUMN_NAME_CONTENT = "content";
         public static final String COLUMN_NAME_CREATED = "created";
         public static final String COLUMN_NAME_MODIFIED = "modified";
+
+
         public static final String COLUMN_NAME_IMGPATH = "imgpath";
         public static final String COLUMN_NAME_AUDIOPATH = "audiopath";
         public static final String COLUMN_NAME_NOTETYPE = "notetype";
