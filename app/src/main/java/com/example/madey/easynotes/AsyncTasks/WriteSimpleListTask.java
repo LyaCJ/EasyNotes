@@ -9,7 +9,7 @@ import com.example.madey.easynotes.models.SimpleListDataObject;
 /**
  * Created by 834619 on 12/7/2016.
  */
-public abstract class WriteSimpleListTask extends AsyncTask<SimpleListDataObject,Void,Boolean>{
+public abstract class WriteSimpleListTask extends AsyncTask<SimpleListDataObject, Void, Boolean> {
 
     private Context ctx;
     public WriteSimpleListTask(Activity activity) {

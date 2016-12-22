@@ -1,4 +1,4 @@
-package com.example.madey.easynotes.data;
+package com.example.madey.easynotes.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
