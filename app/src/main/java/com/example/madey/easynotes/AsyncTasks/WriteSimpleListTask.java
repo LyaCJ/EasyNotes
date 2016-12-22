@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.example.madey.easynotes.data.SimpleListDataObject;
+import com.example.madey.easynotes.models.SimpleListDataObject;
 
 /**
  * Created by 834619 on 12/7/2016.

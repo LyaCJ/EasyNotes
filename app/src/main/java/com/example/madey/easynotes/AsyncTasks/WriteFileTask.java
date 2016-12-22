@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 
+import com.example.madey.easynotes.Utils;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,7 +44,7 @@ public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Stri
         try {
             for (Bitmap bmp : params) {
                 String fileName = "Image_" + System.currentTimeMillis() + ".png";
-                fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
+                fos = Utils.getFileOutputStream(ctx, fileName);
                 bmp.compress(Bitmap.CompressFormat.PNG, 100, fos);
                 fos.flush();
                 fos.close();

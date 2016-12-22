@@ -3,12 +3,11 @@ package com.example.madey.easynotes.AsyncTasks;
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
-import com.example.madey.easynotes.data.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteDataObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,12 +16,12 @@ import java.util.List;
 /**
  * Created by madey on 8/9/2016.
  */
-public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer, List<Object>> {
+public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List<Object>> {
 
     //private SimpleNoteDataObject sndo;
     private Activity ctx;
 
-    public ReadSimpleNoteFilesTask(Activity ctx) {
+    public ReadSimpleNoteTask(Activity ctx) {
         //this.sndo=sndo;
         this.ctx = ctx;
     }
@@ -55,7 +54,7 @@ public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED,
-                NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI
+                NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH
         };
 
 // Filter results WHERE "title" = 'My Title'
@@ -84,9 +83,9 @@ public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer,
                 String content = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT));
                 long created = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED));
                 long modified = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED));
-                ArrayList<Uri> fileUris = new ArrayList<>();
-                for (String s : Arrays.asList(cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGURI)).split(","))) {
-                    fileUris.add(Uri.parse(s));
+                ArrayList<String> fileNames = new ArrayList<>();
+                for (String s : Arrays.asList(cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH)).split(","))) {
+                    fileNames.add(s);
                 }
 
                 //log id
@@ -97,7 +96,7 @@ public abstract class ReadSimpleNoteFilesTask extends AsyncTask<String, Integer,
                 sndo.setId(itemId);
                 sndo.setCreationDate(created);
                 sndo.setLastModifiedDate(modified);
-                sndo.setImagePath(fileUris);
+                sndo.setImagePath(fileNames);
                 notes.add(sndo);
             }
             while (cursor.moveToNext());

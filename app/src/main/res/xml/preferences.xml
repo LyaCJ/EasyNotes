@@ -3,20 +3,27 @@
     <PreferenceCategory android:title="General">
 
         <CheckBoxPreference
-            android:key="checkbox_preference"
-            android:summary="summary_checkbox_preference"
-            android:title="title_checkbox_preference" />
+            android:checked="false"
+            android:defaultValue="No"
+            android:key="resize_checkbox_preference"
+            android:summary="No"
+            android:title="Resize Images to save space" />
+        <CheckBoxPreference
+            android:checked="true"
+            android:defaultValue="Yes"
+            android:key="storage_checkbox_preference"
+            android:summary="Yes"
+            android:title="Use app storage to save images" />
 
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Advanced">
 
-        <EditTextPreference
-            android:dialogTitle="dialog_title_edittext_preference"
-            android:key="edittext_preference"
-            android:summary="summary_edittext_preference"
-            android:title="title_edittext_preference" />
-
+        <ListPreference
+            android:defaultValue="600"
+            android:entries="@array/entries_scale"
+            android:entryValues="@array/values_scale"
+            android:key="resize_list_preference"
+            android:title="Resize to (works when resize is enabled)" />
     </PreferenceCategory>
-
 </PreferenceScreen>

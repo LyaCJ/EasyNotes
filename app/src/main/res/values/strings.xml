@@ -74,5 +74,6 @@
     <string name="camera_image">Camera Image</string>
     <string name="camera_captured_image">Camera Captured Image</string>
     <string name="test">test</string>
+    <string name="key_storage_preference">default_storage_preference</string>
 
 </resources>

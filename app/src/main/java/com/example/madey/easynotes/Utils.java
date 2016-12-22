@@ -3,12 +3,21 @@ package com.example.madey.easynotes;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
+import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 /**
  * Created by madey on 8/13/2016.
@@ -36,7 +45,7 @@ public final class Utils {
     };
 
 
-    public static void init(Context ctx) {
+    public static void initDimensions(Context ctx) {
         WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         DisplayMetrics metrics = new DisplayMetrics();
@@ -85,5 +94,82 @@ public final class Utils {
             }
 
         }
+    }
+
+    public static void initStoragePreference(MainActivity mainActivity) {
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mainActivity);
+        String storagePreferenceKey = mainActivity.getResources().getString(R.string.key_storage_preference);
+        String storageToUse = sp.getString(storagePreferenceKey, null);
+        if (storageToUse == null) {
+            Utils.verifyStoragePermissions(mainActivity);
+            //running app for the first time, decide which storage to use
+            boolean mExternalStorageWriteable = false;
+            String state = Environment.getExternalStorageState();
+
+            if (Environment.MEDIA_MOUNTED.equals(state)) {
+                // We can read and write the media/sdcard
+                sp.edit().putString(storagePreferenceKey, "EXTERNAL").commit();
+                //create directory for storing media files.
+                File file = Environment.getExternalStorageDirectory();
+                System.out.println("External: " + file.getAbsolutePath());
+
+            } else {
+                // Something else is wrong. It may be one of many other states, but all we need
+                //  to know is we can neither read nor write, hence use internal storage
+                sp.edit().putString(storagePreferenceKey, "INTERNAL").commit();
+                File file = Environment.getExternalStorageDirectory();
+                System.out.println("INTERNAL: " + file.getAbsolutePath());
+            }
+
+        }
+
+
+    }
+
+    public static FileOutputStream getFileOutputStream(Context ctx, String fileName) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        boolean storage = sp.getBoolean("storage_checkbox_preference", false);
+        FileOutputStream fos = null;
+        String path;
+        if (storage) {
+            try {
+                fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                fos = new FileOutputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Writing Test File");
+        return fos;
+    }
+
+    public static FileInputStream getFileInputStream(Context ctx, String fileName) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        boolean storage = sp.getBoolean("storage_checkbox_preference", false);
+        FileInputStream fis = null;
+        if (storage) {
+            try {
+                fis = ctx.openFileInput(fileName);
+            } catch (FileNotFoundException e) {
+                Toast.makeText(ctx, "File Not Found: " + fileName, Toast.LENGTH_LONG);
+                e.printStackTrace();
+            } finally {
+
+            }
+        } else {
+            try {
+                fis = new FileInputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
+            } catch (FileNotFoundException e) {
+                Toast.makeText(ctx, "File Not Found: " + fileName, Toast.LENGTH_LONG);
+                e.printStackTrace();
+            }
+        }
+        return fis;
     }
 }

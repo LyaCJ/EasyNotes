@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string-array name="entries_scale">
+        <item>to less than 1000px</item>
+        <item>to less than 800px</item>
+        <item>to less than 600px</item>
+        <item>to less than 400px</item>
+    </string-array>
+    <string-array name="values_scale">
+        <item>1000</item>
+        <item>800</item>
+        <item>600</item>
+        <item>400</item>
+    </string-array>
+</resources>

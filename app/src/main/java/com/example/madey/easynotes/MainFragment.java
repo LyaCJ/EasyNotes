@@ -13,12 +13,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteFilesTask;
+import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteTask;
 import com.example.madey.easynotes.CustomViews.DividerItemDecoration;
 import com.example.madey.easynotes.NoteFragments.NewListFragment;
 import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
-import com.example.madey.easynotes.data.HeterogeneousArrayList;
-import com.example.madey.easynotes.data.SimpleListDataObject;
+import com.example.madey.easynotes.models.HeterogeneousArrayList;
+import com.example.madey.easynotes.models.SimpleListDataObject;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -52,7 +52,7 @@ public class MainFragment extends android.app.Fragment {
                     break;
                 case R.id.fab_list:
                     HeterogeneousArrayList<Object> asb = new HeterogeneousArrayList<>();
-                    asb.add(new SimpleListDataObject.ListTitleDataObject(new String()));
+                    asb.add(new SimpleListDataObject.ListTitleDataObject(new StringBuilder()));
                     asb.add(new StringBuilder());
                     asb.add(new ItemListAdapter.ListSeparatorModel());
 
@@ -82,7 +82,7 @@ public class MainFragment extends android.app.Fragment {
         final MainActivity ctx = (MainActivity) this.getActivity();
 
         if (savedInstanceState == null) {
-            ReadSimpleNoteFilesTask rsnft = new ReadSimpleNoteFilesTask(this.getActivity()) {
+            ReadSimpleNoteTask rsnft = new ReadSimpleNoteTask(this.getActivity()) {
                 @Override
                 public void onResponseReceived(List<Object> obj) {
                     //mAdapter.notifyDataSetChanged();

@@ -12,8 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
-import com.example.madey.easynotes.data.SimpleListDataObject;
-import com.example.madey.easynotes.data.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleListDataObject;
+import com.example.madey.easynotes.models.SimpleNoteDataObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -113,7 +113,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case TYPE_LIST:
                 SimpleListDataObjectHolder sldoh = (SimpleListDataObjectHolder) holder;
                 SimpleListDataObject slData = (SimpleListDataObject) mDataset.get(position);
-                sldoh.title.setText(slData.getTitle());
+                sldoh.title.setText(slData.getTitle().getTitle());
                 break;
             default:
                 break;
