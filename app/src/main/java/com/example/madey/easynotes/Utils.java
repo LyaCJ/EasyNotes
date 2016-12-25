@@ -26,8 +26,10 @@ public final class Utils {
 
     public static final int CAMERA_REQUEST = 1088;
     public static final int PICTURE_REQUEST = 1188;
+    private static final int REQUEST_COARSE_LOCATION = 0;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static final int REQUEST_MANAGE_DOCUMENTS = 2;
+    private static final int REQUEST_RECORD_AUDIO = 3;
     public static Point dimension;
     public static int DEVICE_WIDTH;
     public static int COUNTER = 0;
@@ -40,8 +42,11 @@ public final class Utils {
     public static String FRAGMENT_TAG_SEARCH = "search_fragment";
 
     private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    private static String[] PERMISSIONS_COARSE_LOCATION = {
+            Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
 
@@ -76,11 +81,6 @@ public final class Utils {
                         REQUEST_EXTERNAL_STORAGE
                 );
             }
-            int manageDocumentsPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.MANAGE_DOCUMENTS);
-            if (manageDocumentsPermission != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.MANAGE_DOCUMENTS}, REQUEST_MANAGE_DOCUMENTS);
-            }
-
         }
     }
 
@@ -91,6 +91,18 @@ public final class Utils {
             int manageDocumentsPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.MANAGE_DOCUMENTS);
             if (manageDocumentsPermission != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.MANAGE_DOCUMENTS}, REQUEST_MANAGE_DOCUMENTS);
+            }
+
+        }
+    }
+
+    public static void verifyRecordAudioPermissions(Activity activity) {
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        if (currentapiVersion >= 23) {
+
+            int manageDocumentsPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO);
+            if (manageDocumentsPermission != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_RECORD_AUDIO);
             }
 
         }
@@ -127,6 +139,20 @@ public final class Utils {
 
     }
 
+    public static String getStoragePath(Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean storage = sp.getBoolean("storage_checkbox_preference", false);
+        String path;
+        if (storage) {
+            path = context.getFilesDir().getAbsolutePath();
+            System.out.println("getFilesDir(): " + path);
+        } else {
+            System.out.println("getExternalFilesDir(): " + context.getExternalFilesDir(null).getAbsolutePath());
+            path = context.getExternalFilesDir(null).getAbsolutePath();
+        }
+        return path;
+    }
+
     public static FileOutputStream getFileOutputStream(Context ctx, String fileName) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
         boolean storage = sp.getBoolean("storage_checkbox_preference", false);
@@ -135,17 +161,18 @@ public final class Utils {
         if (storage) {
             try {
                 fos = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
+                System.out.println("Internal: " + fileName);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         } else {
             try {
                 fos = new FileOutputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
+                System.out.println("External: " + ctx.getExternalFilesDir(null).getAbsolutePath());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println("Writing Test File");
         return fos;
     }
 
@@ -171,5 +198,21 @@ public final class Utils {
             }
         }
         return fis;
+    }
+
+    public static void verifyLocationPermission(Activity activity) {
+        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        // Check if we have write permission
+        if (currentapiVersion >= 23) {
+            int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // We don't have permission so prompt the user
+                ActivityCompat.requestPermissions(
+                        activity,
+                        PERMISSIONS_COARSE_LOCATION,
+                        REQUEST_COARSE_LOCATION
+                );
+            }
+        }
     }
 }

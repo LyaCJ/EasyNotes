@@ -9,7 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
+import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
             mf.getmAdapter().notifyItemRangeInserted(0, notes.size());
             mf.getmRecyclerView().setVisibility(View.VISIBLE);
             ((View) mf.getmRecyclerView().getParent()).findViewById(R.id.empty_view).setVisibility(View.GONE);
-            System.out.println("Instance Restored: " + mf.getmAdapter().getItemCount());
         }
 
 

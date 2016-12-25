@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 
+import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.Utils;
 
 import java.io.FileNotFoundException;
@@ -39,6 +40,7 @@ public abstract class WriteFileTask extends AsyncTask<Bitmap, Integer, List<Stri
 
     @Override
     protected List<String> doInBackground(Bitmap... params) {
+        Utils.verifyStoragePermissions((MainActivity) ctx);
         FileOutputStream fos = null;
         ArrayList<String> fileNames = new ArrayList<>();
         try {

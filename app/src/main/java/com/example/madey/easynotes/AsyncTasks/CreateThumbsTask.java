@@ -92,7 +92,7 @@ public abstract class CreateThumbsTask extends AsyncTask<String, Integer, ArrayL
     private Bitmap createThumbFromFileName(String fileName) {
         FileInputStream fis = null;
         try {
-            fis = ctx.openFileInput(fileName);
+            fis = Utils.getFileInputStream(ctx, fileName);
             BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
             bitmapOptions.inJustDecodeBounds = true; // obtain the size of the image, without loading it in memory
 
@@ -114,7 +114,7 @@ public abstract class CreateThumbsTask extends AsyncTask<String, Integer, ArrayL
 
             // Let's load just the part of the image necessary for creating the thumbnail, not the whole image
             fis.close();
-            fis = ctx.openFileInput(fileName);
+            fis = Utils.getFileInputStream(ctx, fileName);
             Bitmap thumbnail = BitmapFactory.decodeStream(fis, null, bitmapOptions);
             thumbnail = ThumbnailUtils.extractThumbnail(thumbnail, Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4);
             return thumbnail;

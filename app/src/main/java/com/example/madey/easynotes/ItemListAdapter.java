@@ -15,9 +15,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
-import com.example.madey.easynotes.NoteFragments.OnStartDragListener;
 import com.example.madey.easynotes.models.HeterogeneousArrayList;
 import com.example.madey.easynotes.models.SimpleListDataObject;
+import com.example.madey.easynotes.uicomponents.OnStartDragListener;
 
 import java.io.Serializable;
 
@@ -327,7 +327,7 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             int position = getAdapterPosition();
             if (position > -1 && position < dataSet.size()) {
                 SimpleListDataObject.ListTitleDataObject item = (SimpleListDataObject.ListTitleDataObject) dataSet.get(position);
-                StringBuilder title = item.getTitle();
+                StringBuilder title = new StringBuilder(item.getTitle());
                 title.delete(0, title.length());
                 title.append(s.toString());
                 if (s.length() > 0 && s.toString().contains("\n")) {

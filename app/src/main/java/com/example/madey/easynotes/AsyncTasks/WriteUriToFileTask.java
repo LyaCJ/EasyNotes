@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 
+import com.example.madey.easynotes.MainActivity;
+import com.example.madey.easynotes.Utils;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,6 +31,7 @@ public abstract class WriteUriToFileTask extends AsyncTask<Uri, Void, List<Strin
 
     @Override
     protected List<String> doInBackground(Uri... uri) {
+        Utils.verifyStoragePermissions((MainActivity) context);
         List<String> fileNames = new ArrayList<>();
         for (Uri u : uri) {
             try {
@@ -35,7 +39,7 @@ public abstract class WriteUriToFileTask extends AsyncTask<Uri, Void, List<Strin
                 Bitmap bitmap = BitmapFactory.decodeStream(context.getContentResolver().openInputStream(u));
                 //write Bitmap image to internal storage.
                 String fileName = "Image_" + System.currentTimeMillis() + ".png";
-                FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+                FileOutputStream fos = Utils.getFileOutputStream(context, fileName);
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
                 fos.flush();
                 fos.close();

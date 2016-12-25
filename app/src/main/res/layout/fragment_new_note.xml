@@ -5,7 +5,7 @@
     android:background="@color/white"
     android:orientation="vertical"
     android:weightSum="4"
-    tools:context="com.example.madey.easynotes.NoteFragments.NewNoteFragment">
+    tools:context="com.example.madey.easynotes.uicomponents.NewNoteFragment">
 
     <EditText
         android:id="@+id/editText"
@@ -18,7 +18,6 @@
         android:maxLines="1"
         android:minLines="1"
         android:padding="10dp"
-        android:singleLine="true"
         android:textStyle="bold" />
 
     <ImageView
@@ -41,8 +40,7 @@
         android:inputType="textMultiLine"
         android:linksClickable="true"
         android:padding="10dp"
-        android:scrollIndicators="top"
-        android:textAlignment="viewStart" />
+        android:scrollIndicators="top" />
 
     <android.gesture.GestureOverlayView
         android:id="@+id/gestureOverlayView"

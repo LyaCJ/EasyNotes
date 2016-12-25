@@ -128,27 +128,27 @@ public class SimpleListDataObject implements Parcelable {
                 return new ListTitleDataObject[size];
             }
         };
-        String title = new String();
+        StringBuilder title = new StringBuilder();
 
-        public ListTitleDataObject(String title) {
+        public ListTitleDataObject(StringBuilder title) {
             this.title=title;
         }
 
         private ListTitleDataObject(Parcel in) {
-            title = in.readString();
+            title = new StringBuilder(in.readString());
         }
 
-        public String getTitle() {
+        public StringBuilder getTitle() {
             return title;
         }
 
-        public void setTitle(String title) {
+        public void setTitle(StringBuilder title) {
             this.title = title;
         }
 
         @Override
         public String toString() {
-            return title;
+            return title.toString();
         }
 
         @Override
@@ -158,7 +158,7 @@ public class SimpleListDataObject implements Parcelable {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(title);
+            dest.writeString(title.toString());
         }
     }
 

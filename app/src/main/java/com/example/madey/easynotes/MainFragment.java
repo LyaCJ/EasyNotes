@@ -15,10 +15,10 @@ import android.widget.ListView;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteTask;
 import com.example.madey.easynotes.CustomViews.DividerItemDecoration;
-import com.example.madey.easynotes.NoteFragments.NewListFragment;
-import com.example.madey.easynotes.NoteFragments.NewNoteFragment;
 import com.example.madey.easynotes.models.HeterogeneousArrayList;
 import com.example.madey.easynotes.models.SimpleListDataObject;
+import com.example.madey.easynotes.uicomponents.NewListFragment;
+import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 
@@ -34,7 +34,6 @@ public class MainFragment extends android.app.Fragment {
     private FloatingActionButton fab1;
     private FloatingActionButton fab2;
     private FloatingActionButton fab3;
-    private FloatingActionButton fab4;
     private RecyclerView mRecyclerView;
     private MainFragmentAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -108,7 +107,7 @@ public class MainFragment extends android.app.Fragment {
         final View v = inflater.inflate(R.layout.fragment_main, container, false);
         final MainActivity ctx = (MainActivity) this.getActivity();
         Toolbar toolbar = ((Toolbar) ctx.findViewById(R.id.my_toolbar));
-        toolbar.setTitle("Easy Notes");
+        getActivity().setTitle("Easy Notes");
 
 
         toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
@@ -132,10 +131,7 @@ public class MainFragment extends android.app.Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mAdapter = new MainFragmentAdapter(ctx.getNotes());
         mRecyclerView.setAdapter(mAdapter);
-        //mAdapter.notifyItemRangeChanged(0,ctx.getNotes().size());
 
-
-        System.out.println("Notes in CreateView:" + ctx.getNotes().size());
 
         if (ctx.getNotes().isEmpty()) {
             mRecyclerView.setVisibility(View.GONE);
@@ -176,8 +172,7 @@ public class MainFragment extends android.app.Fragment {
 
         fab1 = (FloatingActionButton) v.findViewById(R.id.fab_list);
         fab2 = (FloatingActionButton) v.findViewById(R.id.fab_note);
-        fab3 = (FloatingActionButton) v.findViewById(R.id.fab_audio_note);
-        fab4 = (FloatingActionButton) v.findViewById(R.id.fab_video_note);
+        fab3 = (FloatingActionButton) v.findViewById(R.id.fab_video_note);
 
         menuRed.setClosedOnTouchOutside(true);
 
@@ -185,7 +180,6 @@ public class MainFragment extends android.app.Fragment {
 
         fab1.setOnClickListener(clickListener);
         fab2.setOnClickListener(clickListener);
-        fab3.setOnClickListener(clickListener);
 
         menuRed.setOnMenuButtonClickListener(new View.OnClickListener() {
             @Override
@@ -194,7 +188,6 @@ public class MainFragment extends android.app.Fragment {
             }
         });
         menuRed.showMenuButton(true);
-        //Utils.verifyStoragePermissions(getActivity());
 
         return v;
         //System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));

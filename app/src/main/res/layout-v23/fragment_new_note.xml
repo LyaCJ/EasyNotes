@@ -1,51 +1,82 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/white"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
 
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="vertical">
     <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/date_time_location_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:background="@color/Transparent"
+            android:maxLines="1"
+            android:padding="10dip"
+            android:textColor="@color/black"
+            android:textSize="12sp" />
+
+        <ToggleButton
+            android:id="@+id/location_image_button"
+            android:layout_width="25dip"
+            android:layout_height="25dip"
+            android:layout_gravity="end"
+            android:layout_marginBottom="10dip"
+            android:layout_marginEnd="10dip"
+            android:layout_marginTop="10dip"
+            android:background="@drawable/toggle_location_background"
+            android:checked="false"
+            android:textOff=""
+            android:textOn="" />
+    </FrameLayout>
+
+            <FrameLayout
         android:id="@+id/pictures_holder_wrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <LinearLayout
+                <android.support.v7.widget.RecyclerView
             android:id="@+id/pictures_holder"
-            android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center|bottom"
             android:background="@color/Transparent"
             android:gravity="start"
-            android:orientation="horizontal"></LinearLayout>
+                    android:orientation="horizontal"></android.support.v7.widget.RecyclerView>
 
         <ProgressBar
             android:id="@+id/pictures_holder_progressbar"
             android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-            android:visibility="visible" />
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:visibility="gone" />
     </FrameLayout>
 
     <EditText
         android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/pictures_holder_wrapper"
         android:background="@color/Transparent"
         android:hint="@string/title"
-        android:lines="1"
+        android:inputType="text"
         android:linksClickable="false"
         android:maxLines="1"
-        android:minLines="1"
         android:padding="10dp"
-        android:singleLine="true"
         android:textStyle="bold" />
-
     <EditText
         android:id="@+id/editText2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/editText"
+        android:layout_height="match_parent"
         android:background="@color/Transparent"
         android:ems="10"
         android:gravity="top"
@@ -54,8 +85,52 @@
         android:linksClickable="true"
         android:minLines="20"
         android:padding="10dp"
-        android:scrollIndicators="top"
-        android:textAlignment="viewStart" />
+        android:scrollIndicators="top" />
+        </LinearLayout>
+    </ScrollView>
+
+    <com.github.clans.fab.FloatingActionMenu xmlns:fab="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/menu_red"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        fab:menu_backgroundColor="#ccffffff"
+        fab:menu_colorNormal="@color/green"
+        fab:menu_colorPressed="@color/green"
+        fab:menu_fab_size="mini"
+        fab:menu_labels_ellipsize="end"
+        fab:menu_labels_singleLine="true">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_add_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_mic_white_24dp"
+            fab:fab_colorNormal="@color/green"
+            fab:fab_label="Add Audio"
+            fab:fab_size="mini" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_add_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_a_photo_white_24dp"
+            fab:fab_colorNormal="@color/green"
+            fab:fab_label="Picture from Camera"
+            fab:fab_size="mini" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fab_add_photos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_insert_photo_white_24dp"
+            fab:fab_colorNormal="@color/green"
+            fab:fab_label="Picture from Gallery"
+            fab:fab_size="mini" />
 
 
-</RelativeLayout>
+    </com.github.clans.fab.FloatingActionMenu>
+
+</FrameLayout>

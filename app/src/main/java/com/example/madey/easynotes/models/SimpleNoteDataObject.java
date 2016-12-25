@@ -23,16 +23,14 @@ public class SimpleNoteDataObject implements Parcelable {
         }
     };
     private Bitmap thumb;
-    private long id;
+    private long id = 0;
     private String title;
     private String content;
     private long creationDate = 0;
     private long lastModifiedDate = 0;
-    //private transient ArrayList<Bitmap> imageList = new ArrayList<>();
-    //private transient File noteFile;
-    //private transient boolean dataLoaded = false;
-    //private transient boolean imageLoaded = false;
-    //private transient ArrayList<Bitmap> imageThumbs = new ArrayList<>();
+    private Coordinates coordinates = new Coordinates();
+    private String location;
+    private Boolean isLocationEnabled;
     private ArrayList<String> imagePath = new ArrayList<>();
 
     public SimpleNoteDataObject(String title, String content) {
@@ -45,13 +43,54 @@ public class SimpleNoteDataObject implements Parcelable {
     }
 
     private SimpleNoteDataObject(Parcel in) {
+        id = in.readLong();
         title = in.readString();
         content = in.readString();
         creationDate = in.readLong();
         lastModifiedDate = in.readLong();
         in.readList(imagePath, null);
+        location = in.readString();
+        isLocationEnabled = (Boolean) in.readSerializable();
+        coordinates = new Coordinates(in.readString());
     }
 
+    public Coordinates getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(Coordinates coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public Boolean getLocationEnabled() {
+        return isLocationEnabled;
+    }
+
+    public void setLocationEnabled(Boolean locationEnabled) {
+        isLocationEnabled = locationEnabled;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(title);
+        dest.writeString(content);
+        dest.writeLong(creationDate);
+        dest.writeLong(lastModifiedDate);
+        dest.writeList(imagePath);
+        dest.writeString(location);
+        dest.writeSerializable(isLocationEnabled);
+        dest.writeString(coordinates.toString());
+
+    }
     /*public File getNoteFile() {
         return noteFile;
     }
@@ -193,15 +232,7 @@ public class SimpleNoteDataObject implements Parcelable {
         return 0;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(title);
-        dest.writeString(content);
-        dest.writeLong(creationDate);
-        dest.writeLong(lastModifiedDate);
-        dest.writeList(imagePath);
 
-    }
 
     public Bitmap getThumb() {
         return thumb;

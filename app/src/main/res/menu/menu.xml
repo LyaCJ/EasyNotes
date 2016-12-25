@@ -29,27 +29,6 @@
             android:id="@+id/action_done"
             android:icon="@drawable/ic_done_black_24dp"
             android:title="Save"
-            app:showAsAction="collapseActionView" />
-
-        <item
-            android:id="@+id/action_discard"
-            android:icon="@drawable/ic_clear_black_24dp"
-            android:title="Discard"
-            app:showAsAction="collapseActionView" />
-        <item
-            android:id="@+id/action_camera"
-            android:icon="@drawable/ic_add_a_photo_black_24dp"
-            android:title="Add a Photo"
-            app:showAsAction="always" />
-        <item
-            android:id="@+id/action_pictures"
-            android:icon="@drawable/ic_insert_photo_black_24dp"
-            android:title="Insert Image"
-            app:showAsAction="always" />
-        <item
-            android:id="@+id/action_scribble"
-            android:icon="@drawable/ic_mode_edit_black_24dp"
-            android:title="Scribble"
             app:showAsAction="always" />
     </group>
 
