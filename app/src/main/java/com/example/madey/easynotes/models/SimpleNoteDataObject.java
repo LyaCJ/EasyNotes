@@ -32,6 +32,7 @@ public class SimpleNoteDataObject implements Parcelable {
     private String location;
     private Boolean isLocationEnabled;
     private ArrayList<String> imagePath = new ArrayList<>();
+    private CoarseAddress coarseAddress;
 
     public SimpleNoteDataObject(String title, String content) {
 
@@ -41,6 +42,7 @@ public class SimpleNoteDataObject implements Parcelable {
 
     public SimpleNoteDataObject() {
     }
+
 
     private SimpleNoteDataObject(Parcel in) {
         id = in.readLong();
@@ -52,6 +54,14 @@ public class SimpleNoteDataObject implements Parcelable {
         location = in.readString();
         isLocationEnabled = (Boolean) in.readSerializable();
         coordinates = new Coordinates(in.readString());
+    }
+
+    public CoarseAddress getCoarseAddress() {
+        return coarseAddress;
+    }
+
+    public void setCoarseAddress(CoarseAddress coarseAddress) {
+        this.coarseAddress = coarseAddress;
     }
 
     public Coordinates getCoordinates() {
@@ -89,6 +99,7 @@ public class SimpleNoteDataObject implements Parcelable {
         dest.writeString(location);
         dest.writeSerializable(isLocationEnabled);
         dest.writeString(coordinates.toString());
+        dest.writeParcelable(coarseAddress, flags);
 
     }
     /*public File getNoteFile() {

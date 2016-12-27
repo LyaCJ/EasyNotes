@@ -39,6 +39,7 @@ import com.example.madey.easynotes.BarAudioPlayer;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.models.CoarseAddress;
 import com.example.madey.easynotes.models.Coordinates;
 import com.example.madey.easynotes.models.SimpleNoteDataObject;
 import com.example.madey.easynotes.models.ThumbnailModel;
@@ -72,6 +73,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private Boolean isRecording = false;
     private Boolean isPlaying = false;
     private Boolean hasAudioRecording = false;
+    private CoarseAddress coarseAddress;
 
     private GoogleApiClient mGoogleApiClient;
     private MediaRecorder mRecorder;
@@ -84,6 +86,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             mp.start();
         }
     };
+
 
     private MediaPlayer.OnErrorListener onErrorListener = new MediaPlayer.OnErrorListener() {
         @Override
@@ -178,8 +181,17 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         fabPhotos.setOnClickListener(this);
         fabPictures.setOnClickListener(this);
         menuGreen.setClosedOnTouchOutside(true);
+
+        for (String fileName : fileNames) {
+            File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
+            if (file.exists()) {
+                //This file name will be used after rotation to re populate the UI with an audio player widget
+                addAudioRecording(fileName);
+            }
+        }
         return rootView;
     }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -221,9 +233,13 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
         sndo.setImagePath(fileNames);
-        // we will add the note once it is written successfully in SQLIte.
-        //((MainActivity) getActivity()).getNotes().add(0, sndo);
-        //write note asynchronously to SQLite
+        //set latitude and longitudes
+        if (isLocationEnabled)
+            sndo.setCoordinates(coordinates);
+        //also set the City and Country
+        sndo.setCoarseAddress(coarseAddress);
+
+
         WriteSimpleNoteTask wft = new WriteSimpleNoteTask(getActivity()) {
             @Override
             public void onSaved(Boolean success) {
@@ -252,7 +268,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         outState.putLong("timeStamp", timeStamp);
         outState.putStringArrayList("audio_files", audioFileNames);
         outState.putBoolean("has_audio", hasAudioRecording);
-
+        outState.putParcelable("coarse_address", coarseAddress);
     }
 
 
@@ -271,6 +287,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             timeStamp = savedInstanceState.getLong("timeStamp");
             audioFileNames = savedInstanceState.getStringArrayList("audio_files");
             hasAudioRecording = savedInstanceState.getBoolean("has_audio");
+            coarseAddress = savedInstanceState.getParcelable("coarse_address");
             //state variables restored. Now set them into the appropriate views.
             setViewState();
         }
@@ -279,10 +296,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     @Override
     protected void setViewState() {
         if (isLocationEnabled) {
-            retrieveLocation();
+            locationToggleButton.setChecked(isLocationEnabled);
         } else
             dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)));
-        locationToggleButton.setChecked(isLocationEnabled);
+
     }
 
 
@@ -325,6 +342,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                     dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
                     coordinates = new Coordinates(location.getLatitude(), location.getLongitude());
+                    coarseAddress = new CoarseAddress(addresses.get(0).getLocality(), addresses.get(0).getCountryName());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -393,7 +411,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         //inflate dialog layout
         View v = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_record_audio, null);
-// 2. Chain together various setter methods to set the dialog characteristics
+        // 2. Chain together various setter methods to set the dialog characteristics
         builder.setMessage(R.string.audio_dialog_message)
                 .setTitle(R.string.audio_dialog_title)
                 .setView(v);
@@ -442,7 +460,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     stopRecording();
                     Log.e(LOG_TAG, "Stopped Audio Recording");
                 }
-
             }
         });
         dialog.show();
@@ -479,13 +496,25 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                         mediaPlayer = new MediaPlayer();
                         mediaPlayer.setOnPreparedListener(onPreparedListener);
                         mediaPlayer.setOnErrorListener(onErrorListener);
+                        mediaPlayer.setOnCompletionListener(//media player on complete listener, invoked when media player completes playback
+                                new MediaPlayer.OnCompletionListener() {
+                                    @Override
+                                    public void onCompletion(MediaPlayer mp) {
+                                        //release media player
+                                        mp.release();
+                                        mp = null;
+                                        //toggle the button state to not playing, this will invoke this listener again.
+                                        ((ToggleButton) barAudioPlayer.getCircularAudioPlayerUI().findViewById(R.id.toggle_audio_media_state)).setChecked(false);
+                                    }
+                                });
                         mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + fileName);
                         mediaPlayer.prepareAsync();
                     } catch (IOException e) {
                         Toast.makeText(getActivity(), "Invalid Audio Source", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    mediaPlayer.pause();
+                    if (mediaPlayer != null)
+                        mediaPlayer.pause();
                 }
             }
         });
@@ -494,10 +523,16 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
     private void removeAudioRecording(BarAudioPlayer barAudioPlayer, final String fileName) {
         File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
-        //TODO stop playing audio
-
-        //TODO remove audio data source
-
+        //release the MediaPlayer
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        } else {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+        //clean up the audio file associated with the MediaPlayer
         if (file.exists() && file.delete()) {
             //remove ui component of audio player
             ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).removeView(barAudioPlayer.getCircularAudioPlayerUI());
@@ -511,7 +546,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             Toast.makeText(getActivity(), "Audio Clip Deleted", Toast.LENGTH_SHORT).show();
         } else
             Toast.makeText(getActivity(), "Unable to delete Audio Clip", Toast.LENGTH_SHORT).show();
-
     }
 
 
