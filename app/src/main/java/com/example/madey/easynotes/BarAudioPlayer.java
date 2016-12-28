@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.ToggleButton;
 
 import com.example.madey.easynotes.models.AudioClipDataObject;
@@ -37,6 +38,8 @@ public class BarAudioPlayer {
     private CardView barAudioPlayerUI;
     //reference to toggle button
     private ToggleButton mediaStateToggle = null;
+    //A progress bar that displays media play progress
+    private ProgressBar mediaPlayProgress;
     //a listener for delete confirm dialog confirm/reject for this audio player
     private DialogInterface.OnClickListener deleteDialogClickListener;
     //a listener for play/pause UI interaction with audio player
@@ -54,7 +57,8 @@ public class BarAudioPlayer {
         if (barAudioPlayerUI != null) {
             //initialize the media player components if inflation was successful
             mediaStateToggle = (ToggleButton) barAudioPlayerUI.findViewById(R.id.toggle_audio_media_state);
-            ImageView mediaPlayProgress = (ImageView) barAudioPlayerUI.findViewById(R.id.image_view_media_progress);
+            mediaPlayProgress = (ProgressBar) barAudioPlayerUI.findViewById(R.id.image_view_media_progress);
+
             mediaStateToggle.setOnCheckedChangeListener(playCheckedChangeListener);
             ImageView mediaDelete = (ImageView) barAudioPlayerUI.findViewById(R.id.image_view_media_delete);
             mediaDelete.setOnClickListener(new View.OnClickListener() {

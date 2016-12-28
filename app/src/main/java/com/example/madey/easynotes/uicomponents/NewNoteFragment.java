@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -80,11 +81,19 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private MediaRecorder mRecorder;
     private MediaPlayer mediaPlayer;
 
+    //keeps a reference to the currently playing audio player widget, so that we may update
+    //its progress accordingly.
+    private BarAudioPlayer barAudioPlayer;
+
     //media player listeners
     private MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(MediaPlayer mp) {
             mp.start();
+            ((ProgressBar) barAudioPlayer.getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress)).setProgress(mp.getDuration());
+            Handler handler = new Handler();
+            //TODO execute a runnable every 500 milliseconds to update progress bar.
+
         }
     };
 
@@ -345,7 +354,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in <location error>");
             }
         }
-
     }
 
     @Override
@@ -483,12 +491,15 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         barAudioPlayer.setPlayCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
+                //play button pressed,
                 if (isChecked) {
                     try {
                         if (mediaPlayer != null) {
                             mediaPlayer.release();
                             mediaPlayer = null;
                         }
+                        //save a reference to the currently playing audio player
+                        NewNoteFragment.this.barAudioPlayer = barAudioPlayer;
                         mediaPlayer = new MediaPlayer();
                         mediaPlayer.setOnPreparedListener(onPreparedListener);
                         mediaPlayer.setOnErrorListener(onErrorListener);
@@ -512,7 +523,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                         Toast.makeText(getActivity(), "Invalid Audio Source", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    if (mediaPlayer != null) {
+                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                         mediaPlayer.pause();
                     }
                 }

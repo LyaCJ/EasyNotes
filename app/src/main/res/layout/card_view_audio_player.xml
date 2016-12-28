@@ -29,15 +29,17 @@
                 android:textOff=""
                 android:textOn="" />
 
-            <ImageView
-                android:id="@+id/image_view_media_progress"
+            <ProgressBar
+                android:id="@+id/progress_bar_media_progress"
+                style="@android:style/Widget.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="3dip"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="8dip"
                 android:layout_toEndOf="@+id/toggle_audio_media_state"
                 android:layout_toStartOf="@+id/image_view_media_delete"
-                android:background="@color/gray_DDD" />
+                android:background="@color/gray_DDD"
+                android:progress="0" />
 
             <ImageView
                 android:id="@+id/image_view_media_delete"
