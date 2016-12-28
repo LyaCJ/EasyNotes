@@ -39,6 +39,7 @@ import com.example.madey.easynotes.BarAudioPlayer;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.models.AudioClipDataObject;
 import com.example.madey.easynotes.models.CoarseAddress;
 import com.example.madey.easynotes.models.Coordinates;
 import com.example.madey.easynotes.models.SimpleNoteDataObject;
@@ -181,14 +182,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         fabPhotos.setOnClickListener(this);
         fabPictures.setOnClickListener(this);
         menuGreen.setClosedOnTouchOutside(true);
-
-        for (String fileName : fileNames) {
-            File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
-            if (file.exists()) {
-                //This file name will be used after rotation to re populate the UI with an audio player widget
-                addAudioRecording(fileName);
-            }
-        }
         return rootView;
     }
 
@@ -266,7 +259,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         outState.putParcelable("coordinates", coordinates);
         outState.putBoolean("isLocationEnabled", isLocationEnabled);
         outState.putLong("timeStamp", timeStamp);
-        outState.putStringArrayList("audio_files", audioFileNames);
+        outState.putParcelableArrayList("audio_files", audioFileNames);
         outState.putBoolean("has_audio", hasAudioRecording);
         outState.putParcelable("coarse_address", coarseAddress);
     }
@@ -285,7 +278,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             coordinates = savedInstanceState.getParcelable("coordinates");
             isLocationEnabled = savedInstanceState.getBoolean("isLocationEnabled");
             timeStamp = savedInstanceState.getLong("timeStamp");
-            audioFileNames = savedInstanceState.getStringArrayList("audio_files");
+            audioFileNames = savedInstanceState.getParcelableArrayList("audio_files");
             hasAudioRecording = savedInstanceState.getBoolean("has_audio");
             coarseAddress = savedInstanceState.getParcelable("coarse_address");
             //state variables restored. Now set them into the appropriate views.
@@ -295,6 +288,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
     @Override
     protected void setViewState() {
+        for (AudioClipDataObject audioClipDataObject : audioFileNames)
+            addAudioRecording(audioClipDataObject);
         if (isLocationEnabled) {
             locationToggleButton.setChecked(isLocationEnabled);
         } else
@@ -426,7 +421,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
                 if (file.exists()) {
                     //This file name will be used after rotation to re populate the UI with an audio player widget
-                    addAudioRecording(fileName);
+                    addAudioRecording(new AudioClipDataObject(fileName, null));
                 }
             }
         });
@@ -465,17 +460,18 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         dialog.show();
     }
 
-    private void addAudioRecording(final String fileName) {
+    private void addAudioRecording(final AudioClipDataObject audioClipDataObject) {
         //set boolean audio flag to true
         hasAudioRecording = true;
-        audioFileNames.add(fileName);
-        final BarAudioPlayer barAudioPlayer = new BarAudioPlayer(fileName, getActivity());
+        if (!audioFileNames.contains(audioClipDataObject))
+            audioFileNames.add(audioClipDataObject);
+        final BarAudioPlayer barAudioPlayer = new BarAudioPlayer(audioClipDataObject, getActivity());
         barAudioPlayer.setDeleteDialogClickListener(new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
-                        removeAudioRecording(barAudioPlayer, fileName);
+                        removeAudioRecording(barAudioPlayer, audioClipDataObject.getFileName());
                         break;
 
                     case DialogInterface.BUTTON_NEGATIVE:
@@ -486,7 +482,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         });
         barAudioPlayer.setPlayCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     try {
                         if (mediaPlayer != null) {
@@ -500,25 +496,29 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                                 new MediaPlayer.OnCompletionListener() {
                                     @Override
                                     public void onCompletion(MediaPlayer mp) {
-                                        //release media player
-                                        mp.release();
-                                        mp = null;
+                                        System.out.println("Going to release MediaPlayer: " + mp);
+                                        //Never and mind you...never... use the callback mp object to release the media player. Although it may seem that the mp=null
+                                        //assignment will invoke the garbage collector, the mp=null is a local assignment and will only invalidate the mp reference.
+                                        //The mediaPlayer reference is still there and mp.release() will cause the mediaPlayer to go into a useless state.
+                                        mediaPlayer.release();
+                                        mediaPlayer = null;
                                         //toggle the button state to not playing, this will invoke this listener again.
-                                        ((ToggleButton) barAudioPlayer.getCircularAudioPlayerUI().findViewById(R.id.toggle_audio_media_state)).setChecked(false);
+                                        buttonView.setChecked(false);
                                     }
                                 });
-                        mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + fileName);
+                        mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + audioClipDataObject.getFileName());
                         mediaPlayer.prepareAsync();
                     } catch (IOException e) {
                         Toast.makeText(getActivity(), "Invalid Audio Source", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    if (mediaPlayer != null)
+                    if (mediaPlayer != null) {
                         mediaPlayer.pause();
+                    }
                 }
             }
         });
-        ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).addView(barAudioPlayer.getCircularAudioPlayerUI(), 1);
+        ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).addView(barAudioPlayer.getBarAudioPlayerUI(), 1);
     }
 
     private void removeAudioRecording(BarAudioPlayer barAudioPlayer, final String fileName) {
@@ -526,16 +526,15 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         //release the MediaPlayer
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
-        } else {
+        }
+        if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
         }
         //clean up the audio file associated with the MediaPlayer
         if (file.exists() && file.delete()) {
             //remove ui component of audio player
-            ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).removeView(barAudioPlayer.getCircularAudioPlayerUI());
+            ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).removeView(barAudioPlayer.getBarAudioPlayerUI());
             //at this point, barAudioPlayer should be gc'd by the GC, but what if it does not?
             //TODO ensure garbage collection of circularAudioPlayerUI
             //remove fileName

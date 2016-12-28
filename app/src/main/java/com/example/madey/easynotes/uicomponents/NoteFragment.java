@@ -20,6 +20,7 @@ import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteUriToFileTask;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
+import com.example.madey.easynotes.models.AudioClipDataObject;
 import com.example.madey.easynotes.models.ThumbnailModel;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public abstract class NoteFragment extends android.app.Fragment {
     protected RecyclerView thumbsRecyclerView;
 
     protected ArrayList<String> fileNames = new ArrayList<>();
-    protected ArrayList<String> audioFileNames = new ArrayList<>();
+    protected ArrayList<AudioClipDataObject> audioFileNames = new ArrayList<>();
     protected ArrayList<Bitmap> thumbs = new ArrayList<>();
 
 

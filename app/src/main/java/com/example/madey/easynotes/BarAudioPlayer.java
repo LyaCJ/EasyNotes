@@ -7,8 +7,11 @@ import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ToggleButton;
+
+import com.example.madey.easynotes.models.AudioClipDataObject;
 
 /**
  * Created by Madeyedexter on 25-12-2016.
@@ -25,10 +28,13 @@ import android.widget.ToggleButton;
  */
 public class BarAudioPlayer {
 
-    private String fileName;
+    //a static to have a count of ids for audio description
+    private static int EDIT_TEXT_DESCRIPTION_ID_COUNTER = 1;
+
+    private AudioClipDataObject audioClipDataObject;
     private Context context;
     //the UI component of Audio Player
-    private CardView circularAudioPlayerUI;
+    private CardView barAudioPlayerUI;
     //reference to toggle button
     private ToggleButton mediaStateToggle = null;
     //a listener for delete confirm dialog confirm/reject for this audio player
@@ -36,21 +42,21 @@ public class BarAudioPlayer {
     //a listener for play/pause UI interaction with audio player
     private CompoundButton.OnCheckedChangeListener playCheckedChangeListener;
 
-    public BarAudioPlayer(String fileName, Context ctx) {
+    public BarAudioPlayer(AudioClipDataObject audioClipDataObject, Context ctx) {
         super();
         //reference to context
         this.context = ctx;
         //reference to media file
-        this.fileName = fileName;
+        this.audioClipDataObject = audioClipDataObject;
         //save a reference to CardView
-        this.circularAudioPlayerUI = (CardView) inflateCircularAudioPlayerUI(ctx);
+        this.barAudioPlayerUI = (CardView) inflateCircularAudioPlayerUI(ctx);
         //bind events to card view
-        if (circularAudioPlayerUI != null) {
+        if (barAudioPlayerUI != null) {
             //initialize the media player components if inflation was successful
-            mediaStateToggle = (ToggleButton) circularAudioPlayerUI.findViewById(R.id.toggle_audio_media_state);
-            ImageView mediaPlayProgress = (ImageView) circularAudioPlayerUI.findViewById(R.id.image_view_media_progress);
+            mediaStateToggle = (ToggleButton) barAudioPlayerUI.findViewById(R.id.toggle_audio_media_state);
+            ImageView mediaPlayProgress = (ImageView) barAudioPlayerUI.findViewById(R.id.image_view_media_progress);
             mediaStateToggle.setOnCheckedChangeListener(playCheckedChangeListener);
-            ImageView mediaDelete = (ImageView) circularAudioPlayerUI.findViewById(R.id.image_view_media_delete);
+            ImageView mediaDelete = (ImageView) barAudioPlayerUI.findViewById(R.id.image_view_media_delete);
             mediaDelete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -59,12 +65,13 @@ public class BarAudioPlayer {
                             .setNegativeButton("No", deleteDialogClickListener).show();
                 }
             });
+            EditText descriptionEditText = ((EditText) barAudioPlayerUI.findViewById(R.id.edit_text_audio_description));
         }
 
     }
 
-    public CardView getCircularAudioPlayerUI() {
-        return circularAudioPlayerUI;
+    public CardView getBarAudioPlayerUI() {
+        return barAudioPlayerUI;
     }
 
     public void setDeleteDialogClickListener(DialogInterface.OnClickListener deleteDialogClickListener) {
