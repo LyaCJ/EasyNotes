@@ -36,7 +36,7 @@ public abstract class NoteFragment extends android.app.Fragment {
     protected RecyclerView thumbsRecyclerView;
 
     protected ArrayList<String> fileNames = new ArrayList<>();
-    protected ArrayList<AudioClipDataObject> audioFileNames = new ArrayList<>();
+    protected ArrayList<AudioClipDataObject> audioClipDataObjects = new ArrayList<>();
     protected ArrayList<Bitmap> thumbs = new ArrayList<>();
 
 
