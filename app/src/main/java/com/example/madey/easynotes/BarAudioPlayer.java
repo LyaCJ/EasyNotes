@@ -34,7 +34,7 @@ public class BarAudioPlayer {
 
     private AudioClipDataObject audioClipDataObject;
     private Context context;
-    //the UI component of Audio Player
+    //maintain a list of all the AudioPlayers created till now
     private CardView barAudioPlayerUI;
     //reference to toggle button
     private ToggleButton mediaStateToggle = null;
@@ -57,7 +57,7 @@ public class BarAudioPlayer {
         if (barAudioPlayerUI != null) {
             //initialize the media player components if inflation was successful
             mediaStateToggle = (ToggleButton) barAudioPlayerUI.findViewById(R.id.toggle_audio_media_state);
-            mediaPlayProgress = (ProgressBar) barAudioPlayerUI.findViewById(R.id.image_view_media_progress);
+            mediaPlayProgress = (ProgressBar) barAudioPlayerUI.findViewById(R.id.progress_bar_media_progress);
 
             mediaStateToggle.setOnCheckedChangeListener(playCheckedChangeListener);
             ImageView mediaDelete = (ImageView) barAudioPlayerUI.findViewById(R.id.image_view_media_delete);

@@ -11,11 +11,11 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -60,9 +60,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
-public class NewNoteFragment extends NoteFragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+public class NewNoteFragment extends NoteFragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     private static final String LOG_TAG = "NewNoteFragment:";
     private TextView dateTimeLocationView;
@@ -81,19 +83,28 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private MediaRecorder mRecorder;
     private MediaPlayer mediaPlayer;
 
-    //keeps a reference to the currently playing audio player widget, so that we may update
+    //keeps a reference to all audio players in the note
     //its progress accordingly.
+    private List<BarAudioPlayer> barAudioPlayers = new ArrayList<>();
     private BarAudioPlayer barAudioPlayer;
+
+    private Timer timer;
 
     //media player listeners
     private MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
         @Override
-        public void onPrepared(MediaPlayer mp) {
+        public void onPrepared(final MediaPlayer mp) {
             mp.start();
-            ((ProgressBar) barAudioPlayer.getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress)).setProgress(mp.getDuration());
-            Handler handler = new Handler();
-            //TODO execute a runnable every 500 milliseconds to update progress bar.
-
+            final ProgressBar progressBar = ((ProgressBar) barAudioPlayer.getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress));
+            progressBar.setMax(mp.getDuration());
+            //start a timer to update the progress bar, after 200 milliseconds
+            timer = new java.util.Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                }
+            }, 10, 200);
         }
     };
 
@@ -105,12 +116,30 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             return false;
         }
     };
-
+    private MediaPlayer.OnCompletionListener onCompletionListener = //media player on complete listener, invoked when media player completes playback
+            new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    System.out.println("Going to release MediaPlayer: " + mediaPlayer);
+                    //Never and mind you...never... use the callback mp object to release the media player. Although it may seem that the mp=null
+                    //assignment will invoke the garbage collector, the mp=null is a local assignment and will only invalidate the mp reference.
+                    //The mediaPlayer reference is still there and mp.release() will cause the mediaPlayer to go into a useless state.
+                    mediaPlayer.release();
+                    mediaPlayer = null;
+                    if (timer != null)
+                        timer.cancel();
+                    ((ProgressBar) barAudioPlayer.getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress)).setProgress(0);
+                    NewNoteFragment.this.barAudioPlayer = null;
+                    //toggle the button state to not playing, this will invoke this listener again.
+                    ((ToggleButton) barAudioPlayer.getBarAudioPlayerUI().findViewById(R.id.toggle_audio_media_state)).setChecked(false);
+                }
+            };
     private FloatingActionMenu menuGreen;
     private FloatingActionButton fabAudio;
     private FloatingActionButton fabPhotos;
     private FloatingActionButton fabPictures;
     private View rootView;
+
 
     public NewNoteFragment() {
 
@@ -160,25 +189,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         dateTimeLocationView.setText(simpleDateFormat.format(new Date(System.currentTimeMillis())));
         locationToggleButton = (ToggleButton) rootView.findViewById(R.id.location_image_button);
 
-        locationToggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    isLocationEnabled = true;
-                    if (!mGoogleApiClient.isConnecting() && !mGoogleApiClient.isConnected()) {
-                        mGoogleApiClient.connect();
-                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in retrieving location...");
-                    } else
-                        retrieveLocation();
-                } else {
-                    isLocationEnabled = false;
-                    coordinates = null;
-                    mGoogleApiClient.disconnect();
-                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)));
-                }
-
-            }
-        });
+        locationToggleButton.setOnCheckedChangeListener(this);
 
         // Inflate the layout for this fragment
         menuGreen = (FloatingActionMenu) rootView.findViewById(R.id.menu_red);
@@ -448,23 +459,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 // 3. Get the AlertDialog from create()
         AlertDialog dialog = builder.create();
         final ToggleButton recordAudioButton = (ToggleButton) v.findViewById(R.id.toggle_button_record_audio);
-        recordAudioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    //change status to started recording
-                    recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_green_24dp));
-                    startRecording(fileName);
-                } else {
-                    Log.e(LOG_TAG, "Stopping Audio Recording");
-                    //change status to stop recording
-                    recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_black_24dp));
-                    //release resource
-                    stopRecording();
-                    Log.e(LOG_TAG, "Stopped Audio Recording");
-                }
-            }
-        });
+        recordAudioButton.setOnCheckedChangeListener(this);
         dialog.show();
     }
 
@@ -488,47 +483,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 }
             }
         });
-        barAudioPlayer.setPlayCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
-                //play button pressed,
-                if (isChecked) {
-                    try {
-                        if (mediaPlayer != null) {
-                            mediaPlayer.release();
-                            mediaPlayer = null;
-                        }
-                        //save a reference to the currently playing audio player
-                        NewNoteFragment.this.barAudioPlayer = barAudioPlayer;
-                        mediaPlayer = new MediaPlayer();
-                        mediaPlayer.setOnPreparedListener(onPreparedListener);
-                        mediaPlayer.setOnErrorListener(onErrorListener);
-                        mediaPlayer.setOnCompletionListener(//media player on complete listener, invoked when media player completes playback
-                                new MediaPlayer.OnCompletionListener() {
-                                    @Override
-                                    public void onCompletion(MediaPlayer mp) {
-                                        System.out.println("Going to release MediaPlayer: " + mp);
-                                        //Never and mind you...never... use the callback mp object to release the media player. Although it may seem that the mp=null
-                                        //assignment will invoke the garbage collector, the mp=null is a local assignment and will only invalidate the mp reference.
-                                        //The mediaPlayer reference is still there and mp.release() will cause the mediaPlayer to go into a useless state.
-                                        mediaPlayer.release();
-                                        mediaPlayer = null;
-                                        //toggle the button state to not playing, this will invoke this listener again.
-                                        buttonView.setChecked(false);
-                                    }
-                                });
-                        mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + audioClipDataObject.getFileName());
-                        mediaPlayer.prepareAsync();
-                    } catch (IOException e) {
-                        Toast.makeText(getActivity(), "Invalid Audio Source", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                        mediaPlayer.pause();
-                    }
-                }
-            }
-        });
+        barAudioPlayer.setPlayCheckedChangeListener(this);
         ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).addView(barAudioPlayer.getBarAudioPlayerUI(), 1);
     }
 
@@ -575,7 +530,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         }
     }
 
-    private void startRecording(String fileName) {
+    private String startRecording() {
+        String fileName = "Audio_" + System.currentTimeMillis() + ".3gp";
         mRecorder = new MediaRecorder();
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
@@ -588,5 +544,70 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         }
         mRecorder.start();
         isRecording = true;
+        return fileName;
+    }
+
+    @Override
+    public void onCheckedChanged(final CompoundButton buttonView, boolean isChecked) {
+        switch (buttonView.getId()) {
+            case R.id.location_image_button:
+                if (isChecked) {
+                    isLocationEnabled = true;
+                    if (!mGoogleApiClient.isConnecting() && !mGoogleApiClient.isConnected()) {
+                        mGoogleApiClient.connect();
+                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in retrieving location...");
+                    } else
+                        retrieveLocation();
+                } else {
+                    isLocationEnabled = false;
+                    coordinates = null;
+                    mGoogleApiClient.disconnect();
+                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)));
+                }
+                break;
+            case R.id.toggle_button_record_audio:
+                ToggleButton recordAudioButton = (ToggleButton) buttonView;
+                if (isChecked) {
+                    //change status to started recording
+                    recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_green_24dp));
+                    String fileName = startRecording();
+                    audioFileNames.add(new AudioClipDataObject(fileName, null));
+                } else {
+                    Log.e(LOG_TAG, "Stopping Audio Recording");
+                    //change status to stop recording
+                    recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_black_24dp));
+                    //release resource
+                    stopRecording();
+                    Log.e(LOG_TAG, "Stopped Audio Recording");
+                }
+                break;
+            case R.id.toggle_audio_media_state: //play button pressed,
+                //Will need a reference to the audio player widget
+                CardView playerUI = (CardView) buttonView.getParent().getParent().getParent();
+                if (isChecked) {
+                    try {
+                        if (mediaPlayer != null) {
+                            mediaPlayer.release();
+                            mediaPlayer = null;
+                        }
+                        //save a reference to the currently playing audio player
+                        mediaPlayer = new MediaPlayer();
+                        mediaPlayer.setOnPreparedListener(onPreparedListener);
+                        mediaPlayer.setOnErrorListener(onErrorListener);
+                        mediaPlayer.setOnCompletionListener(onCompletionListener);
+                        mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" /*TODO + audioClipDataObject.getFileName()*/);
+                        mediaPlayer.prepareAsync();
+                    } catch (IOException e) {
+                        Toast.makeText(getActivity(), "Invalid Audio Source", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                        timer.cancel();
+                        timer = null;
+                        mediaPlayer.pause();
+                    }
+                }
+                break;
+        }
     }
 }
