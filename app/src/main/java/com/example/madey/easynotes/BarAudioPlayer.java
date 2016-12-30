@@ -3,8 +3,6 @@ package com.example.madey.easynotes;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.media.MediaPlayer;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
@@ -37,20 +35,10 @@ import java.util.TimerTask;
  * Note to self: Now using a private static media player instance to share across all BarAudioPlayer instances.
  *
  */
-public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener, Parcelable {
+public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
 
+    public static long id = System.currentTimeMillis();
 
-    public static final Creator<BarAudioPlayer> CREATOR = new Creator<BarAudioPlayer>() {
-        @Override
-        public BarAudioPlayer createFromParcel(Parcel in) {
-            return new BarAudioPlayer(in);
-        }
-
-        @Override
-        public BarAudioPlayer[] newArray(int size) {
-            return new BarAudioPlayer[size];
-        }
-    };
     //A static shared media player to play the audio for instances of these player
     public static MediaPlayer mediaPlayer;
     //A static timer to share across MediaPlayer UI instances to update Media progress.
@@ -111,9 +99,6 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener, P
                 }
             };
 
-    protected BarAudioPlayer(Parcel in) {
-        audioClipDataObject = in.readParcelable(AudioClipDataObject.class.getClassLoader());
-    }
     public BarAudioPlayer(AudioClipDataObject audioClipDataObject, Context ctx) {
         super();
         //reference to context
@@ -127,8 +112,6 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener, P
             //initialize the media player components if inflation was successful
             mediaStateToggle = (ToggleButton) barAudioPlayerUI.findViewById(R.id.toggle_audio_media_state);
             mediaPlayProgress = (ProgressBar) barAudioPlayerUI.findViewById(R.id.progress_bar_media_progress);
-
-            mediaStateToggle.setOnCheckedChangeListener(playCheckedChangeListener);
             ImageView mediaDelete = (ImageView) barAudioPlayerUI.findViewById(R.id.image_view_media_delete);
             mediaDelete.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -139,7 +122,22 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener, P
                 }
             });
             EditText descriptionEditText = ((EditText) barAudioPlayerUI.findViewById(R.id.edit_text_audio_description));
+
+            //found a genius way to attach data to views
+            barAudioPlayerUI.setTag(audioClipDataObject.getFileName());
         }
+    }
+
+    public MediaPlayer.OnPreparedListener getOnPreparedListener() {
+        return onPreparedListener;
+    }
+
+    public MediaPlayer.OnErrorListener getOnErrorListener() {
+        return onErrorListener;
+    }
+
+    public MediaPlayer.OnCompletionListener getOnCompletionListener() {
+        return onCompletionListener;
     }
 
     public AudioClipDataObject getAudioClipDataObject() {
@@ -182,15 +180,5 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener, P
                     mediaPlayer.pause();
                 }
         }
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(audioClipDataObject, flags);
     }
 }

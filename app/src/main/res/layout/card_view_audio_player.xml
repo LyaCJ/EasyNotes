@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:foreground="?android:attr/selectableItemBackground"
-    card_view:cardCornerRadius="0dp"
     card_view:cardElevation="-1dp"
     card_view:cardMaxElevation="0dp"
     card_view:cardUseCompatPadding="false">

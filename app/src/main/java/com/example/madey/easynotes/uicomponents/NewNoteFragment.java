@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
@@ -55,8 +56,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -75,6 +78,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private Boolean isPlaying = false;
     private Boolean hasAudioRecording = false;
     private CoarseAddress coarseAddress;
+    private String audioCaptureFileName;
 
     private GoogleApiClient mGoogleApiClient;
     private MediaRecorder mRecorder;
@@ -86,6 +90,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private View rootView;
 
     private List<BarAudioPlayer> barAudioPlayers = new ArrayList<>();
+
+    private CardView currBarAudioPlayer;
 
 
     public NewNoteFragment() {
@@ -226,9 +232,11 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         outState.putParcelable("coordinates", coordinates);
         outState.putBoolean("isLocationEnabled", isLocationEnabled);
         outState.putLong("timeStamp", timeStamp);
-        outState.putParcelableArrayList("audio_files", audioClipDataObjects);
+        AudioClipDataObject[] audioArray = new AudioClipDataObject[audioClipDataObjects.size()];
+        outState.putParcelableArray("audio_files", audioClipDataObjects.toArray(audioArray));
         outState.putBoolean("has_audio", hasAudioRecording);
         outState.putParcelable("coarse_address", coarseAddress);
+        outState.putString("curr_audio_recording_filename", audioCaptureFileName);
     }
 
 
@@ -245,9 +253,11 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             coordinates = savedInstanceState.getParcelable("coordinates");
             isLocationEnabled = savedInstanceState.getBoolean("isLocationEnabled");
             timeStamp = savedInstanceState.getLong("timeStamp");
-            audioClipDataObjects = savedInstanceState.getParcelableArrayList("audio_files");
+            audioClipDataObjects = new HashSet<>(Arrays.asList((AudioClipDataObject[]) savedInstanceState.getParcelableArray("audio_files")));
             hasAudioRecording = savedInstanceState.getBoolean("has_audio");
             coarseAddress = savedInstanceState.getParcelable("coarse_address");
+            audioCaptureFileName = savedInstanceState.getString("curr_audio_recording_filename");
+
             //state variables restored. Now set them into the appropriate views.
             setViewState();
         }
@@ -256,7 +266,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     @Override
     protected void setViewState() {
         for (AudioClipDataObject audioClipDataObject : audioClipDataObjects)
-
+            if (new File(Utils.getStoragePath(getActivity()) + "/" + audioClipDataObject.getFileName()).exists())
             addAudioRecording(audioClipDataObject);
         if (isLocationEnabled) {
             locationToggleButton.setChecked(isLocationEnabled);
@@ -366,7 +376,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private void openDialogForAudioCapture() {
         //only one clip must be recorded per user interaction with Dialog
         //so decide a single filename for the audio clip
-        final String fileName = "Audio_" + System.currentTimeMillis() + ".3gp";
+        audioCaptureFileName = "Audio_" + System.currentTimeMillis() + ".3gp";
         //verify audio permissions on api>23
         Utils.verifyRecordAudioPermissions(getActivity());
         // 1. Instantiate an AlertDialog.Builder with its constructor
@@ -385,10 +395,11 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 if (isRecording)
                     stopRecording();
                 //save the file name as an audio file, if the file was created
-                File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
+                File file = new File(Utils.getStoragePath(getActivity()) + "/" + audioCaptureFileName);
+                System.out.println("File exists: " + file.exists());
                 if (file.exists()) {
                     //This file name will be used after rotation to re populate the UI with an audio player widget
-                    addAudioRecording(new AudioClipDataObject(fileName, null));
+                    addAudioRecording(new AudioClipDataObject(audioCaptureFileName, null));
                 }
             }
         });
@@ -398,9 +409,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 if (isRecording)
                     stopRecording();
                 //delete the recording file
-                File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
+                File file = new File(Utils.getStoragePath(getActivity()) + "/" + audioCaptureFileName);
                 if (file.delete())
                     Toast.makeText(getActivity(), "Recorded File Deleted", Toast.LENGTH_SHORT).show();
+                audioCaptureFileName = null;
             }
         });
         // Set other dialog properties
@@ -484,12 +496,11 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         }
     }
 
-    private String startRecording() {
-        String fileName = "Audio_" + System.currentTimeMillis() + ".3gp";
+    private void startRecording() {
         mRecorder = new MediaRecorder();
         mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mRecorder.setOutputFile(Utils.getStoragePath(getActivity()) + "/" + fileName);
+        mRecorder.setOutputFile(Utils.getStoragePath(getActivity()) + "/" + audioCaptureFileName);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         try {
             mRecorder.prepare();
@@ -498,7 +509,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         }
         mRecorder.start();
         isRecording = true;
-        return fileName;
     }
 
     @Override
@@ -524,8 +534,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 if (isChecked) {
                     //change status to started recording
                     recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_green_24dp));
-                    String fileName = startRecording();
-                    audioClipDataObjects.add(new AudioClipDataObject(fileName, null));
+                    startRecording();
+                    audioClipDataObjects.add(new AudioClipDataObject(audioCaptureFileName, null));
                 } else {
                     Log.e(LOG_TAG, "Stopping Audio Recording");
                     //change status to stop recording
@@ -537,7 +547,60 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 break;
             case R.id.toggle_audio_media_state:
                 ToggleButton playToggle = (ToggleButton) buttonView;
+                //get the card player which was clicked
                 CardView playerCard = (CardView)playToggle.getParent().getParent().getParent();
+                //check if an audio player is playing or not, if not simply play and save a reference
+                if (isChecked) {
+                    //if nothing was playing
+                    if (currBarAudioPlayer == null) {
+                        currBarAudioPlayer = playerCard;
+                        if (BarAudioPlayer.mediaPlayer != null)
+                            BarAudioPlayer.mediaPlayer.release();
+                        BarAudioPlayer.mediaPlayer = null;
+                        BarAudioPlayer.mediaPlayer = new MediaPlayer();
+                        try {
+                            BarAudioPlayer.mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + playerCard.getTag().toString());
+                        } catch (IOException e) {
+                            Toast.makeText(getActivity(), "Unable to find the audio clip", Toast.LENGTH_SHORT);
+                            BarAudioPlayer.mediaPlayer.release();
+                            BarAudioPlayer.mediaPlayer = null;
+                        }
+                        //TODO attach media player listeners
+                        BarAudioPlayer.mediaPlayer.prepareAsync();
+                    }
+                    //if something was playing
+                    else {
+                        //check if something that was playing was this thing
+                        if (currBarAudioPlayer.getTag().equals(playerCard.getTag())) {
+                            //media player needs to be paused, after checking certain things
+                            if (BarAudioPlayer.mediaPlayer != null && BarAudioPlayer.mediaPlayer.isPlaying()) {
+                                BarAudioPlayer.mediaPlayer.pause();
+                            }
+                        } else {//need to switch media player
+                            if (BarAudioPlayer.mediaPlayer != null) {
+                                BarAudioPlayer.mediaPlayer.stop();
+                                BarAudioPlayer.mediaPlayer.reset();
+                                try {
+                                    BarAudioPlayer.mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + playerCard.getTag().toString());
+                                } catch (IOException e) {
+                                    Toast.makeText(getActivity(), "Unable to find the audio clip", Toast.LENGTH_SHORT);
+                                    BarAudioPlayer.mediaPlayer.release();
+                                    BarAudioPlayer.mediaPlayer = null;
+                                }
+                                //prepare for playing if data source was set
+                                BarAudioPlayer.mediaPlayer.prepareAsync();
+                                //save a reference to the currently playing card
+                                currBarAudioPlayer = playerCard;
+                            }
+                        }
+                    }
+                } else {
+                    //simply pause the media player
+                    if (BarAudioPlayer.mediaPlayer != null && BarAudioPlayer.mediaPlayer.isPlaying()) {
+                        BarAudioPlayer.mediaPlayer.pause();
+                    }
+                }
+
         }
     }
 }

@@ -24,7 +24,9 @@ import com.example.madey.easynotes.models.AudioClipDataObject;
 import com.example.madey.easynotes.models.ThumbnailModel;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -36,7 +38,7 @@ public abstract class NoteFragment extends android.app.Fragment {
     protected RecyclerView thumbsRecyclerView;
 
     protected ArrayList<String> fileNames = new ArrayList<>();
-    protected ArrayList<AudioClipDataObject> audioClipDataObjects = new ArrayList<>();
+    protected Set<AudioClipDataObject> audioClipDataObjects = new HashSet<>();
     protected ArrayList<Bitmap> thumbs = new ArrayList<>();
 
 
