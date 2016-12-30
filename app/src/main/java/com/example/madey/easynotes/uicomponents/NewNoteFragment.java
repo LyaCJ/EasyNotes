@@ -59,9 +59,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 public class NewNoteFragment extends NoteFragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, CompoundButton.OnCheckedChangeListener {
@@ -89,7 +91,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private FloatingActionButton fabPictures;
     private View rootView;
 
-    private List<BarAudioPlayer> barAudioPlayers = new ArrayList<>();
+    private Map<String, BarAudioPlayer> barAudioPlayers = new HashMap<>();
 
     private CardView currBarAudioPlayer;
 
@@ -450,7 +452,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         barAudioPlayer.setPlayCheckedChangeListener(this);
         ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).addView(barAudioPlayer.getBarAudioPlayerUI(), 1);
         //save a reference to the bar audio player
-        barAudioPlayers.add(barAudioPlayer);
+        barAudioPlayers.put(barAudioPlayer.getAudioClipDataObject().getFileName(), barAudioPlayer);
     }
 
     private void removeAudioRecording(BarAudioPlayer barAudioPlayer) {
@@ -471,6 +473,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
             //remove fileName
             audioClipDataObjects.remove(barAudioPlayer.getAudioClipDataObject());
+            //remove from HashMap
+            barAudioPlayers.remove(barAudioPlayer.getAudioClipDataObject().getFileName());
             if (audioClipDataObjects.size() == 0)
                 hasAudioRecording = false;
             //show success toast
@@ -519,7 +523,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     isLocationEnabled = true;
                     if (!mGoogleApiClient.isConnecting() && !mGoogleApiClient.isConnected()) {
                         mGoogleApiClient.connect();
-                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in retrieving location...");
+                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in <retrieving location...>");
                     } else
                         retrieveLocation();
                 } else {
@@ -554,9 +558,9 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     //if nothing was playing
                     if (currBarAudioPlayer == null) {
                         currBarAudioPlayer = playerCard;
-                        if (BarAudioPlayer.mediaPlayer != null)
-                            BarAudioPlayer.mediaPlayer.release();
-                        BarAudioPlayer.mediaPlayer = null;
+                        if (BarAudioPlayer.mediaPlayer != null) {
+                            BarAudioPlayer.mediaPlayer.reset();
+                        }
                         BarAudioPlayer.mediaPlayer = new MediaPlayer();
                         try {
                             BarAudioPlayer.mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + playerCard.getTag().toString());
@@ -565,34 +569,34 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                             BarAudioPlayer.mediaPlayer.release();
                             BarAudioPlayer.mediaPlayer = null;
                         }
-                        //TODO attach media player listeners
+                        //attach media player listeners, need to get a reference to the barAudioPlayer object
+                        BarAudioPlayer barAudioPlayer = barAudioPlayers.get(playerCard.getTag().toString());
+                        BarAudioPlayer.mediaPlayer.setOnPreparedListener(barAudioPlayer.getOnPreparedListener());
+                        BarAudioPlayer.mediaPlayer.setOnCompletionListener(barAudioPlayer.getOnCompletionListener());
+                        BarAudioPlayer.mediaPlayer.setOnErrorListener(barAudioPlayer.getOnErrorListener());
                         BarAudioPlayer.mediaPlayer.prepareAsync();
                     }
-                    //if something was playing
+                    //if some other player was playing
                     else {
-                        //check if something that was playing was this thing
-                        if (currBarAudioPlayer.getTag().equals(playerCard.getTag())) {
-                            //media player needs to be paused, after checking certain things
-                            if (BarAudioPlayer.mediaPlayer != null && BarAudioPlayer.mediaPlayer.isPlaying()) {
-                                BarAudioPlayer.mediaPlayer.pause();
-                            }
-                        } else {//need to switch media player
-                            if (BarAudioPlayer.mediaPlayer != null) {
-                                BarAudioPlayer.mediaPlayer.stop();
-                                BarAudioPlayer.mediaPlayer.reset();
-                                try {
-                                    BarAudioPlayer.mediaPlayer.setDataSource(Utils.getStoragePath(getActivity()) + "/" + playerCard.getTag().toString());
-                                } catch (IOException e) {
-                                    Toast.makeText(getActivity(), "Unable to find the audio clip", Toast.LENGTH_SHORT);
-                                    BarAudioPlayer.mediaPlayer.release();
-                                    BarAudioPlayer.mediaPlayer = null;
-                                }
-                                //prepare for playing if data source was set
-                                BarAudioPlayer.mediaPlayer.prepareAsync();
-                                //save a reference to the currently playing card
-                                currBarAudioPlayer = playerCard;
-                            }
+                        //get that player and reset it. Additionally restore the view to reset state
+                        if (BarAudioPlayer.mediaPlayer != null)
+                            BarAudioPlayer.mediaPlayer.reset();
+                        //restore the currBarAudioPlayer to the reset state, just reset the progress bar
+                        ((ProgressBar) currBarAudioPlayer.findViewById(R.id.progress_bar_media_progress)).setProgress(0);
+                        try {
+                            BarAudioPlayer.mediaPlayer.setDataSource(playerCard.getTag().toString());
+                        } catch (IOException e) {
+                            Toast.makeText(getActivity(), "Unable to find the audio clip", Toast.LENGTH_SHORT);
+                            BarAudioPlayer.mediaPlayer.release();
+                            BarAudioPlayer.mediaPlayer = null;
                         }
+                        //attach media player listeners, need to get a reference to the barAudioPlayer object
+                        BarAudioPlayer barAudioPlayer = barAudioPlayers.get(playerCard.getTag().toString());
+                        BarAudioPlayer.mediaPlayer.setOnPreparedListener(barAudioPlayer.getOnPreparedListener());
+                        BarAudioPlayer.mediaPlayer.setOnCompletionListener(barAudioPlayer.getOnCompletionListener());
+                        BarAudioPlayer.mediaPlayer.setOnErrorListener(barAudioPlayer.getOnErrorListener());
+                        BarAudioPlayer.mediaPlayer.prepareAsync();
+                        currBarAudioPlayer = playerCard;
                     }
                 } else {
                     //simply pause the media player

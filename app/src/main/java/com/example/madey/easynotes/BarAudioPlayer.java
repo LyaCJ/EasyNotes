@@ -59,9 +59,9 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
     private MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(final MediaPlayer mp) {
-            mp.start();
+            mediaPlayer.start();
             final ProgressBar progressBar = ((ProgressBar) getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress));
-            progressBar.setMax(mp.getDuration());
+            progressBar.setMax(mediaPlayer.getDuration());
             //start a timer to update the progress bar, after 200 milliseconds
             timer = new java.util.Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -81,20 +81,19 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
         }
     };
     //media player playback completion listener
-    private MediaPlayer.OnCompletionListener onCompletionListener = //media player on complete listener, invoked when media player completes playback
+    private MediaPlayer.OnCompletionListener onCompletionListener =
+            //media player on complete listener, invoked when media player completes playback
             new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     System.out.println("Going to release MediaPlayer: " + mediaPlayer);
-                    //Never and mind you...never... use the callback mp object to release the media player. Although it may seem that the mp=null
-                    //assignment will invoke the garbage collector, the mp=null is a local assignment and will only invalidate the mp reference.
-                    //The mediaPlayer reference is still there and mp.release() will cause the mediaPlayer to go into a useless state.
-                    mediaPlayer.release();
-                    mediaPlayer = null;
-                    if (timer != null)
+                    mediaPlayer.reset();
+                    if (timer != null) {
                         timer.cancel();
+                        timer = null;
+                    }
                     ((ProgressBar) getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress)).setProgress(0);
-                    //toggle the button state to not playing, this will invoke this listener again.
+                    //toggle the button state to not playing
                     ((ToggleButton) getBarAudioPlayerUI().findViewById(R.id.toggle_audio_media_state)).setChecked(false);
                 }
             };
