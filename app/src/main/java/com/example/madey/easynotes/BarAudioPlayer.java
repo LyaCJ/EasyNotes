@@ -5,16 +5,17 @@ import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.example.madey.easynotes.models.AudioClipDataObject;
+import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -35,14 +36,14 @@ import java.util.TimerTask;
  * Note to self: Now using a private static media player instance to share across all BarAudioPlayer instances.
  *
  */
-public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
+public class BarAudioPlayer {
 
+    public static final String LOG_TAG = "BarAudioPlayer.java";
     public static long id = System.currentTimeMillis();
-
-    //A static shared media player to play the audio for instances of these player
-    public static MediaPlayer mediaPlayer;
-    //A static timer to share across MediaPlayer UI instances to update Media progress.
-    private static Timer timer;
+    //A timer
+    private Timer timer;
+    //A Timer Task
+    private TimerTask timerTask;
     private AudioClipDataObject audioClipDataObject;
     private Context context;
     //maintain a list of all the AudioPlayers created till now
@@ -59,24 +60,30 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
     private MediaPlayer.OnPreparedListener onPreparedListener = new MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(final MediaPlayer mp) {
-            mediaPlayer.start();
+            mp.start();
+            NewNoteFragment.CURR_MEDIA_STATE = NewNoteFragment.MEDIA_STATE.PLAYING;
             final ProgressBar progressBar = ((ProgressBar) getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress));
-            progressBar.setMax(mediaPlayer.getDuration());
+            progressBar.setMax(mp.getDuration());
             //start a timer to update the progress bar, after 200 milliseconds
             timer = new java.util.Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
+            timerTask = new TimerTask() {
                 @Override
                 public void run() {
-                    progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                    progressBar.setProgress(mp.getCurrentPosition());
                 }
-            }, 10, 200);
+            };
+            timer.scheduleAtFixedRate(timerTask, 10, 200);
+            System.out.println("Media Player prepared and started playback.");
+
         }
     };
     //Media Player error event listener
     private MediaPlayer.OnErrorListener onErrorListener = new MediaPlayer.OnErrorListener() {
         @Override
         public boolean onError(MediaPlayer mp, int what, int extra) {
-            Toast.makeText(context, "Error in MediaPlayer: " + what + "| Extra: " + extra, Toast.LENGTH_SHORT).show();
+            ((ProgressBar) getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress)).setProgress(0);
+            //Toast.makeText(context, "Error in MediaPlayer: " + what + "| Extra: " + extra, Toast.LENGTH_SHORT).show();
+            Log.e(LOG_TAG, "Error in MediaPlayer: " + what + "| Extra: " + extra);
             return false;
         }
     };
@@ -86,15 +93,15 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
             new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    System.out.println("Going to release MediaPlayer: " + mediaPlayer);
-                    mediaPlayer.reset();
-                    if (timer != null) {
-                        timer.cancel();
-                        timer = null;
-                    }
+                    System.out.println("Going to reset MediaPlayer: " + mp);
+                    mp.reset();
+                    resetTimer();
                     ((ProgressBar) getBarAudioPlayerUI().findViewById(R.id.progress_bar_media_progress)).setProgress(0);
+                    //Change State of media player before invoking setChecked
+                    NewNoteFragment.CURR_MEDIA_STATE = NewNoteFragment.MEDIA_STATE.STOPPED;
                     //toggle the button state to not playing
                     ((ToggleButton) getBarAudioPlayerUI().findViewById(R.id.toggle_audio_media_state)).setChecked(false);
+
                 }
             };
 
@@ -121,10 +128,19 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
                 }
             });
             EditText descriptionEditText = ((EditText) barAudioPlayerUI.findViewById(R.id.edit_text_audio_description));
+            descriptionEditText.setText(audioClipDataObject.getFileName());
 
             //found a genius way to attach data to views
             barAudioPlayerUI.setTag(audioClipDataObject.getFileName());
         }
+    }
+
+    public ToggleButton getMediaStateToggle() {
+        return mediaStateToggle;
+    }
+
+    public ProgressBar getMediaPlayProgress() {
+        return mediaPlayProgress;
     }
 
     public MediaPlayer.OnPreparedListener getOnPreparedListener() {
@@ -161,23 +177,12 @@ public class BarAudioPlayer implements CompoundButton.OnCheckedChangeListener {
         return view;
     }
 
-    public void releaseMediaPlayer() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();
-        }
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        switch (buttonView.getId()) {
-            case R.id.toggle_audio_media_state:
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                }
-        }
+    public void resetTimer() {
+        if (timerTask != null)
+            timerTask.cancel();
+        if (timer != null)
+            timer.cancel();
+        timerTask = null;
+        timer = null;
     }
 }
