@@ -13,6 +13,11 @@ A Note Taking App with following features:
 * Upload notes to gdrive [Enhancement]
 * Create Audio Notes.
 
+### Licenses ###
+Easy Notes App - [MIT License]()
+Floating Action Button library by  Clans - [Apache 2.0 License](https://github.com/Clans/FloatingActionButton/blob/master/LICENSE)
+
+
 ### Who do I talk to? ###
 
 * Email me: madeyedexter92@gmail.com
