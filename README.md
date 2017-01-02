@@ -14,8 +14,8 @@ A Note Taking App with following features:
 * Create Audio Notes.
 
 ### Licenses ###
-Easy Notes App - [MIT License]()
-Floating Action Button library by  Clans - [Apache 2.0 License](https://github.com/Clans/FloatingActionButton/blob/master/LICENSE)
+* Easy Notes App - [MIT License](https://github.com/Madeyedexter/EasyNotes/blob/master/LICENSE)
+* Floating Action Button library by  Clans - [Apache 2.0 License](https://github.com/Clans/FloatingActionButton/blob/master/LICENSE)
 
 
 ### Who do I talk to? ###
