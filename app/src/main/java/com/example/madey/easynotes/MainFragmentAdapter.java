@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
 import com.example.madey.easynotes.models.SimpleListDataObject;
-import com.example.madey.easynotes.models.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public void onItemRemove(int adapterPosition) {
-        //((SimpleNoteDataObject) mDataset.get(adapterPosition)).removeFromDisk();
+        //((SimpleNoteModel) mDataset.get(adapterPosition)).removeFromDisk();
         mDataset.remove(adapterPosition);
         this.notifyItemRemoved(adapterPosition);
     }
@@ -81,7 +81,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         switch (holder.getItemViewType()) {
             case TYPE_NOTE:
                 final SimpleNoteDataObjectHolder sndoh = (SimpleNoteDataObjectHolder) holder;
-                final SimpleNoteDataObject snData = (SimpleNoteDataObject) mDataset.get(position);
+                final SimpleNoteModel snData = (SimpleNoteModel) mDataset.get(position);
                 if (snData.getTitle() != null)
                     sndoh.title.setText(snData.getTitle());
                 if (snData.getContent() != null)
@@ -93,7 +93,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 }
 
 
-                if (snData.getImagePath() != null && snData.getImagePath().size() > 0 && snData.getImagePath().get(0).toString().length() > 0) {
+                if (snData.getImageFileNames() != null && snData.getImageFileNames().size() > 0 && snData.getImageFileNames().get(0).toString().length() > 0) {
                     if (snData.getThumb() == null) {
                         CreateThumbsTask ctt = new CreateThumbsTask(sndoh.iv.getContext(), new Point(300, 300)) {
                             @Override
@@ -103,7 +103,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 snData.setThumb(bitmap);
                             }
                         };
-                        ctt.execute(snData.getImagePath().get(0));
+                        ctt.execute(snData.getImageFileNames().get(0));
                     } else
                         sndoh.iv.setImageBitmap(snData.getThumb());
                 } else
@@ -131,7 +131,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public int getItemViewType(int position) {
         // Just as an example, return 0 or 2 depending on position
         // Note that unlike in ListView adapters, types don't have to be contiguous
-        if (mDataset.get(position) instanceof SimpleNoteDataObject)
+        if (mDataset.get(position) instanceof SimpleNoteModel)
             return TYPE_NOTE;
         if (mDataset.get(position) instanceof SimpleListDataObject)
             return TYPE_LIST;

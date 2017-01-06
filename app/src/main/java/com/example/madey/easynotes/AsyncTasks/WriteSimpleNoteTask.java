@@ -8,12 +8,12 @@ import android.text.TextUtils;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
-import com.example.madey.easynotes.models.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteModel;
 
 /**
  * Created by madey on 8/9/2016.
  */
-public abstract class WriteSimpleNoteTask extends AsyncTask<SimpleNoteDataObject, Integer, Boolean> {
+public abstract class WriteSimpleNoteTask extends AsyncTask<SimpleNoteModel, Integer, Boolean> {
 
     private Context ctx;
 
@@ -40,12 +40,12 @@ public abstract class WriteSimpleNoteTask extends AsyncTask<SimpleNoteDataObject
      * @see #publishProgress
      */
     @Override
-    protected Boolean doInBackground(SimpleNoteDataObject... params) {
+    protected Boolean doInBackground(SimpleNoteModel... params) {
         NoteReaderDbHelper mDbHelper = new NoteReaderDbHelper(ctx);
 
         // Gets the data repository in write mode
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        for (SimpleNoteDataObject sndo : params) {
+        for (SimpleNoteModel sndo : params) {
 
 
 // Create a new map of values, where column names are the keys
@@ -54,7 +54,7 @@ public abstract class WriteSimpleNoteTask extends AsyncTask<SimpleNoteDataObject
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT, sndo.getContent());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED, sndo.getCreationDate());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED, sndo.getLastModifiedDate());
-            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH, TextUtils.join(",", sndo.getImagePath()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH, TextUtils.join(",", sndo.getImageFileNames()));
 
 // Insert the new row, returning the primary key value of the new row
             long newRowId = db.insert(NoteReaderContract.NoteEntry.TABLE_NAME, null, values);

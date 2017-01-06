@@ -3,6 +3,8 @@ package com.example.madey.easynotes.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+
 /**
  * Created by Madeyedexter on 25-12-2016.
  */
@@ -74,6 +76,7 @@ public class Coordinates implements Parcelable {
 
     @Override
     public String toString() {
-        return x + "," + y;
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 }

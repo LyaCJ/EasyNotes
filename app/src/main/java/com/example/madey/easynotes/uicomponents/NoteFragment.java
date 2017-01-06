@@ -20,7 +20,7 @@ import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteUriToFileTask;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
-import com.example.madey.easynotes.models.AudioClipDataObject;
+import com.example.madey.easynotes.models.AudioClipModel;
 import com.example.madey.easynotes.models.ThumbnailModel;
 
 import java.util.ArrayList;
@@ -37,8 +37,8 @@ public abstract class NoteFragment extends android.app.Fragment {
     protected ProgressBar imageHolderProgressBar;
     protected RecyclerView thumbsRecyclerView;
 
-    protected ArrayList<String> fileNames = new ArrayList<>();
-    protected Set<AudioClipDataObject> audioClipDataObjects = new HashSet<>();
+    protected ArrayList<String> imageFileNames = new ArrayList<>();
+    protected Set<AudioClipModel> audioClipModels = new HashSet<>();
     protected ArrayList<Bitmap> thumbs = new ArrayList<>();
 
 
@@ -113,8 +113,8 @@ public abstract class NoteFragment extends android.app.Fragment {
                     public void onResponseReceived(List<String> obj) {
                         if (obj.size() > 0) {
                             Snackbar.make(getActivity().getCurrentFocus(), "Captured Image saved!", Snackbar.LENGTH_SHORT).show();
-                            //add the fileName to the fileNames List
-                            fileNames.add(0, obj.get(0));
+                            //add the fileName to the imageFileNames List
+                            imageFileNames.add(0, obj.get(0));
                             ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
                             adapter.getDataSet().add(0, mapFileNamesToModel(obj).get(0));
                             adapter.notifyItemInserted(0);
@@ -131,8 +131,8 @@ public abstract class NoteFragment extends android.app.Fragment {
                     @Override
                     protected void onCompleted(List<String> obj) {
                         if (obj.size() > 0) {
-                            //add the fileName to the fileNames List
-                            fileNames.add(0, obj.get(0));
+                            //add the fileName to the imageFileNames List
+                            imageFileNames.add(0, obj.get(0));
                             ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
                             adapter.getDataSet().add(0, mapFileNamesToModel(obj).get(0));
                             adapter.notifyItemInserted(0);
@@ -151,7 +151,7 @@ public abstract class NoteFragment extends android.app.Fragment {
                 new WriteUriToFileTask(getActivity()) {
                     @Override
                     protected void onCompleted(List<String> obj) {
-                        fileNames.addAll(obj);
+                        imageFileNames.addAll(obj);
                         ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
                         int position = adapter.getItemCount();
                         adapter.getDataSet().addAll(0, mapFileNamesToModel(obj));

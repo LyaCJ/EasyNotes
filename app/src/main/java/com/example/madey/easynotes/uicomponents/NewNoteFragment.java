@@ -9,6 +9,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -40,10 +41,10 @@ import com.example.madey.easynotes.BarAudioPlayer;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
-import com.example.madey.easynotes.models.AudioClipDataObject;
+import com.example.madey.easynotes.models.AudioClipModel;
 import com.example.madey.easynotes.models.CoarseAddress;
 import com.example.madey.easynotes.models.Coordinates;
-import com.example.madey.easynotes.models.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteModel;
 import com.example.madey.easynotes.models.ThumbnailModel;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
@@ -190,25 +191,26 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
         //Validate note if it's worth saving.
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0 && barAudioPlayers.size() == 0) {
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && imageFileNames.size() == 0 && barAudioPlayers.size() == 0) {
             Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
             return;
         }
         //create a data object holding this note.
-        final SimpleNoteDataObject sndo = new SimpleNoteDataObject(title.getText().toString(), content.getText().toString());
+        final SimpleNoteModel sndo = new SimpleNoteModel(title.getText().toString(), content.getText().toString());
         Calendar c = Calendar.getInstance();
         //date of creation as long milli seconds.
         if (sndo.getCreationDate() == 0) {
             sndo.setCreationDate(System.currentTimeMillis());
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
-        sndo.setImagePath(fileNames);
-        //set latitude and longitudes
-        if (isLocationEnabled)
-            sndo.setCoordinates(coordinates);
-        //also set the City and Country
+        sndo.setLocationEnabled(isLocationEnabled);
         sndo.setCoarseAddress(coarseAddress);
-
+        sndo.setCoordinates(coordinates);
+        sndo.setHasAudioRecording(hasAudioRecording);
+        AudioClipModel[] audios = new AudioClipModel[audioClipModels.size()];
+        sndo.setAudioClipModels(Arrays.asList(audioClipModels.toArray(audios)));
+        sndo.setHasImages(imageFileNames.size() > 0);
+        sndo.setImageFileNames(imageFileNames);
 
         WriteSimpleNoteTask wft = new WriteSimpleNoteTask(getActivity()) {
             @Override
@@ -219,7 +221,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 } else {
                     Toast.makeText(NewNoteFragment.this.getActivity(), "Error Saving Note :(", Toast.LENGTH_SHORT).show();
                 }
-
                 NewNoteFragment.this.getActivity().getFragmentManager().popBackStack();
                 NewNoteFragment.this.getActivity().getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
             }
@@ -231,12 +232,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putStringArrayList("bitmap_files", fileNames);
+        outState.putStringArrayList("bitmap_files", imageFileNames);
         outState.putParcelable("coordinates", coordinates);
         outState.putBoolean("isLocationEnabled", isLocationEnabled);
         outState.putLong("timeStamp", timeStamp);
-        AudioClipDataObject[] audioArray = new AudioClipDataObject[audioClipDataObjects.size()];
-        outState.putParcelableArray("audio_files", audioClipDataObjects.toArray(audioArray));
+        AudioClipModel[] audioArray = new AudioClipModel[audioClipModels.size()];
+        outState.putParcelableArray("audio_files", audioClipModels.toArray(audioArray));
         outState.putBoolean("has_audio", hasAudioRecording);
         outState.putParcelable("coarse_address", coarseAddress);
         outState.putString("curr_audio_recording_filename", audioCaptureFileName);
@@ -246,8 +247,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            fileNames = savedInstanceState.getStringArrayList("bitmap_files");
-            for (String fileName : fileNames) {
+            imageFileNames = savedInstanceState.getStringArrayList("bitmap_files");
+            for (String fileName : imageFileNames) {
                 ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = (ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter();
                 thumbsRecyclerViewAdapter.getDataSet().add(0, new ThumbnailModel(fileName));
                 thumbsRecyclerViewAdapter.notifyItemInserted(thumbsRecyclerViewAdapter.getDataSet().size() - 1);
@@ -255,7 +256,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             coordinates = savedInstanceState.getParcelable("coordinates");
             isLocationEnabled = savedInstanceState.getBoolean("isLocationEnabled");
             timeStamp = savedInstanceState.getLong("timeStamp");
-            audioClipDataObjects = new HashSet<>(Arrays.asList((AudioClipDataObject[]) savedInstanceState.getParcelableArray("audio_files")));
+            audioClipModels = new HashSet<>(Arrays.asList((AudioClipModel[]) savedInstanceState.getParcelableArray("audio_files")));
             hasAudioRecording = savedInstanceState.getBoolean("has_audio");
             coarseAddress = savedInstanceState.getParcelable("coarse_address");
             audioCaptureFileName = savedInstanceState.getString("curr_audio_recording_filename");
@@ -267,9 +268,9 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
     @Override
     protected void setViewState() {
-        for (AudioClipDataObject audioClipDataObject : audioClipDataObjects)
-            if (new File(Utils.getStoragePath(getActivity()) + "/" + audioClipDataObject.getFileName()).exists())
-            addAudioRecording(audioClipDataObject);
+        for (AudioClipModel audioClipModel : audioClipModels)
+            if (new File(Utils.getStoragePath(getActivity()) + "/" + audioClipModel.getFileName()).exists())
+                addAudioRecording(audioClipModel);
         if (isLocationEnabled) {
             locationToggleButton.setChecked(isLocationEnabled);
         } else
@@ -298,28 +299,52 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
     private void retrieveLocation() {
         //if we already have the coordinates, we will use them instead of using the location
-        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+        final Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
         if (coordinates != null) {
-            List<Address> addresses = null;
-            try {
-                addresses = geocoder.getFromLocation(coordinates.getX(), coordinates.getY(), 1);
-                dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            final List<Address> addresses = new ArrayList<>();
+            //run an async task for Geocoder.getFromLocation as the call is blocking.
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try {
+                        addresses.addAll(geocoder.getFromLocation(coordinates.getX(), coordinates.getY(), 1));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
+                }
+            }.execute();
         } else {
-            Location location = LocationServices.FusedLocationApi.getLastLocation(
+            final Location location = LocationServices.FusedLocationApi.getLastLocation(
                     mGoogleApiClient);
             if (location != null) {
-                List<Address> addresses = null;
-                try {
-                    addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
-                    coordinates = new Coordinates(location.getLatitude(), location.getLongitude());
-                    coarseAddress = new CoarseAddress(addresses.get(0).getLocality(), addresses.get(0).getCountryName());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                final List<Address> addresses = new ArrayList<>();
+                //run an async task for Geocoder.getFromLocation as the call is blocking.
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        try {
+                            addresses.addAll(geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
+                        coordinates = new Coordinates(location.getLatitude(), location.getLongitude());
+                        coarseAddress = new CoarseAddress(addresses.get(0).getLocality(), addresses.get(0).getCountryName());
+                    }
+                }.execute();
             } else {
                 dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in <location error>");
             }
@@ -400,7 +425,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 System.out.println("File exists: " + file.exists());
                 if (file.exists()) {
                     //This file name will be used after rotation to re populate the UI with an audio player widget
-                    addAudioRecording(new AudioClipDataObject(audioCaptureFileName, null));
+                    addAudioRecording(new AudioClipModel(audioCaptureFileName, null));
                 }
             }
         });
@@ -425,15 +450,15 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     }
 
     /**
-     * @param audioClipDataObject a data object representing the fileName and description of the Audio Player
+     * @param audioClipModel a data object representing the fileName and description of the Audio Player
      *                            Invocation Scenarios:
      *                            1. from inside onActivityCreated(), when restoring the audio player widgets after screen rotation
      *                            2. After the record audio dialog is dismissed by the user after finishhing the audio recording.
      */
-    private void addAudioRecording(final AudioClipDataObject audioClipDataObject) {
+    private void addAudioRecording(final AudioClipModel audioClipModel) {
         //set boolean audio flag to true
         hasAudioRecording = true;
-        final BarAudioPlayer barAudioPlayer = new BarAudioPlayer(audioClipDataObject, getActivity());
+        final BarAudioPlayer barAudioPlayer = new BarAudioPlayer(audioClipModel, getActivity());
         barAudioPlayer.setDeleteDialogClickListener(new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -447,15 +472,15 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 }
             }
         });
-        audioClipDataObjects.add(audioClipDataObject);
+        audioClipModels.add(audioClipModel);
         barAudioPlayer.setPlayCheckedChangeListener(this);
         ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).addView(barAudioPlayer.getBarAudioPlayerUI(), 1);
         //save a reference to the bar audio player
-        barAudioPlayers.put(barAudioPlayer.getAudioClipDataObject().getFileName(), barAudioPlayer);
+        barAudioPlayers.put(barAudioPlayer.getAudioClipModel().getFileName(), barAudioPlayer);
     }
 
     private void removeAudioRecording(BarAudioPlayer barAudioPlayer) {
-        String fileName=barAudioPlayer.getAudioClipDataObject().getFileName();
+        String fileName = barAudioPlayer.getAudioClipModel().getFileName();
         File file = new File(Utils.getStoragePath(getActivity()) + "/" + fileName);
         //release the MediaPlayer
         if (mediaPlayer != null) {
@@ -467,10 +492,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             //remove ui component of audio player
             ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).removeView(barAudioPlayer.getBarAudioPlayerUI());
             //remove fileName
-            audioClipDataObjects.remove(barAudioPlayer.getAudioClipDataObject());
+            audioClipModels.remove(barAudioPlayer.getAudioClipModel());
             //remove from HashMap
             barAudioPlayers.remove(fileName);
-            if (audioClipDataObjects.size() == 0)
+            if (audioClipModels.size() == 0)
                 hasAudioRecording = false;
             //show success toast
             Toast.makeText(getActivity(), "Audio Clip Deleted", Toast.LENGTH_SHORT).show();
@@ -533,7 +558,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     //change status to started recording
                     recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_green_24dp));
                     startRecording();
-                    audioClipDataObjects.add(new AudioClipDataObject(audioCaptureFileName, null));
+                    audioClipModels.add(new AudioClipModel(audioCaptureFileName, null));
                 } else {
                     Log.e(LOG_TAG, "Stopping Audio Recording");
                     //change status to stop recording

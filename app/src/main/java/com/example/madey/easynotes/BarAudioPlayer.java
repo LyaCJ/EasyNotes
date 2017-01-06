@@ -14,7 +14,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ToggleButton;
 
-import com.example.madey.easynotes.models.AudioClipDataObject;
+import com.example.madey.easynotes.models.AudioClipModel;
 import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 
 import java.util.Timer;
@@ -44,7 +44,7 @@ public class BarAudioPlayer {
     private Timer timer;
     //A Timer Task
     private TimerTask timerTask;
-    private AudioClipDataObject audioClipDataObject;
+    private AudioClipModel audioClipModel;
     private Context context;
     //maintain a list of all the AudioPlayers created till now
     private CardView barAudioPlayerUI;
@@ -105,12 +105,12 @@ public class BarAudioPlayer {
                 }
             };
 
-    public BarAudioPlayer(AudioClipDataObject audioClipDataObject, Context ctx) {
+    public BarAudioPlayer(AudioClipModel audioClipModel, Context ctx) {
         super();
         //reference to context
         this.context = ctx;
         //reference to media file
-        this.audioClipDataObject = audioClipDataObject;
+        this.audioClipModel = audioClipModel;
         //save a reference to CardView
         this.barAudioPlayerUI = (CardView) inflateCircularAudioPlayerUI(ctx);
         //bind events to card view
@@ -128,10 +128,10 @@ public class BarAudioPlayer {
                 }
             });
             EditText descriptionEditText = ((EditText) barAudioPlayerUI.findViewById(R.id.edit_text_audio_description));
-            descriptionEditText.setText(audioClipDataObject.getFileName());
+            descriptionEditText.setText(audioClipModel.getFileName());
 
             //found a genius way to attach data to views
-            barAudioPlayerUI.setTag(audioClipDataObject.getFileName());
+            barAudioPlayerUI.setTag(audioClipModel.getFileName());
         }
     }
 
@@ -155,8 +155,8 @@ public class BarAudioPlayer {
         return onCompletionListener;
     }
 
-    public AudioClipDataObject getAudioClipDataObject() {
-        return audioClipDataObject;
+    public AudioClipModel getAudioClipModel() {
+        return audioClipModel;
     }
 
     public CardView getBarAudioPlayerUI() {

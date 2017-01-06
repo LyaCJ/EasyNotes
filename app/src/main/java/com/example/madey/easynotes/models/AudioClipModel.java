@@ -4,20 +4,22 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+import com.google.gson.Gson;
+
 /**
  * Created by Madeyedexter on 28-12-2016.
  */
 
-public class AudioClipDataObject implements Parcelable {
-    public static final Creator<AudioClipDataObject> CREATOR = new Creator<AudioClipDataObject>() {
+public class AudioClipModel implements Parcelable {
+    public static final Creator<AudioClipModel> CREATOR = new Creator<AudioClipModel>() {
         @Override
-        public AudioClipDataObject createFromParcel(Parcel in) {
-            return new AudioClipDataObject(in);
+        public AudioClipModel createFromParcel(Parcel in) {
+            return new AudioClipModel(in);
         }
 
         @Override
-        public AudioClipDataObject[] newArray(int size) {
-            return new AudioClipDataObject[size];
+        public AudioClipModel[] newArray(int size) {
+            return new AudioClipModel[size];
         }
     };
     //audio file name of the file
@@ -26,12 +28,12 @@ public class AudioClipDataObject implements Parcelable {
     private String audioDescription;
 
     //the public constructor
-    public AudioClipDataObject(@NonNull String fileName, String audioDescription) {
+    public AudioClipModel(@NonNull String fileName, String audioDescription) {
         this.fileName = fileName;
         this.audioDescription = audioDescription;
     }
 
-    protected AudioClipDataObject(Parcel in) {
+    protected AudioClipModel(Parcel in) {
         fileName = in.readString();
         audioDescription = in.readString();
     }
@@ -54,7 +56,8 @@ public class AudioClipDataObject implements Parcelable {
 
     @Override
     public String toString() {
-        return fileName + "," + audioDescription;
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
     @Override
@@ -75,7 +78,7 @@ public class AudioClipDataObject implements Parcelable {
         if (obj == this)
             //reflexive, symmetric and transitive
             return true;
-        return obj instanceof AudioClipDataObject && obj.hashCode() == this.hashCode();
+        return obj instanceof AudioClipModel && obj.hashCode() == this.hashCode();
     }
 
     @Override

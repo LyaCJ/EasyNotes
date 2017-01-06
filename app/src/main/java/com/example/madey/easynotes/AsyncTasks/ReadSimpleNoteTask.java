@@ -7,7 +7,7 @@ import android.os.AsyncTask;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
-import com.example.madey.easynotes.models.SimpleNoteDataObject;
+import com.example.madey.easynotes.models.SimpleNoteModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +18,7 @@ import java.util.List;
  */
 public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List<Object>> {
 
-    //private SimpleNoteDataObject sndo;
+    //private SimpleNoteModel sndo;
     private Activity ctx;
 
     public ReadSimpleNoteTask(Activity ctx) {
@@ -92,11 +92,11 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 //System.out.println("Str SIze: " + fileName.get(0).length());
 
                 //create object
-                SimpleNoteDataObject sndo = new SimpleNoteDataObject(title, content);
+                SimpleNoteModel sndo = new SimpleNoteModel(title, content);
                 sndo.setId(itemId);
                 sndo.setCreationDate(created);
                 sndo.setLastModifiedDate(modified);
-                sndo.setImagePath(fileNames);
+                sndo.setImageFileNames(fileNames);
                 notes.add(sndo);
             }
             while (cursor.moveToNext());

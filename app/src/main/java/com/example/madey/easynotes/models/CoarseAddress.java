@@ -3,6 +3,8 @@ package com.example.madey.easynotes.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+
 /**
  * Created by 834619 on 12/27/2016.
  */
@@ -34,6 +36,10 @@ public class CoarseAddress implements Parcelable {
         this.country = country;
     }
 
+    public CoarseAddress(String s) {
+
+    }
+
     public String getCity() {
         return city;
     }
@@ -52,7 +58,8 @@ public class CoarseAddress implements Parcelable {
 
     @Override
     public String toString() {
-        return city + ", " + country;
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
     @Override

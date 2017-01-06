@@ -185,11 +185,11 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
             sldo.getDoneItems().add(listItems.get(i).toString());
             i++;
         }
-        sldo.setFileNames(fileNames);
+        sldo.setFileNames(imageFileNames);
 
         //Validate note if it's worth saving.
         if (title.getTitle().toString().length() == 0 && sldo.getActiveItems().size() == 0 &&
-                sldo.getDoneItems().size() == 0 && fileNames.size() == 0) {
+                sldo.getDoneItems().size() == 0 && imageFileNames.size() == 0) {
             Snackbar.make(getActivity().getCurrentFocus(), "Nothing to Save. Empty Note :(", Snackbar.LENGTH_SHORT).show();
             return;
         }
@@ -320,7 +320,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("dataset", getListItemAdapter().getDataSet());
-        outState.putStringArrayList("bitmap_files", fileNames);
+        outState.putStringArrayList("bitmap_files", imageFileNames);
 
     }
 
@@ -328,8 +328,8 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            fileNames = savedInstanceState.getStringArrayList("bitmap_files");
-            for (String fileName : fileNames) {
+            imageFileNames = savedInstanceState.getStringArrayList("bitmap_files");
+            for (String fileName : imageFileNames) {
                 new CreateThumbsTask(getActivity(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                     @Override
                     public void onCompleted(ArrayList<Bitmap> bitmaps) {
