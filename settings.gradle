@@ -1,1 +1,1 @@
-include ':app', ':fabm'
+include ':app', ':fabm', ':easynotestest'
