@@ -12,12 +12,14 @@ import java.util.ArrayList;
  * Created by madey on 8/6/2016.
  */
 public class SimpleNoteDataObject implements Parcelable {
-    public static final Parcelable.Creator<SimpleNoteDataObject> CREATOR
-            = new Parcelable.Creator<SimpleNoteDataObject>() {
+
+    public static final Creator<SimpleNoteDataObject> CREATOR = new Creator<SimpleNoteDataObject>() {
+        @Override
         public SimpleNoteDataObject createFromParcel(Parcel in) {
             return new SimpleNoteDataObject(in);
         }
 
+        @Override
         public SimpleNoteDataObject[] newArray(int size) {
             return new SimpleNoteDataObject[size];
         }
@@ -40,9 +42,9 @@ public class SimpleNoteDataObject implements Parcelable {
         this.content = content;
     }
 
+
     public SimpleNoteDataObject() {
     }
-
 
     private SimpleNoteDataObject(Parcel in) {
         id = in.readLong();

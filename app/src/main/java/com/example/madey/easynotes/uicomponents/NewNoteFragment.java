@@ -64,38 +64,42 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
 
 
 public class NewNoteFragment extends NoteFragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
     private static final String LOG_TAG = "NewNoteFragment:";
     public static MEDIA_STATE CURR_MEDIA_STATE;
+    //views and view groups
     private TextView dateTimeLocationView;
     private ToggleButton locationToggleButton;
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMMM yyyy, hh:mm a");
-    private Long timeStamp = System.currentTimeMillis();
-    private Coordinates coordinates;
-    private Boolean isLocationEnabled = false;
-    private Boolean isRecording = false;
-    private String currentlyPlaying;
-    private Boolean isPlaying = false;
-    private Boolean hasAudioRecording = false;
-    private CoarseAddress coarseAddress;
-    private String audioCaptureFileName;
-    private Map<String, BarAudioPlayer> barAudioPlayers = new HashMap<>();
-    private GoogleApiClient mGoogleApiClient;
-    private MediaRecorder mRecorder;
-    private MediaPlayer mediaPlayer;
     private FloatingActionMenu menuGreen;
     private FloatingActionButton fabAudio;
     private FloatingActionButton fabPhotos;
     private FloatingActionButton fabPictures;
     private View rootView;
-    private Timer timer;
+    //For coarse location access
+    private GoogleApiClient mGoogleApiClient;
+    //Media Player and recorder
+    private MediaRecorder mRecorder;
+    private MediaPlayer mediaPlayer;
+    //Formatting timestamp as date
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMMM yyyy, hh:mm a");
+    //A map of BarAuioPlayers
+    private Map<String, BarAudioPlayer> barAudioPlayers = new HashMap<>();
+    //Instance variables used as state variables
+    private Boolean isRecording = false;
+    private String currentlyPlaying;
+    private String audioCaptureFileName;
+    //Following instance variables are persisted in the sqlite database
+    private Long timeStamp = System.currentTimeMillis();
+    private Coordinates coordinates;
+    private Boolean isLocationEnabled = false;
+    private Boolean hasAudioRecording = false;
+    private CoarseAddress coarseAddress;
 
+    //Required empty constructor
     public NewNoteFragment() {
-
     }
 
     @Override
@@ -186,7 +190,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
         //Validate note if it's worth saving.
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0) {
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && fileNames.size() == 0 && barAudioPlayers.size() == 0) {
             Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
             return;
         }
