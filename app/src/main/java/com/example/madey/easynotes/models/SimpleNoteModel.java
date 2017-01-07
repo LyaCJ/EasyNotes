@@ -11,7 +11,6 @@ import java.util.List;
  * Created by madey on 8/6/2016.
  */
 public class SimpleNoteModel implements Parcelable {
-
     public static final Creator<SimpleNoteModel> CREATOR = new Creator<SimpleNoteModel>() {
         @Override
         public SimpleNoteModel createFromParcel(Parcel in) {
@@ -23,9 +22,9 @@ public class SimpleNoteModel implements Parcelable {
             return new SimpleNoteModel[size];
         }
     };
-
     //A thumb bitmap for image preview
-    private Bitmap thumb;
+    // making it transient so that Gson ignores it.
+    private transient Bitmap thumb;
     //An id for the note. if the note has been persisted, the id should be set.
     private long id = 0;
     //title
@@ -44,10 +43,24 @@ public class SimpleNoteModel implements Parcelable {
     private List<AudioClipModel> audioClipModels = new ArrayList<>();
     //images
     private Boolean hasImages = false;
-    private ArrayList<String> imageFileNames = new ArrayList<>();
+    private List<ImageModel> imageModels = new ArrayList<>();
     //some future proofing for notes involving Lists
     private Boolean hasList = false;
-    private String jsonListString;
+    private List<ListItemModel> listItems = new ArrayList<>();
+
+    protected SimpleNoteModel(Parcel in) {
+        thumb = in.readParcelable(Bitmap.class.getClassLoader());
+        id = in.readLong();
+        title = in.readString();
+        content = in.readString();
+        creationDate = in.readLong();
+        lastModifiedDate = in.readLong();
+        coordinates = in.readParcelable(Coordinates.class.getClassLoader());
+        coarseAddress = in.readParcelable(CoarseAddress.class.getClassLoader());
+        audioClipModels = in.createTypedArrayList(AudioClipModel.CREATOR);
+        imageModels = in.createTypedArrayList(ImageModel.CREATOR);
+        listItems = in.createTypedArrayList(ListItemModel.CREATOR);
+    }
 
     public SimpleNoteModel(String title, String content) {
 
@@ -58,17 +71,12 @@ public class SimpleNoteModel implements Parcelable {
     public SimpleNoteModel() {
     }
 
-    private SimpleNoteModel(Parcel in) {
-        id = in.readLong();
-        title = in.readString();
-        content = in.readString();
-        creationDate = in.readLong();
-        lastModifiedDate = in.readLong();
-        in.readList(imageFileNames, null);
-        isLocationEnabled = (Boolean) in.readSerializable();
-        coordinates = new Coordinates(in.readString());
-        coarseAddress = new CoarseAddress(in.readString());
+    public List<ListItemModel> getListItems() {
+        return listItems;
+    }
 
+    public void setListItems(List<ListItemModel> listItems) {
+        this.listItems = listItems;
     }
 
     public Boolean getHasAudioRecording() {
@@ -95,13 +103,6 @@ public class SimpleNoteModel implements Parcelable {
         this.hasList = hasList;
     }
 
-    public String getJsonListString() {
-        return jsonListString;
-    }
-
-    public void setJsonListString(String jsonListString) {
-        this.jsonListString = jsonListString;
-    }
 
     public List<AudioClipModel> getAudioClipModels() {
         return audioClipModels;
@@ -135,19 +136,7 @@ public class SimpleNoteModel implements Parcelable {
         isLocationEnabled = locationEnabled;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(title);
-        dest.writeString(content);
-        dest.writeLong(creationDate);
-        dest.writeLong(lastModifiedDate);
-        dest.writeList(imageFileNames);
-        dest.writeSerializable(isLocationEnabled);
-        dest.writeString(coordinates.toString());
-        dest.writeParcelable(coarseAddress, flags);
 
-    }
 
     public long getId() {
         return id;
@@ -157,12 +146,12 @@ public class SimpleNoteModel implements Parcelable {
         this.id = id;
     }
 
-    public ArrayList<String> getImageFileNames() {
-        return imageFileNames;
+    public List<ImageModel> getImageModels() {
+        return imageModels;
     }
 
-    public void setImageFileNames(ArrayList<String> imageFileNames) {
-        this.imageFileNames = imageFileNames;
+    public void setImageModels(List<ImageModel> imageModels) {
+        this.imageModels = imageModels;
     }
 
     public String getTitle() {
@@ -200,6 +189,22 @@ public class SimpleNoteModel implements Parcelable {
     @Override
     public int describeContents() {
         return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+        dest.writeParcelable(thumb, flags);
+        dest.writeLong(id);
+        dest.writeString(title);
+        dest.writeString(content);
+        dest.writeLong(creationDate);
+        dest.writeLong(lastModifiedDate);
+        dest.writeParcelable(coordinates, flags);
+        dest.writeParcelable(coarseAddress, flags);
+        dest.writeTypedList(audioClipModels);
+        dest.writeTypedList(imageModels);
+        dest.writeTypedList(listItems);
     }
 
     public Bitmap getThumb() {

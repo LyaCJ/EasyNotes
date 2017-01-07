@@ -13,7 +13,7 @@ import android.widget.TextView;
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
-import com.example.madey.easynotes.models.ThumbnailModel;
+import com.example.madey.easynotes.models.ImageModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +24,9 @@ import java.util.List;
 
 public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<ThumbnailModel> dataSet;
+    private List<ImageModel> dataSet;
 
-    public ThumbsRecyclerViewAdapter(List<ThumbnailModel> dataSet) {
+    public ThumbsRecyclerViewAdapter(List<ImageModel> dataSet) {
         this.dataSet = dataSet;
     }
 
@@ -34,28 +34,28 @@ public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
         this.dataSet = new ArrayList<>();
     }
 
-    public List<ThumbnailModel> getDataSet() {
+    public List<ImageModel> getDataSet() {
         return dataSet;
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         final ThumbnailModelHolder thumbnailModelHolder = (ThumbnailModelHolder) holder;
-        final ThumbnailModel thumbnailModel = dataSet.get(position);
+        final ImageModel imageModel = dataSet.get(position);
         thumbnailModelHolder.imageView.setImageBitmap(null);
-        if (thumbnailModel.getBitmap() != null) {
-            thumbnailModelHolder.imageView.setImageBitmap(thumbnailModel.getBitmap());
+        if (imageModel.getThumbBitmap() != null) {
+            thumbnailModelHolder.imageView.setImageBitmap(imageModel.getThumbBitmap());
         } else {
             new CreateThumbsTask(thumbnailModelHolder.imageView.getContext(), new Point(Utils.DEVICE_WIDTH / 4, Utils.DEVICE_WIDTH / 4)) {
                 @Override
                 public void onCompleted(ArrayList<Bitmap> bmp) {
                     thumbnailModelHolder.imageView.setImageBitmap(bmp.get(0));
-                    thumbnailModel.setBitmap(bmp.get(0));
+                    imageModel.setThumbBitmap(bmp.get(0));
                     ThumbsRecyclerViewAdapter.this.notifyItemChanged(position);
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, thumbnailModel.getFileName());
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, imageModel.getFileName());
         }
-        thumbnailModelHolder.textView.setText(thumbnailModel.getFileName());
+        thumbnailModelHolder.textView.setText(imageModel.getFileName());
     }
 
     @Override

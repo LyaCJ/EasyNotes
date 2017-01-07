@@ -93,7 +93,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 }
 
 
-                if (snData.getImageFileNames() != null && snData.getImageFileNames().size() > 0 && snData.getImageFileNames().get(0).toString().length() > 0) {
+                if (snData.getHasImages()) {
                     if (snData.getThumb() == null) {
                         CreateThumbsTask ctt = new CreateThumbsTask(sndoh.iv.getContext(), new Point(300, 300)) {
                             @Override
@@ -103,7 +103,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 snData.setThumb(bitmap);
                             }
                         };
-                        ctt.execute(snData.getImageFileNames().get(0));
+                        ctt.execute(snData.getImageModels().get(0).getFileName());
                     } else
                         sndoh.iv.setImageBitmap(snData.getThumb());
                 } else

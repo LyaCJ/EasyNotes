@@ -44,8 +44,8 @@ import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.models.AudioClipModel;
 import com.example.madey.easynotes.models.CoarseAddress;
 import com.example.madey.easynotes.models.Coordinates;
+import com.example.madey.easynotes.models.ImageModel;
 import com.example.madey.easynotes.models.SimpleNoteModel;
-import com.example.madey.easynotes.models.ThumbnailModel;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.common.ConnectionResult;
@@ -136,7 +136,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         thumbsRecyclerView = (RecyclerView) rootView.findViewById(R.id.pictures_holder);
         LinearLayoutManager thumbsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, true);
         thumbsRecyclerView.setLayoutManager(thumbsRecyclerViewLayoutManager);
-        ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = new ThumbsRecyclerViewAdapter(new ArrayList<ThumbnailModel>());
+        ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = new ThumbsRecyclerViewAdapter(new ArrayList<ImageModel>());
         thumbsRecyclerView.setAdapter(thumbsRecyclerViewAdapter);
         imageHolderProgressBar = (ProgressBar) rootView.findViewById(R.id.pictures_holder_progressbar);
         dateTimeLocationView = (TextView) rootView.findViewById(R.id.date_time_location_view);
@@ -191,7 +191,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
         //Validate note if it's worth saving.
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && imageFileNames.size() == 0 && barAudioPlayers.size() == 0) {
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && imageModels.size() == 0 && barAudioPlayers.size() == 0) {
             Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -209,8 +209,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         sndo.setHasAudioRecording(hasAudioRecording);
         AudioClipModel[] audios = new AudioClipModel[audioClipModels.size()];
         sndo.setAudioClipModels(Arrays.asList(audioClipModels.toArray(audios)));
-        sndo.setHasImages(imageFileNames.size() > 0);
-        sndo.setImageFileNames(imageFileNames);
+        sndo.setHasImages(imageModels.size() > 0);
+        sndo.setImageModels(imageModels);
 
         WriteSimpleNoteTask wft = new WriteSimpleNoteTask(getActivity()) {
             @Override
@@ -232,7 +232,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putStringArrayList("bitmap_files", imageFileNames);
+        outState.putParcelableArrayList("bitmap_files", imageModels);
         outState.putParcelable("coordinates", coordinates);
         outState.putBoolean("isLocationEnabled", isLocationEnabled);
         outState.putLong("timeStamp", timeStamp);
@@ -247,10 +247,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
-            imageFileNames = savedInstanceState.getStringArrayList("bitmap_files");
-            for (String fileName : imageFileNames) {
+            imageModels = savedInstanceState.getParcelableArrayList("bitmap_files");
+            for (ImageModel imageModel : imageModels) {
                 ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = (ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter();
-                thumbsRecyclerViewAdapter.getDataSet().add(0, new ThumbnailModel(fileName));
+                thumbsRecyclerViewAdapter.getDataSet().add(0, new ImageModel(imageModel.getFileName()));
                 thumbsRecyclerViewAdapter.notifyItemInserted(thumbsRecyclerViewAdapter.getDataSet().size() - 1);
             }
             coordinates = savedInstanceState.getParcelable("coordinates");

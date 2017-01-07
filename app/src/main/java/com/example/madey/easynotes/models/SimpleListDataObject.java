@@ -25,12 +25,12 @@ public class SimpleListDataObject implements Parcelable {
     private List<String> doneItems;
     private long lastModifiedDate;
     private long creationDate;
-    private List<String> fileNames;
+    private List<ImageModel> imageModels;
 
     public SimpleListDataObject(){
         activeItems=new ArrayList<>();
         doneItems=new ArrayList<>();
-        fileNames=new ArrayList<>();
+        imageModels = new ArrayList<>();
     }
 
     public SimpleListDataObject(SimpleListDataObject.ListTitleDataObject title, List<String> active, List<String> done) {
@@ -47,8 +47,8 @@ public class SimpleListDataObject implements Parcelable {
         in.readList(doneItems, null);
         lastModifiedDate = in.readLong();
         creationDate = in.readLong();
-        fileNames = new ArrayList<>();
-        in.readList(fileNames, null);
+        imageModels = new ArrayList<>();
+        in.readList(imageModels, null);
 
     }
 
@@ -68,12 +68,12 @@ public class SimpleListDataObject implements Parcelable {
         this.doneItems = doneItems;
     }
 
-    public List<String> getFileNames() {
-        return fileNames;
+    public List<ImageModel> getImageModels() {
+        return imageModels;
     }
 
-    public void setFileNames(List<String> fileNames) {
-        this.fileNames = fileNames;
+    public void setImageModels(List<ImageModel> imageModels) {
+        this.imageModels = imageModels;
     }
 
     public SimpleListDataObject.ListTitleDataObject getTitle() {
@@ -112,7 +112,7 @@ public class SimpleListDataObject implements Parcelable {
         dest.writeList(doneItems);
         dest.writeLong(lastModifiedDate);
         dest.writeLong(creationDate);
-        dest.writeList(fileNames);
+        dest.writeList(imageModels);
 
     }
 

@@ -4,11 +4,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.text.TextUtils;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
 import com.example.madey.easynotes.models.SimpleNoteModel;
+import com.google.gson.Gson;
 
 /**
  * Created by madey on 8/9/2016.
@@ -45,16 +45,23 @@ public abstract class WriteSimpleNoteTask extends AsyncTask<SimpleNoteModel, Int
 
         // Gets the data repository in write mode
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        Gson gson = new Gson();
         for (SimpleNoteModel sndo : params) {
-
-
 // Create a new map of values, where column names are the keys
             ContentValues values = new ContentValues();
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_TITLE, sndo.getTitle());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT, sndo.getContent());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED, sndo.getCreationDate());
             values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED, sndo.getLastModifiedDate());
-            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH, TextUtils.join(",", sndo.getImageFileNames()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_IMG, sndo.getHasImages() ? 1 : 0);
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_IMG_DATA, gson.toJson(sndo.getImageModels()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_AUDIO, sndo.getHasAudioRecording() ? 1 : 0);
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_AUDIO_DATA, gson.toJson(sndo.getImageModels()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LOCATION, sndo.getLocationEnabled() ? 1 : 0);
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_COORDINATES, gson.toJson(sndo.getCoordinates()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_LOCATION, gson.toJson(sndo.getCoarseAddress()));
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LIST, sndo.getHasList() ? 1 : 0);
+            values.put(NoteReaderContract.NoteEntry.COLUMN_NAME_LIST_JSON, gson.toJson(sndo.getListItems()));
 
 // Insert the new row, returning the primary key value of the new row
             long newRowId = db.insert(NoteReaderContract.NoteEntry.TABLE_NAME, null, values);

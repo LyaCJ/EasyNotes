@@ -7,10 +7,16 @@ import android.os.AsyncTask;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
+import com.example.madey.easynotes.models.AudioClipModel;
+import com.example.madey.easynotes.models.CoarseAddress;
+import com.example.madey.easynotes.models.Coordinates;
+import com.example.madey.easynotes.models.ImageModel;
+import com.example.madey.easynotes.models.ListItemModel;
 import com.example.madey.easynotes.models.SimpleNoteModel;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,7 +60,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED,
-                NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH
+                NoteReaderContract.NoteEntry.COLUMN_NAME_IMG_DATA
         };
 
 // Filter results WHERE "title" = 'My Title'
@@ -76,6 +82,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
         );
         //list to store read notes
         List<Object> notes = new ArrayList<>();
+        Gson gson = new Gson();
         if (cursor.moveToFirst()) {
             do {
                 long itemId = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry._ID));
@@ -83,10 +90,23 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 String content = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT));
                 long created = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED));
                 long modified = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED));
-                ArrayList<String> fileNames = new ArrayList<>();
-                for (String s : Arrays.asList(cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMGPATH)).split(","))) {
-                    fileNames.add(s);
-                }
+                Boolean hasImages = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_IMG)) == 1;
+                String imageModelJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_IMG_DATA));
+                ArrayList<ImageModel> imageModels = gson.fromJson(imageModelJson, new TypeToken<ArrayList<ImageModel>>() {
+                }.getType());
+                Boolean hasAudio = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_AUDIO)) == 1;
+                String audioModelJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_AUDIO_DATA));
+                ArrayList<AudioClipModel> audioModels = gson.fromJson(audioModelJson, new TypeToken<ArrayList<AudioClipModel>>() {
+                }.getType());
+                Boolean hasLocation = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LOCATION)) == 1;
+                String coordinatesJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_COORDINATES));
+                Coordinates coordinates = gson.fromJson(coordinatesJson, Coordinates.class);
+                String coarseAddressJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_LOCATION));
+                CoarseAddress coarseAddress = gson.fromJson(coarseAddressJson, CoarseAddress.class);
+                Boolean hasList = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LIST)) == 1;
+                String listModelsJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_LIST_JSON));
+                ArrayList<ListItemModel> listItemModels = gson.fromJson(listModelsJson, new TypeToken<ArrayList<ListItemModel>>() {
+                }.getType());
 
                 //log id
                 //System.out.println("Str SIze: " + fileName.get(0).length());
@@ -96,7 +116,16 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 sndo.setId(itemId);
                 sndo.setCreationDate(created);
                 sndo.setLastModifiedDate(modified);
-                sndo.setImageFileNames(fileNames);
+                sndo.setHasImages(hasImages);
+                sndo.setImageModels(imageModels);
+                sndo.setHasAudioRecording(hasAudio);
+                sndo.setAudioClipModels(audioModels);
+                sndo.setLocationEnabled(hasLocation);
+                sndo.setCoordinates(coordinates);
+                sndo.setCoarseAddress(coarseAddress);
+                sndo.setHasList(hasList);
+                sndo.setListItems(listItemModels);
+
                 notes.add(sndo);
             }
             while (cursor.moveToNext());
