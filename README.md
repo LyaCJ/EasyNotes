@@ -16,7 +16,7 @@ A Note Taking App with following features:
 ### Licenses ###
 * Easy Notes App - [MIT License](https://github.com/Madeyedexter/EasyNotes/blob/master/LICENSE)
 * Floating Action Button library by  Clans - [Apache 2.0 License](https://github.com/Clans/FloatingActionButton/blob/master/LICENSE)
-
+* Gson by Google - [Apache 2.0 License](https://github.com/google/gson#license)
 
 ### Who do I talk to? ###
 
