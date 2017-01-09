@@ -45,14 +45,14 @@ public class NoteReaderContract {
                         NoteEntry.COLUMN_NAME_CONTENT + TEXT_TYPE + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_CREATED + INT_TYPE + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_MODIFIED + INT_TYPE + COMMA_SEP +
-                        NoteEntry.COLUMN_NAME_HAS_IMG + INT_TYPE + "DEFAULT 0" + COMMA_SEP +
+                        NoteEntry.COLUMN_NAME_HAS_IMG + INT_TYPE + " DEFAULT 0" + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_IMG_DATA + TEXT_TYPE + COMMA_SEP +
-                        NoteEntry.COLUMN_NAME_HAS_AUDIO + INT_TYPE + "DEFAULT 0" + COMMA_SEP +
+                        NoteEntry.COLUMN_NAME_HAS_AUDIO + INT_TYPE + " DEFAULT 0" + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_AUDIO_DATA + TEXT_TYPE + COMMA_SEP +
-                        NoteEntry.COLUMN_NAME_HAS_LOCATION + INT_TYPE + "DEFAULT 0" + COMMA_SEP +
+                        NoteEntry.COLUMN_NAME_HAS_LOCATION + INT_TYPE + " DEFAULT 0" + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_COORDINATES + TEXT_TYPE + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_LOCATION + TEXT_TYPE + COMMA_SEP +
-                        NoteEntry.COLUMN_NAME_HAS_LIST + INT_TYPE + "DEFAULT 0" + COMMA_SEP +
+                        NoteEntry.COLUMN_NAME_HAS_LIST + INT_TYPE + " DEFAULT 0" + COMMA_SEP +
                         NoteEntry.COLUMN_NAME_LIST_JSON + TEXT_TYPE +
                         " )";
     }

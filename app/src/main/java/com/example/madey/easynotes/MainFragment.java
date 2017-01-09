@@ -4,19 +4,21 @@ package com.example.madey.easynotes;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteTask;
-import com.example.madey.easynotes.CustomViews.DividerItemDecoration;
 import com.example.madey.easynotes.models.HeterogeneousArrayList;
 import com.example.madey.easynotes.models.SimpleListDataObject;
+import com.example.madey.easynotes.models.SimpleNoteModel;
 import com.example.madey.easynotes.uicomponents.NewListFragment;
 import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
@@ -28,7 +30,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MainFragment extends android.app.Fragment {
+public class MainFragment extends android.app.Fragment implements View.OnClickListener {
 
     private FloatingActionMenu menuRed;
     private FloatingActionButton fab1;
@@ -121,7 +123,7 @@ public class MainFragment extends android.app.Fragment {
 
         // use a linear layout manager
 
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(this.getActivity()));
+        //mRecyclerView.addItemDecoration(new DividerItemDecoration(this.getActivity()));
 
 
         // specify an adapter (see also next example)
@@ -129,7 +131,7 @@ public class MainFragment extends android.app.Fragment {
 
         mLayoutManager = new LinearLayoutManager(ctx);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new MainFragmentAdapter(ctx.getNotes());
+        mAdapter = new MainFragmentAdapter(ctx.getNotes(), this);
         mRecyclerView.setAdapter(mAdapter);
 
 
@@ -189,6 +191,23 @@ public class MainFragment extends android.app.Fragment {
         });
         menuRed.showMenuButton(true);
 
+        mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+        });
+
         return v;
         //System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
     }
@@ -211,4 +230,19 @@ public class MainFragment extends android.app.Fragment {
     }
 
 
+    /*
+    Handles clicks on CarViews
+     */
+    @Override
+    public void onClick(View v) {
+        if (v instanceof CardView) {
+            //the item index will be stored in the form of CardView tag
+            int index = Integer.parseInt(v.getTag().toString());
+            SimpleNoteModel simpleNoteModel = (SimpleNoteModel) mAdapter.getMDataSet().get(index);
+            NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
+            getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
+            MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWNOTE;
+
+        }
+    }
 }

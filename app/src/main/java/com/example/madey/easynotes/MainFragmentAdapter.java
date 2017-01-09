@@ -2,6 +2,7 @@ package com.example.madey.easynotes;
 
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
 import com.example.madey.easynotes.models.SimpleListDataObject;
@@ -29,10 +29,13 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     SimpleDateFormat dt = new SimpleDateFormat("MMM dd, yyyy");
     private List<Object> mDataset;
 
+
+    private View.OnClickListener cardClickListener;
     //private View cardView;
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MainFragmentAdapter() {
+    public MainFragmentAdapter(View.OnClickListener cardClickListener) {
+        this.cardClickListener = cardClickListener;
         mDataset = new ArrayList<>(20);
     }
     //private List<SimpleListDataObject> lDataset;
@@ -40,7 +43,8 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     //Called when creating recycler view and instance of this adapter im MainFragment
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MainFragmentAdapter(List<Object> data) {
+    public MainFragmentAdapter(List<Object> data, View.OnClickListener cardClickListener) {
+        this.cardClickListener = cardClickListener;
         mDataset = data;
     }
 
@@ -61,7 +65,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case TYPE_NOTE:
                 cardView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.simple_note_card_view, parent, false);
-                return new SimpleNoteDataObjectHolder(cardView);
+                return new SimpleNoteDataObjectHolder(cardView, cardClickListener);
             case TYPE_LIST:
                 cardView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.simple_list_card_view, parent, false);
@@ -77,22 +81,26 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        System.out.println("OnBind called");
+        //System.out.println("OnBind called");
         switch (holder.getItemViewType()) {
             case TYPE_NOTE:
+
                 final SimpleNoteDataObjectHolder sndoh = (SimpleNoteDataObjectHolder) holder;
                 final SimpleNoteModel snData = (SimpleNoteModel) mDataset.get(position);
+                //bind a tag with position as value
+                sndoh.cardView.setTag(position);
                 if (snData.getTitle() != null)
                     sndoh.title.setText(snData.getTitle());
+                else
+                    sndoh.title.setText("");
                 if (snData.getContent() != null)
                     sndoh.content.setText(snData.getContent());
-
+                else
+                    sndoh.content.setText("");
                 if (snData.getLastModifiedDate() != 0) {
                     String date = dt.format(new Date(snData.getLastModifiedDate()));
                     sndoh.modified.setText(date);
                 }
-
-
                 if (snData.getHasImages()) {
                     if (snData.getThumb() == null) {
                         CreateThumbsTask ctt = new CreateThumbsTask(sndoh.iv.getContext(), new Point(300, 300)) {
@@ -108,6 +116,18 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         sndoh.iv.setImageBitmap(snData.getThumb());
                 } else
                     sndoh.iv.setImageBitmap(null);
+                if (snData.getHasAudioRecording()) {
+                    sndoh.hasAudio.setVisibility(View.VISIBLE);
+                } else
+                    sndoh.hasAudio.setVisibility(View.INVISIBLE);
+
+                if (snData.getLocationEnabled())
+                    sndoh.hasLocation.setVisibility(View.VISIBLE);
+                else
+                    sndoh.hasLocation.setVisibility(View.INVISIBLE);
+
+                //hiding permanently for now.
+                sndoh.hasLinks.setVisibility(View.INVISIBLE);
 
                 break;
             case TYPE_LIST:
@@ -150,27 +170,30 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public static class SimpleNoteDataObjectHolder extends RecyclerView.ViewHolder
-            implements View
-            .OnClickListener {
+    public static class SimpleNoteDataObjectHolder extends RecyclerView.ViewHolder {
+
+        CardView cardView;
         ImageView iv;
         TextView title;
         TextView content;
         TextView modified;
 
-        public SimpleNoteDataObjectHolder(View itemView) {
+        ImageView hasAudio;
+        TextView hasLocation;
+        ImageView hasLinks;
+
+
+        public SimpleNoteDataObjectHolder(View itemView, View.OnClickListener listener) {
             super(itemView);
+            cardView = (CardView) itemView;
             iv = (ImageView) itemView.findViewById(R.id.image_preview);
             title = (TextView) itemView.findViewById(R.id.sn_title);
             content = (TextView) itemView.findViewById(R.id.sn_content);
             modified = (TextView) itemView.findViewById(R.id.sn_lastmodified);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Toast.makeText(v.getContext(), "Card Clicked", Toast.LENGTH_SHORT).show();
-
+            hasAudio = (ImageView) itemView.findViewById(R.id.audio_image_view);
+            hasLocation = (TextView) itemView.findViewById(R.id.location_text_view);
+            hasLinks = (ImageView) itemView.findViewById(R.id.link_image_view);
+            itemView.setOnClickListener(listener);
         }
     }
 

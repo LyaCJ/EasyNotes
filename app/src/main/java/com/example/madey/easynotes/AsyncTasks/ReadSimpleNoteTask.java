@@ -60,7 +60,15 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_CREATED,
                 NoteReaderContract.NoteEntry.COLUMN_NAME_MODIFIED,
-                NoteReaderContract.NoteEntry.COLUMN_NAME_IMG_DATA
+                NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_IMG,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_IMG_DATA,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_AUDIO,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_AUDIO_DATA,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LOCATION,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_COORDINATES,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_LOCATION,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LIST,
+                NoteReaderContract.NoteEntry.COLUMN_NAME_LIST_JSON,
         };
 
 // Filter results WHERE "title" = 'My Title'

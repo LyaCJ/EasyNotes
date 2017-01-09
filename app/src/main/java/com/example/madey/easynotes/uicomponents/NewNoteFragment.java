@@ -1,5 +1,6 @@
 package com.example.madey.easynotes.uicomponents;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,11 +10,13 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
@@ -36,7 +39,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteTask;
+import com.example.madey.easynotes.AsyncTasks.WriteUriToFileTask;
 import com.example.madey.easynotes.BarAudioPlayer;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.R;
@@ -57,11 +62,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -93,14 +96,25 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private String currentlyPlaying;
     private String audioCaptureFileName;
     //Following instance variables are persisted in the sqlite database
-    private Long timeStamp = System.currentTimeMillis();
+    /*private Long timeStamp = System.currentTimeMillis();
     private Coordinates coordinates;
     private Boolean isLocationEnabled = false;
     private Boolean hasAudioRecording = false;
     private CoarseAddress coarseAddress;
+*/
+    //A model to save all the data in this note
+    private SimpleNoteModel simpleNoteModel;
 
     //Required empty constructor
     public NewNoteFragment() {
+    }
+
+    public static NewNoteFragment newInstance(SimpleNoteModel simpleNoteModel) {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("simpleNote", simpleNoteModel);
+        NewNoteFragment newNoteFragment = new NewNoteFragment();
+        newNoteFragment.setArguments(bundle);
+        return newNoteFragment;
     }
 
     @Override
@@ -112,6 +126,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
+        }
+        if (getArguments() != null) {
+            //lets set everything in the SimpleNoteModel
+            this.simpleNoteModel = getArguments().getParcelable("simpleNote");
+        } else {
+            this.simpleNoteModel = new SimpleNoteModel();
         }
     }
 
@@ -156,6 +176,23 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         fabPhotos.setOnClickListener(this);
         fabPictures.setOnClickListener(this);
         menuGreen.setClosedOnTouchOutside(true);
+        //additionally initialize the view of this fragment if there is a bundled argument associated with it.
+        if (getArguments() != null) {
+            Bundle args = getArguments();
+            SimpleNoteModel simpleNoteModel = args.getParcelable("simpleNote");
+            ((EditText) rootView.findViewById(R.id.editText)).setText(simpleNoteModel.getTitle());
+            ((EditText) rootView.findViewById(R.id.editText2)).setText(simpleNoteModel.getContent());
+            if (simpleNoteModel.getLocationEnabled() && simpleNoteModel.getCoarseAddress() != null) {
+                dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in " + simpleNoteModel.getCoarseAddress().toAddressString());
+                locationToggleButton.setChecked(true);
+            } else
+                dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())));
+            //add items to image recycler view
+            thumbsRecyclerViewAdapter.getDataSet().addAll(simpleNoteModel.getImageModels());
+            thumbsRecyclerViewAdapter.notifyDataSetChanged();
+            //add Bar Audio Players
+            setViewState();
+        }
 
         //additionally resetting the media player
         if (mediaPlayer != null) {
@@ -191,7 +228,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
         //Validate note if it's worth saving.
-        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && imageModels.size() == 0 && barAudioPlayers.size() == 0) {
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter()).getDataSet().size() == 0 && barAudioPlayers.size() == 0) {
             Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -203,14 +240,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             sndo.setCreationDate(System.currentTimeMillis());
         }
         sndo.setLastModifiedDate(System.currentTimeMillis());
-        sndo.setLocationEnabled(isLocationEnabled);
-        sndo.setCoarseAddress(coarseAddress);
-        sndo.setCoordinates(coordinates);
-        sndo.setHasAudioRecording(hasAudioRecording);
-        AudioClipModel[] audios = new AudioClipModel[audioClipModels.size()];
-        sndo.setAudioClipModels(Arrays.asList(audioClipModels.toArray(audios)));
-        sndo.setHasImages(imageModels.size() > 0);
-        sndo.setImageModels(imageModels);
 
         WriteSimpleNoteTask wft = new WriteSimpleNoteTask(getActivity()) {
             @Override
@@ -231,7 +260,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
-
+/*
         outState.putParcelableArrayList("bitmap_files", imageModels);
         outState.putParcelable("coordinates", coordinates);
         outState.putBoolean("isLocationEnabled", isLocationEnabled);
@@ -240,13 +269,16 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         outState.putParcelableArray("audio_files", audioClipModels.toArray(audioArray));
         outState.putBoolean("has_audio", hasAudioRecording);
         outState.putParcelable("coarse_address", coarseAddress);
+        */
         outState.putString("curr_audio_recording_filename", audioCaptureFileName);
+        outState.putParcelable("simpleNote", simpleNoteModel);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
+            /*
             imageModels = savedInstanceState.getParcelableArrayList("bitmap_files");
             for (ImageModel imageModel : imageModels) {
                 ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = (ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter();
@@ -259,8 +291,14 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             audioClipModels = new HashSet<>(Arrays.asList((AudioClipModel[]) savedInstanceState.getParcelableArray("audio_files")));
             hasAudioRecording = savedInstanceState.getBoolean("has_audio");
             coarseAddress = savedInstanceState.getParcelable("coarse_address");
-            audioCaptureFileName = savedInstanceState.getString("curr_audio_recording_filename");
 
+            */
+
+            simpleNoteModel = savedInstanceState.getParcelable("simpleNote");
+            ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
+            thumbsRecyclerViewAdapter.getDataSet().addAll(simpleNoteModel.getImageModels());
+            thumbsRecyclerViewAdapter.notifyDataSetChanged();
+            audioCaptureFileName = savedInstanceState.getString("curr_audio_recording_filename");
             //state variables restored. Now set them into the appropriate views.
             setViewState();
         }
@@ -268,14 +306,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
     @Override
     protected void setViewState() {
-        for (AudioClipModel audioClipModel : audioClipModels)
+        for (AudioClipModel audioClipModel : simpleNoteModel.getAudioClipModels())
             if (new File(Utils.getStoragePath(getActivity()) + "/" + audioClipModel.getFileName()).exists())
                 addAudioRecording(audioClipModel);
-        if (isLocationEnabled) {
-            locationToggleButton.setChecked(isLocationEnabled);
-        } else
-            dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)));
-
+        locationToggleButton.setChecked(simpleNoteModel.getLocationEnabled());
     }
 
     private Bitmap decodeBitmap(InputStream is, Size size) {
@@ -300,7 +334,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     private void retrieveLocation() {
         //if we already have the coordinates, we will use them instead of using the location
         final Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-        if (coordinates != null) {
+        if (simpleNoteModel.getCoordinates() != null) {
+            final Coordinates coordinates = simpleNoteModel.getCoordinates();
             final List<Address> addresses = new ArrayList<>();
             //run an async task for Geocoder.getFromLocation as the call is blocking.
             new AsyncTask<Void, Void, Void>() {
@@ -317,7 +352,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 @Override
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
-                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
+                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
                 }
             }.execute();
         } else {
@@ -340,13 +375,13 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     @Override
                     protected void onPostExecute(Void aVoid) {
                         super.onPostExecute(aVoid);
-                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
-                        coordinates = new Coordinates(location.getLatitude(), location.getLongitude());
-                        coarseAddress = new CoarseAddress(addresses.get(0).getLocality(), addresses.get(0).getCountryName());
+                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in " + addresses.get(0).getLocality() + ", " + addresses.get(0).getCountryName());
+                        simpleNoteModel.setCoordinates(new Coordinates(location.getLatitude(), location.getLongitude()));
+                        simpleNoteModel.setCoarseAddress(new CoarseAddress(addresses.get(0).getLocality(), addresses.get(0).getCountryName()));
                     }
                 }.execute();
             } else {
-                dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in <location error>");
+                dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in <location error>");
             }
         }
     }
@@ -358,7 +393,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         if (!connectionResult.isSuccess()) {
-            dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)));
+            dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())));
             Toast.makeText(getActivity(), "Unable to Connect to Play Services: " + connectionResult.getErrorCode() + " " + connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
             locationToggleButton.setChecked(false);
         }
@@ -457,7 +492,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
      */
     private void addAudioRecording(final AudioClipModel audioClipModel) {
         //set boolean audio flag to true
-        hasAudioRecording = true;
+        simpleNoteModel.setHasAudioRecording(true);
         final BarAudioPlayer barAudioPlayer = new BarAudioPlayer(audioClipModel, getActivity());
         barAudioPlayer.setDeleteDialogClickListener(new DialogInterface.OnClickListener() {
             @Override
@@ -472,7 +507,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 }
             }
         });
-        audioClipModels.add(audioClipModel);
+        simpleNoteModel.getAudioClipModels().add(audioClipModel);
         barAudioPlayer.setPlayCheckedChangeListener(this);
         ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).addView(barAudioPlayer.getBarAudioPlayerUI(), 1);
         //save a reference to the bar audio player
@@ -492,11 +527,11 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             //remove ui component of audio player
             ((LinearLayout) rootView.findViewById(R.id.new_note_main_content_layout)).removeView(barAudioPlayer.getBarAudioPlayerUI());
             //remove fileName
-            audioClipModels.remove(barAudioPlayer.getAudioClipModel());
+            simpleNoteModel.getAudioClipModels().remove(barAudioPlayer.getAudioClipModel());
             //remove from HashMap
             barAudioPlayers.remove(fileName);
-            if (audioClipModels.size() == 0)
-                hasAudioRecording = false;
+            if (simpleNoteModel.getAudioClipModels().size() == 0)
+                simpleNoteModel.setHasAudioRecording(false);
             //show success toast
             Toast.makeText(getActivity(), "Audio Clip Deleted", Toast.LENGTH_SHORT).show();
         } else
@@ -516,6 +551,77 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 mRecorder.release();
             mRecorder = null;
             isRecording = false;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            final int THUMBSIZE = Utils.DEVICE_WIDTH / 4;
+            //Showprogress overlay.
+            //write images to internal storage
+            //on complete, retrieve file namse and store them in list
+            //generate thumbs from filenames
+            //populate imageviews.
+            //hide progress overlay
+
+            // Show the Progress Bar
+            imageHolderProgressBar.setVisibility(View.VISIBLE);
+            if (requestCode == Utils.CAMERA_REQUEST) {
+                //received image from camera
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+                //write photo to disk, and rerieve fileName
+                new WriteFileTask(getActivity()) {
+                    @Override
+                    public void onResponseReceived(List<String> obj) {
+                        if (obj.size() > 0) {
+                            Snackbar.make(getActivity().getCurrentFocus(), "Captured Image saved!", Snackbar.LENGTH_SHORT).show();
+                            //add the fileName to the imageModels List
+                            simpleNoteModel.getImageModels().add(0, new ImageModel(obj.get(0)));
+                            ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
+                            adapter.getDataSet().add(0, mapFileNamesToModel(obj).get(0));
+                            adapter.notifyItemInserted(0);
+                            imageHolderProgressBar.setVisibility(View.GONE);
+                        } else
+                            Snackbar.make(getActivity().getCurrentFocus(), "Captured image not saved", Snackbar.LENGTH_SHORT).show();
+                    }
+                }.execute(photo);
+            }
+            if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getData() != null) {
+                //write photo to disk, and retrieve fileName
+                new WriteUriToFileTask(getActivity()) {
+                    @Override
+                    protected void onCompleted(List<String> obj) {
+                        if (obj.size() > 0) {
+                            //add the fileName to the imageModels List
+                            simpleNoteModel.getImageModels().add(0, new ImageModel(obj.get(0)));
+                            ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
+                            adapter.getDataSet().add(0, mapFileNamesToModel(obj).get(0));
+                            adapter.notifyItemInserted(0);
+                            imageHolderProgressBar.setVisibility(View.GONE);
+                        } else
+                            Snackbar.make(getActivity().getCurrentFocus(), "Captured image not saved", Snackbar.LENGTH_SHORT).show();
+                    }
+                }.execute(data.getData());
+            }
+            if (requestCode == Utils.PICTURE_REQUEST && null != data && data.getClipData() != null) {
+                //multiple images from gallery
+                Uri[] uris = new Uri[data.getClipData().getItemCount()];
+                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                    uris[i] = data.getClipData().getItemAt(i).getUri();
+                }
+                new WriteUriToFileTask(getActivity()) {
+                    @Override
+                    protected void onCompleted(List<String> obj) {
+                        simpleNoteModel.getImageModels().addAll(mapFileNamesToModel(obj));
+                        ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
+                        int position = adapter.getItemCount();
+                        adapter.getDataSet().addAll(0, mapFileNamesToModel(obj));
+                        adapter.notifyItemRangeInserted(0, obj.size());
+                        imageHolderProgressBar.setVisibility(View.GONE);
+                    }
+                }.execute(uris);
+            }
         }
     }
 
@@ -539,17 +645,17 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         switch (buttonView.getId()) {
             case R.id.location_image_button:
                 if (isChecked) {
-                    isLocationEnabled = true;
+                    simpleNoteModel.setLocationEnabled(true);
                     if (!mGoogleApiClient.isConnecting() && !mGoogleApiClient.isConnected()) {
                         mGoogleApiClient.connect();
-                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)) + " in <retrieving location...>");
+                        dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in <retrieving location...>");
                     } else
                         retrieveLocation();
                 } else {
-                    isLocationEnabled = false;
-                    coordinates = null;
+                    simpleNoteModel.setLocationEnabled(false);
+                    simpleNoteModel.setCoordinates(null);
                     mGoogleApiClient.disconnect();
-                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(timeStamp)));
+                    dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())));
                 }
                 break;
             case R.id.toggle_button_record_audio:
@@ -558,7 +664,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     //change status to started recording
                     recordAudioButton.setBackground(ContextCompat.getDrawable(getActivity(), R.drawable.ic_mic_green_24dp));
                     startRecording();
-                    audioClipModels.add(new AudioClipModel(audioCaptureFileName, null));
+                    simpleNoteModel.getAudioClipModels().add(new AudioClipModel(audioCaptureFileName, null));
                 } else {
                     Log.e(LOG_TAG, "Stopping Audio Recording");
                     //change status to stop recording

@@ -72,4 +72,8 @@ public class CoarseAddress implements Parcelable {
         dest.writeString(city);
         dest.writeString(country);
     }
+
+    public String toAddressString() {
+        return city + ", " + country;
+    }
 }

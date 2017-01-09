@@ -49,11 +49,15 @@ public class ApplicationTest {
 
         Gson gson = new Gson();
 
-        System.out.println(gson.toJson(simpleNoteModel));
+        //System.out.println(gson.toJson(simpleNoteModel));
         String jsonString = gson.toJson(simpleNoteModel);
 
         gson.fromJson(jsonString, SimpleNoteModel.class);
 
+
+        String listItems = "[{\"isChecked\":false,\"itemText\":\"Fuckin A\"},{\"isChecked\":true,\"itemText\":\"Fucking B\"}]";
+
+        System.out.println(gson.toJson(simpleNoteModel.getListItems()));
         /*
         HeterogeneousArrayList<Object> list = new HeterogeneousArrayList<>();
 
