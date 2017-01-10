@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -104,7 +105,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 }.getType());
                 Boolean hasAudio = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_AUDIO)) == 1;
                 String audioModelJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_AUDIO_DATA));
-                ArrayList<AudioClipModel> audioModels = gson.fromJson(audioModelJson, new TypeToken<ArrayList<AudioClipModel>>() {
+                HashSet<AudioClipModel> audioModels = gson.fromJson(audioModelJson, new TypeToken<HashSet<AudioClipModel>>() {
                 }.getType());
                 Boolean hasLocation = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LOCATION)) == 1;
                 String coordinatesJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_COORDINATES));

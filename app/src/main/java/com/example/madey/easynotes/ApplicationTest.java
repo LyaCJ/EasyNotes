@@ -29,7 +29,7 @@ public class ApplicationTest {
         AudioClipModel audioClipModel = new AudioClipModel("Hello World Audio", "Hello World Audi Description Fuck the police!! ");
         audioClipModel.toString();
         simpleNoteModel.setHasAudioRecording(true);
-        simpleNoteModel.setAudioClipModels(Arrays.asList(audioClipModel));
+        //simpleNoteModel.setAudioClipModels(audioClipModel);
         simpleNoteModel.setLocationEnabled(true);
         simpleNoteModel.setCoarseAddress(new CoarseAddress("Lucknow", "India"));
         simpleNoteModel.setCoordinates(new Coordinates("2, 5"));

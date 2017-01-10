@@ -5,7 +5,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by madey on 8/6/2016.
@@ -40,7 +42,7 @@ public class SimpleNoteModel implements Parcelable {
     private CoarseAddress coarseAddress;
     //audio
     private Boolean hasAudioRecording = false;
-    private List<AudioClipModel> audioClipModels = new ArrayList<>();
+    private Set<AudioClipModel> audioClipModels = new HashSet<>();
     //images
     private Boolean hasImages = false;
     private List<ImageModel> imageModels = new ArrayList<>();
@@ -57,7 +59,7 @@ public class SimpleNoteModel implements Parcelable {
         lastModifiedDate = in.readLong();
         coordinates = in.readParcelable(Coordinates.class.getClassLoader());
         coarseAddress = in.readParcelable(CoarseAddress.class.getClassLoader());
-        audioClipModels = in.createTypedArrayList(AudioClipModel.CREATOR);
+        audioClipModels = new HashSet<>(in.createTypedArrayList(AudioClipModel.CREATOR));
         imageModels = in.createTypedArrayList(ImageModel.CREATOR);
         listItems = in.createTypedArrayList(ListItemModel.CREATOR);
     }
@@ -104,11 +106,11 @@ public class SimpleNoteModel implements Parcelable {
     }
 
 
-    public List<AudioClipModel> getAudioClipModels() {
+    public Set<AudioClipModel> getAudioClipModels() {
         return audioClipModels;
     }
 
-    public void setAudioClipModels(List<AudioClipModel> audioClipModels) {
+    public void setAudioClipModels(Set<AudioClipModel> audioClipModels) {
         this.audioClipModels = audioClipModels;
     }
 
@@ -202,7 +204,7 @@ public class SimpleNoteModel implements Parcelable {
         dest.writeLong(lastModifiedDate);
         dest.writeParcelable(coordinates, flags);
         dest.writeParcelable(coarseAddress, flags);
-        dest.writeTypedList(audioClipModels);
+        dest.writeTypedArray(audioClipModels.toArray(new AudioClipModel[audioClipModels.size()]), flags);
         dest.writeTypedList(imageModels);
         dest.writeTypedList(listItems);
     }
