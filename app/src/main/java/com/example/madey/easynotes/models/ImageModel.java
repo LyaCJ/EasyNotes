@@ -5,8 +5,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.Expose;
 
 /**
  * Created by Madeyedexter on 23-12-2016.
@@ -25,15 +23,16 @@ public class ImageModel implements Parcelable {
             return new ImageModel[size];
         }
     };
-    @Expose
-    private String fileName;
-    private Bitmap thumbBitmap;
-    private Bitmap originalBitmap;
-    @Expose
+
+    private String imageFileName;
+
+    private transient Bitmap thumbBitmap;
+    private transient Bitmap originalBitmap;
+
     private String caption;
 
     protected ImageModel(Parcel in) {
-        fileName = in.readString();
+        imageFileName = in.readString();
         //thumbBitmap = in.readParcelable(Bitmap.class.getClassLoader());
         //originalBitmap = in.readParcelable(Bitmap.class.getClassLoader());
         caption = in.readString();
@@ -43,12 +42,12 @@ public class ImageModel implements Parcelable {
 
     }
 
-    public ImageModel(String fileName) {
-        this.fileName = fileName;
+    public ImageModel(String imageFileName) {
+        this.imageFileName = imageFileName;
     }
 
-    public ImageModel(String fileName, Bitmap thumbBitmap) {
-        this.fileName = fileName;
+    public ImageModel(String imageFileName, Bitmap thumbBitmap) {
+        this.imageFileName = imageFileName;
         this.thumbBitmap = thumbBitmap;
     }
 
@@ -68,12 +67,12 @@ public class ImageModel implements Parcelable {
         this.caption = caption;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getImageFileName() {
+        return imageFileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setImageFileName(String imageFileName) {
+        this.imageFileName = imageFileName;
     }
 
     public Bitmap getThumbBitmap() {
@@ -86,8 +85,8 @@ public class ImageModel implements Parcelable {
 
     @Override
     public String toString() {
-        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        return gson.toString();
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 
     @Override
@@ -97,7 +96,7 @@ public class ImageModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(fileName);
+        dest.writeString(imageFileName);
         //dest.writeParcelable(thumbBitmap, flags);
         //dest.writeParcelable(originalBitmap, flags);
         dest.writeString(caption);

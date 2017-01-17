@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.example.madey.easynotes.contract.NoteReaderContract;
 import com.example.madey.easynotes.contract.sqlite.NoteReaderDbHelper;
@@ -25,6 +26,9 @@ import java.util.List;
  */
 public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List<Object>> {
 
+    private static final String LOG_TAG = "ReadSimpleNoteTask";
+
+    //LOG TAG
     //private SimpleNoteModel sndo;
     private Activity ctx;
 
@@ -92,8 +96,11 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
         //list to store read notes
         List<Object> notes = new ArrayList<>();
         Gson gson = new Gson();
+
+        if (cursor != null)
         if (cursor.moveToFirst()) {
             do {
+                //System.out.println("Cursor Items: "+ cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry._ID)));
                 long itemId = cursor.getLong(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry._ID));
                 String title = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_TITLE));
                 String content = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_CONTENT));
@@ -105,6 +112,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 }.getType());
                 Boolean hasAudio = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_AUDIO)) == 1;
                 String audioModelJson = cursor.getString(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_AUDIO_DATA));
+                Log.d(LOG_TAG, "audioModelJson: " + audioModelJson);
                 HashSet<AudioClipModel> audioModels = gson.fromJson(audioModelJson, new TypeToken<HashSet<AudioClipModel>>() {
                 }.getType());
                 Boolean hasLocation = cursor.getInt(cursor.getColumnIndexOrThrow(NoteReaderContract.NoteEntry.COLUMN_NAME_HAS_LOCATION)) == 1;
@@ -119,7 +127,6 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
 
                 //log id
                 //System.out.println("Str SIze: " + fileName.get(0).length());
-
                 //create object
                 SimpleNoteModel sndo = new SimpleNoteModel(title, content);
                 sndo.setId(itemId);
@@ -134,8 +141,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 sndo.setCoarseAddress(coarseAddress);
                 sndo.setHasList(hasList);
                 sndo.setListItems(listItemModels);
-
-                notes.add(sndo);
+                notes.add(0, sndo);
             }
             while (cursor.moveToNext());
         }

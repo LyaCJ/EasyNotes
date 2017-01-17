@@ -33,6 +33,8 @@ public class NoteReaderContract {
         //sql drop statement
         public static final String SQL_DELETE_ENTRIES =
                 "DROP TABLE IF EXISTS " + NoteEntry.TABLE_NAME;
+        //sql where clause
+        public static final String SQL_UPDATE_WHERE_CLAUSE = " _id= ?";
         //constants
         private static final String TEXT_TYPE = " TEXT";
         private static final String INT_TYPE = " INT";

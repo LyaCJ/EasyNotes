@@ -111,7 +111,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 snData.setThumb(bitmap);
                             }
                         };
-                        ctt.execute(snData.getImageModels().get(0).getFileName());
+                        ctt.execute(snData.getImageModels().get(0).getImageFileName());
                     } else
                         sndoh.iv.setImageBitmap(snData.getThumb());
                 } else
@@ -121,10 +121,14 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 } else
                     sndoh.hasAudio.setVisibility(View.INVISIBLE);
 
-                if (snData.getLocationEnabled())
+                if (snData.getLocationEnabled()) {
                     sndoh.hasLocation.setVisibility(View.VISIBLE);
-                else
+                    sndoh.hasLocation.setText(snData.getCoarseAddress() == null ? "Unknown Location" : snData.getCoarseAddress().toAddressString());
+                } else {
                     sndoh.hasLocation.setVisibility(View.INVISIBLE);
+                    sndoh.hasLocation.setText("");
+                }
+
 
                 //hiding permanently for now.
                 sndoh.hasLinks.setVisibility(View.INVISIBLE);

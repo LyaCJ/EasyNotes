@@ -111,7 +111,8 @@
             android:src="@drawable/ic_mic_white_24dp"
             fab:fab_colorNormal="@color/green"
             fab:fab_label="Add Audio"
-            fab:fab_size="mini" />
+            fab:fab_size="mini"
+            fab:menu_colorPressed="@color/green" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/fab_add_picture"
@@ -120,7 +121,8 @@
             android:src="@drawable/ic_add_a_photo_white_24dp"
             fab:fab_colorNormal="@color/green"
             fab:fab_label="Picture from Camera"
-            fab:fab_size="mini" />
+            fab:fab_size="mini"
+            fab:menu_colorPressed="@color/green" />
 
         <com.github.clans.fab.FloatingActionButton
             android:id="@+id/fab_add_photos"
@@ -129,7 +131,8 @@
             android:src="@drawable/ic_insert_photo_white_24dp"
             fab:fab_colorNormal="@color/green"
             fab:fab_label="Picture from Gallery"
-            fab:fab_size="mini" />
+            fab:fab_size="mini"
+            fab:menu_colorPressed="@color/green" />
 
 
     </com.github.clans.fab.FloatingActionMenu>

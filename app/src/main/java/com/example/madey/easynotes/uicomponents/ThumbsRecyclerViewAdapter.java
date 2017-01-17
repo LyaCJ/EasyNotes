@@ -53,9 +53,9 @@ public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
                     imageModel.setThumbBitmap(bmp.get(0));
                     ThumbsRecyclerViewAdapter.this.notifyItemChanged(position);
                 }
-            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, imageModel.getFileName());
+            }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, imageModel.getImageFileName());
         }
-        thumbnailModelHolder.textView.setText(imageModel.getFileName());
+        thumbnailModelHolder.textView.setText(imageModel.getImageFileName());
     }
 
     @Override

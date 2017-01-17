@@ -8,9 +8,11 @@
     android:layout_gravity="center"
     android:foreground="?android:attr/selectableItemBackground"
     card_view:cardCornerRadius="0dp"
-    card_view:cardElevation="-1dp"
-    card_view:cardMaxElevation="0dp"
-    card_view:cardUseCompatPadding="false">
+    card_view:cardElevation="1dp"
+    card_view:cardMaxElevation="1dp"
+    card_view:cardUseCompatPadding="true"
+
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -92,7 +94,7 @@
                 android:layout_marginLeft="6dp"
                 android:drawableLeft="@drawable/ic_map_marker_24dpx"
                 android:gravity="center_vertical"
-                android:text="Note Set"
+                android:text="Not Set"
                 android:textAlignment="gravity"
                 android:textSize="10sp" />
 

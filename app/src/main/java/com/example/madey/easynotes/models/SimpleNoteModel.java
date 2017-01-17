@@ -25,7 +25,7 @@ public class SimpleNoteModel implements Parcelable {
         }
     };
     //A thumb bitmap for image preview
-    // making it transient so that Gson ignores it.
+    // making it transient so that Gson and other serializers ignore it.
     private transient Bitmap thumb;
     //An id for the note. if the note has been persisted, the id should be set.
     private long id = 0;
@@ -34,11 +34,11 @@ public class SimpleNoteModel implements Parcelable {
     //content
     private String content;
     //dates
-    private long creationDate = 0;
-    private long lastModifiedDate = 0;
+    private long creationDate = System.currentTimeMillis();
+    private long lastModifiedDate = System.currentTimeMillis();
     //location
     private Boolean isLocationEnabled = false;
-    private Coordinates coordinates = new Coordinates();
+    private Coordinates coordinates;
     private CoarseAddress coarseAddress;
     //audio
     private Boolean hasAudioRecording = false;

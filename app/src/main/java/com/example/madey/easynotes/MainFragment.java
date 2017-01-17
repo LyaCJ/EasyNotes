@@ -23,6 +23,7 @@ import com.example.madey.easynotes.uicomponents.NewListFragment;
 import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+import com.google.gson.Gson;
 
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class MainFragment extends android.app.Fragment implements View.OnClickLi
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.fab_note:
-                    NewNoteFragment nnf = new NewNoteFragment();
+                    NewNoteFragment nnf = NewNoteFragment.newInstance();
                     getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
                     MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWNOTE;
 
@@ -238,7 +239,11 @@ public class MainFragment extends android.app.Fragment implements View.OnClickLi
         if (v instanceof CardView) {
             //the item index will be stored in the form of CardView tag
             int index = Integer.parseInt(v.getTag().toString());
-            SimpleNoteModel simpleNoteModel = (SimpleNoteModel) mAdapter.getMDataSet().get(index);
+            //create a copy of this object to do modifications
+            Gson gson = new Gson();
+            String jsonString = gson.toJson(mAdapter.getMDataSet().get(index));
+            SimpleNoteModel simpleNoteModel = gson.fromJson(jsonString, SimpleNoteModel.class);
+            //pass a copy to the Fragment for editing by user.
             NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
             getFragmentManager().beginTransaction().addToBackStack("Main").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
             MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWNOTE;

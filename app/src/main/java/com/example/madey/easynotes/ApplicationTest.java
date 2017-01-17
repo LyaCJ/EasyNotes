@@ -35,7 +35,7 @@ public class ApplicationTest {
         simpleNoteModel.setCoordinates(new Coordinates("2, 5"));
         simpleNoteModel.setHasImages(true);
         ImageModel imageModel = new ImageModel();
-        imageModel.setFileName("IMG_2134.PNG");
+        imageModel.setImageFileName("IMG_2134.PNG");
         imageModel.setCaption("Hello Fucking Awesome Image!!!");
         imageModel.setOriginalBitmap(null);
         simpleNoteModel.setImageModels(Arrays.asList(imageModel));

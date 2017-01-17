@@ -23,27 +23,27 @@ public class AudioClipModel implements Parcelable {
         }
     };
     //audio file name of the file
-    private String fileName;
+    private String audioFileName;
     //the user description of the file
     private String audioDescription;
 
     //the public constructor
-    public AudioClipModel(@NonNull String fileName, String audioDescription) {
-        this.fileName = fileName;
+    public AudioClipModel(@NonNull String audioFileName, String audioDescription) {
+        this.audioFileName = audioFileName;
         this.audioDescription = audioDescription;
     }
 
     protected AudioClipModel(Parcel in) {
-        fileName = in.readString();
+        audioFileName = in.readString();
         audioDescription = in.readString();
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getAudioFileName() {
+        return audioFileName;
     }
 
-    public void setFileName(@NonNull String fileName) {
-        this.fileName = fileName;
+    public void setAudioFileName(@NonNull String audioFileName) {
+        this.audioFileName = audioFileName;
     }
 
     public String getAudioDescription() {
@@ -67,7 +67,7 @@ public class AudioClipModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(fileName);
+        dest.writeString(audioFileName);
         dest.writeString(audioDescription);
     }
 
@@ -83,6 +83,6 @@ public class AudioClipModel implements Parcelable {
 
     @Override
     public int hashCode() {
-        return audioDescription == null ? fileName.hashCode() : fileName.hashCode() + audioDescription.hashCode();
+        return audioDescription == null ? audioFileName.hashCode() : audioFileName.hashCode() + audioDescription.hashCode();
     }
 }

@@ -335,7 +335,7 @@ public class NewListFragment extends NoteFragment implements ListItemEditText.On
                         for (Bitmap bmp : bitmaps)
                             imageHolderLayout.addView(createImageView(bmp));
                     }
-                }.execute(imageModel.getFileName());
+                }.execute(imageModel.getImageFileName());
             }*/
             thumbs = savedInstanceState.getParcelableArrayList("bitmap_thumbs");
             for (Bitmap bmp : thumbs)
