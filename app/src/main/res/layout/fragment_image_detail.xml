@@ -1,0 +1,27 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.madey.easynotes.uicomponents.ImageDetailFragment">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/hello_blank_fragment" />
+
+    <EditText
+        android:id="@+id/desc_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:hint="Add a description.."
+        android:maxLines="3"
+        android:minLines="1"
+        android:textColor="@color/green"
+        android:textColorHint="@color/dark_gray"
+
+        />
+
+</FrameLayout>

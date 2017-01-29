@@ -26,8 +26,11 @@ public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
 
     private List<ImageModel> dataSet;
 
-    public ThumbsRecyclerViewAdapter(List<ImageModel> dataSet) {
+    private View.OnClickListener clickListener;
+
+    public ThumbsRecyclerViewAdapter(List<ImageModel> dataSet, View.OnClickListener clickListener) {
         this.dataSet = dataSet;
+        this.clickListener = clickListener;
     }
 
     public ThumbsRecyclerViewAdapter() {
@@ -43,6 +46,7 @@ public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
         final ThumbnailModelHolder thumbnailModelHolder = (ThumbnailModelHolder) holder;
         final ImageModel imageModel = dataSet.get(position);
         thumbnailModelHolder.imageView.setImageBitmap(null);
+        thumbnailModelHolder.imageView.setTag(position);
         if (imageModel.getThumbBitmap() != null) {
             thumbnailModelHolder.imageView.setImageBitmap(imageModel.getThumbBitmap());
         } else {
@@ -65,7 +69,7 @@ public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
         ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
         layoutParams.width = Utils.DEVICE_WIDTH / 4;
         layoutParams.height = Utils.DEVICE_WIDTH / 4;
-        return new ThumbsRecyclerViewAdapter.ThumbnailModelHolder(view);
+        return new ThumbsRecyclerViewAdapter.ThumbnailModelHolder(view, clickListener);
     }
 
     @Override
@@ -83,9 +87,10 @@ public class ThumbsRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
         ImageView imageView;
         TextView textView;
 
-        public ThumbnailModelHolder(View itemView) {
+        public ThumbnailModelHolder(View itemView, View.OnClickListener clickListener) {
             super(itemView);
             imageView = (ImageView) itemView.findViewById(R.id.thumb_image_view);
+            imageView.setOnClickListener(clickListener);
             textView = (TextView) itemView.findViewById(R.id.thumb_text_view);
         }
     }

@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public abstract class NoteFragment extends android.app.Fragment {
+public abstract class NoteFragment extends Fragment {
 
     protected LinearLayout imageHolderLayout;
     protected ProgressBar imageHolderProgressBar;
@@ -79,11 +79,6 @@ public abstract class NoteFragment extends android.app.Fragment {
         imageView.setImageURI(uri);
         return imageView;
     }
-    /**
-     * This method must be implemented by the sub-classes to appropriately save the note one the user is
-     * finished making changes to the note.
-     */
-    protected abstract void saveNote();
 
     /**
      * This method must be implemented by the sub classes to restore the state variables after rotation

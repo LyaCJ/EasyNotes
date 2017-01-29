@@ -13,6 +13,7 @@ import java.util.Set;
  * Created by madey on 8/6/2016.
  */
 public class SimpleNoteModel implements Parcelable {
+
     public static final Creator<SimpleNoteModel> CREATOR = new Creator<SimpleNoteModel>() {
         @Override
         public SimpleNoteModel createFromParcel(Parcel in) {
@@ -49,19 +50,25 @@ public class SimpleNoteModel implements Parcelable {
     //some future proofing for notes involving Lists
     private Boolean hasList = false;
     private List<ListItemModel> listItems = new ArrayList<>();
+    //is note archived
+    private Boolean isArchived = false;
 
     protected SimpleNoteModel(Parcel in) {
-        thumb = in.readParcelable(Bitmap.class.getClassLoader());
         id = in.readLong();
         title = in.readString();
         content = in.readString();
         creationDate = in.readLong();
         lastModifiedDate = in.readLong();
+        isLocationEnabled = in.readByte() > 0;
         coordinates = in.readParcelable(Coordinates.class.getClassLoader());
         coarseAddress = in.readParcelable(CoarseAddress.class.getClassLoader());
-        audioClipModels = new HashSet<>(in.createTypedArrayList(AudioClipModel.CREATOR));
+        hasImages = in.readByte() > 0;
         imageModels = in.createTypedArrayList(ImageModel.CREATOR);
+        hasAudioRecording = in.readByte() > 0;
+        audioClipModels = new HashSet<>(in.createTypedArrayList(AudioClipModel.CREATOR));
+        hasList = in.readByte() > 0;
         listItems = in.createTypedArrayList(ListItemModel.CREATOR);
+        isArchived = in.readByte() > 0;
     }
 
     public SimpleNoteModel(String title, String content) {
@@ -71,6 +78,14 @@ public class SimpleNoteModel implements Parcelable {
     }
 
     public SimpleNoteModel() {
+    }
+
+    public Boolean getArchived() {
+        return isArchived;
+    }
+
+    public void setArchived(Boolean archived) {
+        isArchived = archived;
     }
 
     public List<ListItemModel> getListItems() {
@@ -188,27 +203,6 @@ public class SimpleNoteModel implements Parcelable {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
-        dest.writeParcelable(thumb, flags);
-        dest.writeLong(id);
-        dest.writeString(title);
-        dest.writeString(content);
-        dest.writeLong(creationDate);
-        dest.writeLong(lastModifiedDate);
-        dest.writeParcelable(coordinates, flags);
-        dest.writeParcelable(coarseAddress, flags);
-        dest.writeTypedArray(audioClipModels.toArray(new AudioClipModel[audioClipModels.size()]), flags);
-        dest.writeTypedList(imageModels);
-        dest.writeTypedList(listItems);
-    }
-
     public Bitmap getThumb() {
         return thumb;
     }
@@ -216,4 +210,51 @@ public class SimpleNoteModel implements Parcelable {
     public void setThumb(Bitmap thumb) {
         this.thumb = thumb;
     }
+
+    /**
+     * Describe the kinds of special objects contained in this Parcelable's
+     * marshalled representation.
+     *
+     * @return a bitmask indicating the set of special object types marshalled
+     * by the Parcelable.
+     */
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    /**
+     * Flatten this object in to a Parcel.
+     *
+     * @param dest  The Parcel in which the object should be written.
+     * @param flags Additional flags about how the object should be written.
+     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
+     */
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(title);
+        dest.writeString(content);
+        dest.writeLong(creationDate);
+        dest.writeLong(lastModifiedDate);
+        dest.writeByte((byte) (isLocationEnabled ? 1 : 0));
+        dest.writeParcelable(coordinates, flags);
+        dest.writeParcelable(coarseAddress, flags);
+        dest.writeByte((byte) (hasImages ? 1 : 0));
+        dest.writeTypedList(imageModels);
+        dest.writeByte((byte) (hasAudioRecording ? 1 : 0));
+        dest.writeTypedList(new ArrayList<>(audioClipModels));
+        dest.writeByte((byte) (hasList ? 1 : 0));
+        dest.writeTypedList(listItems);
+        dest.writeByte((byte) (isArchived ? 1 : 0));
+    }
+
+    /**
+     * Describe the kinds of special objects contained in this Parcelable's
+     * marshalled representation.
+     *
+     * @return a bitmask indicating the set of special object types marshalled
+     * by the Parcelable.
+     */
+
 }

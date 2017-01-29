@@ -72,7 +72,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
     private static final String LOG_TAG = "NewNoteFragment";
     public static MEDIA_STATE CURR_MEDIA_STATE;
-    private static VIEW_MODE FRAGMENT_VIEW_MODE;
+    //public static VIEW_MODE FRAGMENT_VIEW_MODE;
     //views and view groups
     private TextView dateTimeLocationView;
     private ToggleButton locationToggleButton;
@@ -102,12 +102,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     }
 
     public static NewNoteFragment newInstance() {
-        FRAGMENT_VIEW_MODE = VIEW_MODE.CREATE;
+        //FRAGMENT_VIEW_MODE = VIEW_MODE.CREATE;
         return new NewNoteFragment();
     }
 
     public static NewNoteFragment newInstance(SimpleNoteModel simpleNoteModel) {
-        FRAGMENT_VIEW_MODE = VIEW_MODE.UPDATE;
+        //FRAGMENT_VIEW_MODE = VIEW_MODE.UPDATE;
         Bundle bundle = new Bundle();
         bundle.putParcelable("simpleNote", simpleNoteModel);
         NewNoteFragment newNoteFragment = new NewNoteFragment();
@@ -131,6 +131,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         } else {
             this.simpleNoteModel = new SimpleNoteModel();
         }
+        //System.out.println("In NewNoteFragment.onCreate: Fragment mode is "+FRAGMENT_VIEW_MODE.toString());
     }
 
     @Override
@@ -147,14 +148,18 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ask to discard changes
-                //saveNote();
+                //save Note
+                saveOrUpdateNote(((MainActivity) getActivity()).getNotes());
+                //pop back stack
+                getFragmentManager().popBackStack();
+                //remove fragment, destroying everything
+                getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
             }
         });
         thumbsRecyclerView = (RecyclerView) rootView.findViewById(R.id.pictures_holder);
         LinearLayoutManager thumbsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, true);
         thumbsRecyclerView.setLayoutManager(thumbsRecyclerViewLayoutManager);
-        ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = new ThumbsRecyclerViewAdapter(simpleNoteModel.getImageModels());
+        ThumbsRecyclerViewAdapter thumbsRecyclerViewAdapter = new ThumbsRecyclerViewAdapter(simpleNoteModel.getImageModels(), this);
         thumbsRecyclerView.setAdapter(thumbsRecyclerViewAdapter);
         imageHolderProgressBar = (ProgressBar) rootView.findViewById(R.id.pictures_holder_progressbar);
         dateTimeLocationView = (TextView) rootView.findViewById(R.id.date_time_location_view);
@@ -185,8 +190,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         if (menu != null) {
-            menu.setGroupVisible(R.id.create_note_menu_group, true);
             menu.setGroupVisible(R.id.main_menu_group, false);
+            menu.setGroupVisible(R.id.create_note_menu_group, true);
         }
     }
 
@@ -195,19 +200,24 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         // handle item selection
         switch (item.getItemId()) {
             case R.id.action_done:
-                if (FRAGMENT_VIEW_MODE.equals(VIEW_MODE.CREATE))
-                    saveNote();
-                else
-                    updateNote();
+                //save Note
+                saveOrUpdateNote(((MainActivity) getActivity()).getNotes());
+                //pop back stack
+                getFragmentManager().popBackStack();
+                //remove fragment, destroying everything
+                getFragmentManager().beginTransaction().remove(this).commit();
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void updateNote() {
+    public void updateNote(final List<Object> notes) {
         Utils.verifyStoragePermissions(getActivity());
+        System.out.println("Entering Update Note.");
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
+        System.out.println("Title: " + title.getEditableText().toString());
+        System.out.println("Content: " + content.getEditableText().toString());
         //Validate note if it's worth saving.
         if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && (simpleNoteModel.getImageModels().size() == 0 && barAudioPlayers.size() == 0)) {
             Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
@@ -227,7 +237,6 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 if (affected > 0) {
                     //the note has been updated.
                     //remove the old note
-                    List<Object> notes = ((MainActivity) getActivity()).getNotes();
                     SimpleNoteModel simpleNoteModel = null;
                     for (Object object : notes) {
                         simpleNoteModel = (SimpleNoteModel) object;
@@ -235,21 +244,77 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                             break;
                     }
                     notes.remove(simpleNoteModel);
-                    notes.add(NewNoteFragment.this.simpleNoteModel);
-
-                    Toast.makeText(NewNoteFragment.this.getActivity(), "Note Updated :)", Toast.LENGTH_SHORT).show();
+                    notes.add(0, NewNoteFragment.this.simpleNoteModel);
                 } else {
-                    Toast.makeText(NewNoteFragment.this.getActivity(), "Error Updating Note :(", Toast.LENGTH_SHORT).show();
+
                 }
-                NewNoteFragment.this.getActivity().getFragmentManager().popBackStack();
-                NewNoteFragment.this.getActivity().getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
+                System.out.println("Inside UpdateNoteTask.onPostExecute: Fragment is Resumed: " + NewNoteFragment.this.isResumed());
+                if (NewNoteFragment.this.isResumed()) {
+                    NewNoteFragment.this.getActivity().getSupportFragmentManager().popBackStack();
+                    NewNoteFragment.this.getActivity().getSupportFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
+                }
             }
         };
         unt.execute(simpleNoteModel);
     }
 
-    @Override
-    protected void saveNote() {
+    public void saveOrUpdateNote(final List<SimpleNoteModel> notes) {
+        Utils.verifyStoragePermissions(getActivity());
+        System.out.println("Entering NewNoteFragment.saveOrUpdateNote...");
+        EditText title = (EditText) getView().findViewById(R.id.editText);
+        EditText content = (EditText) getView().findViewById(R.id.editText2);
+        System.out.println("Title: " + title.getEditableText().toString());
+        System.out.println("Content: " + content.getEditableText().toString());
+        //Validate note if it's worth saving.
+        if (title.getText().toString().length() == 0 && content.getText().toString().length() == 0 && (simpleNoteModel.getImageModels().size() == 0 && barAudioPlayers.size() == 0)) {
+            Toast.makeText(getActivity(), "Nothing to Save. Empty Note :(", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        simpleNoteModel.setTitle(title.getText().toString());
+        simpleNoteModel.setContent(content.getText().toString());
+
+
+        if (simpleNoteModel.getCreationDate() == 0)
+            simpleNoteModel.setCreationDate(System.currentTimeMillis());
+        simpleNoteModel.setLastModifiedDate(System.currentTimeMillis());
+        simpleNoteModel.setHasImages(simpleNoteModel.getImageModels().size() > 0);
+        simpleNoteModel.setHasAudioRecording(simpleNoteModel.getAudioClipModels().size() > 0);
+        simpleNoteModel.setHasList(simpleNoteModel.getListItems().size() > 0);
+
+        if (simpleNoteModel.getId() > 0) {
+            Log.d(LOG_TAG, "Updating Note with ID: " + simpleNoteModel.getId());
+            UpdateNoteTask unt = new UpdateNoteTask(getActivity()) {
+                @Override
+                public void onPostExecute(Integer affected) {
+                    if (affected > 0) {
+                        Log.d(LOG_TAG, "Note Updated Successfully.");
+                    } else {
+                        Log.e(LOG_TAG, "Error Updating Note.");
+                    }
+                }
+            };
+            unt.execute(simpleNoteModel);
+        } else {
+            Log.d(LOG_TAG, "Note has not been saved yet. Note will be saved.");
+            WriteSimpleNoteTask wft = new WriteSimpleNoteTask(getActivity()) {
+                @Override
+                public void onSaved(Boolean success) {
+                    if (success) {
+                        //since the note was persisted successfully, we need to show it in the MainFragment when the user navigates back.
+                        notes.add(0, simpleNoteModel);
+                        Log.d(LOG_TAG, "Note Persisted Successfully.");
+                    } else {
+                        Log.e(LOG_TAG, "Error saving note...");
+                    }
+                }
+            };
+            wft.execute(simpleNoteModel);
+        }
+
+    }
+
+
+    public void saveNote(final List<Object> notes) {
         //check storage permissions on the main thread.
         Utils.verifyStoragePermissions(getActivity());
         EditText title = (EditText) getView().findViewById(R.id.editText);
@@ -274,13 +339,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             @Override
             public void onSaved(Boolean success) {
                 if (success) {
-                    ((MainActivity) NewNoteFragment.this.getActivity()).getNotes().add(0, simpleNoteModel);
-                    Toast.makeText(NewNoteFragment.this.getActivity(), "Note Saved :)", Toast.LENGTH_SHORT).show();
+                    notes.add(0, simpleNoteModel);
                 } else {
-                    Toast.makeText(NewNoteFragment.this.getActivity(), "Error Saving Note :(", Toast.LENGTH_SHORT).show();
+                    Log.e(LOG_TAG, "Error saving note...");
                 }
-                NewNoteFragment.this.getActivity().getFragmentManager().popBackStack();
-                NewNoteFragment.this.getActivity().getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
             }
         };
         wft.execute(simpleNoteModel);
@@ -365,6 +427,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                     System.out.println("Entering on PE\\");
                     super.onPostExecute(coarseAddress);
                     dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in " + (coarseAddress == null ? "<Service Unavailable>" : coarseAddress.toAddressString()));
+                    simpleNoteModel.setCoarseAddress(coarseAddress);
                     System.out.println("Exiting on PE\\");
                 }
             };
@@ -389,8 +452,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 addressRetrieverTask.execute(coordinates);
             } else {
                 dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())) + " in <Location Error>");
+
             }
         }
+        //disconnect the google api client
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -409,7 +476,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     @Override
     public void onClick(View v) {
         //close the menu
-        menuGreen.toggle(true);
+        menuGreen.close(true);
         //perform operations.
         switch (v.getId()) {
             case R.id.fab_add_picture:
@@ -436,6 +503,13 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             case R.id.fab_add_audio:
                 openDialogForAudioCapture();
                 return;
+            case R.id.thumb_image_view:
+                System.out.println("In NewNoteFragment.onClick: " + "Clicked view id is " + v.getId());
+                int position = Integer.parseInt(v.getTag().toString());
+                ImagePagerFragment imagePagerFragment = ImagePagerFragment.newInstance(simpleNoteModel, position);
+                getFragmentManager().beginTransaction().addToBackStack("image_pager").replace(R.id.frame_fragment, imagePagerFragment, Utils.FRAGMENT_TAG_PAGER).commit();
+                return;
+
             default:
                 return;
         }
@@ -658,7 +732,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 } else {
                     simpleNoteModel.setLocationEnabled(false);
                     simpleNoteModel.setCoordinates(null);
-                    mGoogleApiClient.disconnect();
+                    simpleNoteModel.setCoarseAddress(null);
                     dateTimeLocationView.setText(simpleDateFormat.format(new Date(simpleNoteModel.getLastModifiedDate())));
                 }
                 break;
@@ -778,10 +852,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             System.out.println("OnPause Exception:" + e.getMessage());
             e.printStackTrace();
         }
+
+
         System.out.println("Exiting onPause()");
     }
 
-    private enum VIEW_MODE {READ, UPDATE, VIEW_MODE_FRAGMENT, CREATE}
+    /*public enum VIEW_MODE {READ, UPDATE, VIEW_MODE_FRAGMENT, CREATE}*/
 
     public enum MEDIA_STATE {PREPARING, PLAYING, PAUSED, STOPPED}
 }

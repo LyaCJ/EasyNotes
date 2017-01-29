@@ -4,11 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
+import com.example.madey.easynotes.models.SimpleNoteModel;
+import com.example.madey.easynotes.uicomponents.ImagePagerFragment;
+import com.example.madey.easynotes.uicomponents.MainFragment;
 import com.example.madey.easynotes.uicomponents.NewNoteFragment;
 
 import java.util.ArrayList;
@@ -16,12 +17,14 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String LOG_TAG = "MainActivity";
+
+
     public static FRAGMENTS CURRENT_FRAGMENT = FRAGMENTS.MAIN;
-
+    public List<SimpleNoteModel> notes = new ArrayList<>(5);
     private MainFragment mf;
-    private List<Object> notes = new ArrayList<>(5);
 
-    public List<Object> getNotes() {
+    public List<SimpleNoteModel> getNotes() {
         return notes;
     }
 
@@ -40,21 +43,19 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             mf = new MainFragment();
-            getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
         } else {
 
             CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
-            System.out.println("MainActivity: " + CURRENT_FRAGMENT);
+            System.out.println("MainActivity.onCreate/: " + CURRENT_FRAGMENT);
             switch (CURRENT_FRAGMENT) {
                 case MAIN:
-                    mf = (MainFragment) getFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN);
-                    getFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
-                    CURRENT_FRAGMENT = FRAGMENTS.MAIN;
+                    mf = (MainFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN);
+                    getSupportFragmentManager().beginTransaction().replace(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
                     break;
                 case NEWNOTE:
-                    NewNoteFragment nnf = (NewNoteFragment) getFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_NEWNOTE);
-                    getFragmentManager().beginTransaction().replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
-                    CURRENT_FRAGMENT = FRAGMENTS.NEWNOTE;
+                    NewNoteFragment nnf = (NewNoteFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_NEWNOTE);
+                    getSupportFragmentManager().beginTransaction().replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
                     break;
             }
 
@@ -64,16 +65,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        notes.addAll((List<Object>) savedInstanceState.getSerializable("notes"));
-
-        //mf will be null when we are restoring another fragment which was visible before rotation.
-        if (mf != null) {
-            mf.getmAdapter().notifyItemRangeInserted(0, notes.size());
-            mf.getmRecyclerView().setVisibility(View.VISIBLE);
-            ((View) mf.getmRecyclerView().getParent()).findViewById(R.id.empty_view).setVisibility(View.GONE);
-        }
-
-
+        CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
     }
 
     @Override
@@ -95,25 +87,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public void onBackPressed() {
+        System.out.println("In MainActivity.onBackPressed/: BackStack count is " + getFragmentManager().getBackStackEntryCount());
         if (getFragmentManager().getBackStackEntryCount() == 0) {
-            finish();
-        }
-        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            getFragmentManager().popBackStack();
+            super.onBackPressed();
+        } else {
+            getSupportFragmentManager().popBackStack();
+            System.out.println("In MainActivity.onBackPressed/: Current Fragment is " + MainActivity.CURRENT_FRAGMENT.toString());
+            switch (MainActivity.CURRENT_FRAGMENT) {
+                case NEWNOTE:
+                    NewNoteFragment newNoteFragment = (NewNoteFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_NEWNOTE);
+                    newNoteFragment.saveOrUpdateNote(notes);
+                    break;
+                case PAGER:
+                    ImagePagerFragment imagePagerFragment = (ImagePagerFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_PAGER);
+                    getSupportFragmentManager().beginTransaction().remove(imagePagerFragment).commit();
+
+                    break;
+
+            }
         }
 
-        return true;
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("notes", (ArrayList<Object>) notes);
         outState.putSerializable("curr_fragment", CURRENT_FRAGMENT);
     }
 
     public enum FRAGMENTS {
-        MAIN, NEWNOTE, NEWLIST, NEWAUDIO, SEARCH
+        MAIN, NEWNOTE, SEARCH, PAGER
     }
 }

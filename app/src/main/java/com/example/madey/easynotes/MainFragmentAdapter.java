@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.madey.easynotes.AsyncTasks.CreateThumbsTask;
-import com.example.madey.easynotes.models.SimpleListDataObject;
 import com.example.madey.easynotes.models.SimpleNoteModel;
 
 import java.text.SimpleDateFormat;
@@ -27,7 +25,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private final int TYPE_NOTE = 0;
     private final int TYPE_LIST = 2;
     SimpleDateFormat dt = new SimpleDateFormat("MMM dd, yyyy");
-    private List<Object> mDataset;
+    private List<SimpleNoteModel> mDataset;
 
 
     private View.OnClickListener cardClickListener;
@@ -38,12 +36,11 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.cardClickListener = cardClickListener;
         mDataset = new ArrayList<>(20);
     }
-    //private List<SimpleListDataObject> lDataset;
 
 
     //Called when creating recycler view and instance of this adapter im MainFragment
     // Provide a suitable constructor (depends on the kind of dataset)
-    public MainFragmentAdapter(List<Object> data, View.OnClickListener cardClickListener) {
+    public MainFragmentAdapter(List<SimpleNoteModel> data, View.OnClickListener cardClickListener) {
         this.cardClickListener = cardClickListener;
         mDataset = data;
     }
@@ -66,11 +63,6 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 cardView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.simple_note_card_view, parent, false);
                 return new SimpleNoteDataObjectHolder(cardView, cardClickListener);
-            case TYPE_LIST:
-                cardView = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.simple_list_card_view, parent, false);
-
-                return new SimpleListDataObjectHolder(cardView);
             default:
                 return null;
         }
@@ -86,7 +78,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case TYPE_NOTE:
 
                 final SimpleNoteDataObjectHolder sndoh = (SimpleNoteDataObjectHolder) holder;
-                final SimpleNoteModel snData = (SimpleNoteModel) mDataset.get(position);
+                final SimpleNoteModel snData = mDataset.get(position);
                 //bind a tag with position as value
                 sndoh.cardView.setTag(position);
                 if (snData.getTitle() != null)
@@ -134,11 +126,6 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 sndoh.hasLinks.setVisibility(View.INVISIBLE);
 
                 break;
-            case TYPE_LIST:
-                SimpleListDataObjectHolder sldoh = (SimpleListDataObjectHolder) holder;
-                SimpleListDataObject slData = (SimpleListDataObject) mDataset.get(position);
-                sldoh.title.setText(slData.getTitle().getTitle());
-                break;
             default:
                 break;
         }
@@ -157,12 +144,10 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         // Note that unlike in ListView adapters, types don't have to be contiguous
         if (mDataset.get(position) instanceof SimpleNoteModel)
             return TYPE_NOTE;
-        if (mDataset.get(position) instanceof SimpleListDataObject)
-            return TYPE_LIST;
         return -1;
     }
 
-    public List<Object> getMDataSet() {
+    public List<SimpleNoteModel> getMDataSet() {
         return mDataset;
     }
 
@@ -200,23 +185,4 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemView.setOnClickListener(listener);
         }
     }
-
-    public static class SimpleListDataObjectHolder extends RecyclerView.ViewHolder
-            implements View
-            .OnClickListener {
-        TextView title;
-
-        public SimpleListDataObjectHolder(View itemView) {
-            super(itemView);
-            title = (TextView) itemView.findViewById(R.id.sl_title);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Log.i("DEBUG", "List Clicked!");
-        }
-    }
-
-
 }

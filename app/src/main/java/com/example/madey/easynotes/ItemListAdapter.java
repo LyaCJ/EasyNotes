@@ -16,7 +16,6 @@ import android.widget.TextView;
 
 import com.example.madey.easynotes.CustomViews.ListItemEditText;
 import com.example.madey.easynotes.models.HeterogeneousArrayList;
-import com.example.madey.easynotes.models.SimpleListDataObject;
 import com.example.madey.easynotes.uicomponents.OnStartDragListener;
 
 import java.io.Serializable;
@@ -422,4 +421,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
     }
+
+
 }

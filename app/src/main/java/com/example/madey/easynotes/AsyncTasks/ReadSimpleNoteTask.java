@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Created by madey on 8/9/2016.
  */
-public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List<Object>> {
+public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List<SimpleNoteModel>> {
 
     private static final String LOG_TAG = "ReadSimpleNoteTask";
 
@@ -53,7 +53,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
      * @see #publishProgress
      */
     @Override
-    protected List<Object> doInBackground(String... params) {
+    protected List<SimpleNoteModel> doInBackground(String... params) {
         NoteReaderDbHelper nrdh = new NoteReaderDbHelper(ctx);
         SQLiteDatabase db = nrdh.getReadableDatabase();
 
@@ -94,7 +94,7 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
                 sortOrder                                 // The sort order
         );
         //list to store read notes
-        List<Object> notes = new ArrayList<>();
+        List<SimpleNoteModel> notes = new ArrayList<>();
         Gson gson = new Gson();
 
         if (cursor != null)
@@ -151,10 +151,10 @@ public abstract class ReadSimpleNoteTask extends AsyncTask<String, Integer, List
         return notes;
     }
 
-    public abstract void onResponseReceived(List<Object> obj);
+    public abstract void onResponseReceived(List<SimpleNoteModel> obj);
 
     @Override
-    protected void onPostExecute(List<Object> simpleNoteDataObject) {
+    protected void onPostExecute(List<SimpleNoteModel> simpleNoteDataObject) {
         super.onPostExecute(simpleNoteDataObject);
         onResponseReceived(simpleNoteDataObject);
     }

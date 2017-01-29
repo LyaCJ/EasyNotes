@@ -40,6 +40,8 @@ public final class Utils {
     public static String FRAGMENT_TAG_NEWLIST = "newlist_fragment";
     public static String FRAGMENT_TAG_NEWAUDIO = "newaudio_fragment";
     public static String FRAGMENT_TAG_SEARCH = "search_fragment";
+    public static String FRAGMENT_TAG_PAGER = "pager_fragment";
+
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -140,23 +142,33 @@ public final class Utils {
     }
 
     public static String getStoragePath(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        /*SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         boolean storage = sp.getBoolean("storage_checkbox_preference", false);
+        */
         String path;
+        System.out.println("getExternalFilesDir(): " + context.getExternalFilesDir(null).getAbsolutePath());
+        path = context.getExternalFilesDir(null).getAbsolutePath();
+        /*
         if (storage) {
             path = context.getFilesDir().getAbsolutePath();
             System.out.println("getFilesDir(): " + path);
         } else {
-            System.out.println("getExternalFilesDir(): " + context.getExternalFilesDir(null).getAbsolutePath());
-            path = context.getExternalFilesDir(null).getAbsolutePath();
-        }
+
+        }*/
         return path;
     }
 
     public static FileOutputStream getFileOutputStream(Context ctx, String fileName) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        boolean storage = sp.getBoolean("storage_checkbox_preference", false);
+        /*SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        boolean storage = sp.getBoolean("storage_checkbox_preference", false);*/
         FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
+            System.out.println("External: " + ctx.getExternalFilesDir(null).getAbsolutePath());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        /*
         String path;
         if (storage) {
             try {
@@ -166,37 +178,34 @@ public final class Utils {
                 e.printStackTrace();
             }
         } else {
-            try {
-                fos = new FileOutputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
-                System.out.println("External: " + ctx.getExternalFilesDir(null).getAbsolutePath());
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+
+        }*/
         return fos;
     }
 
     public static FileInputStream getFileInputStream(Context ctx, String fileName) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-        boolean storage = sp.getBoolean("storage_checkbox_preference", false);
+        //SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+        //boolean storage = sp.getBoolean("storage_checkbox_preference", false);
         FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
+        } catch (FileNotFoundException e) {
+            Toast.makeText(ctx, "File Not Found: " + fileName, Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+        /*
         if (storage) {
             try {
                 fis = ctx.openFileInput(fileName);
             } catch (FileNotFoundException e) {
-                Toast.makeText(ctx, "File Not Found: " + fileName, Toast.LENGTH_LONG);
+                Toast.makeText(ctx, "File Not Found: " + fileName, Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             } finally {
 
             }
         } else {
-            try {
-                fis = new FileInputStream(new File(ctx.getExternalFilesDir(null).getAbsolutePath() + "/" + fileName));
-            } catch (FileNotFoundException e) {
-                Toast.makeText(ctx, "File Not Found: " + fileName, Toast.LENGTH_LONG);
-                e.printStackTrace();
-            }
-        }
+
+        }*/
         return fis;
     }
 
