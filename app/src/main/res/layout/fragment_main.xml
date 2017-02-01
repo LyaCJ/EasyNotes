@@ -20,41 +20,16 @@
         android:text="Tap + to add a Note"
         android:visibility="gone" />
 
-    <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/menu_red"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="10dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        fab:menu_backgroundColor="#ccffffff"
-        fab:menu_labels_ellipsize="end"
-        fab:menu_labels_singleLine="true">
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_add_note"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="16dp"
+        android:padding="16dp"
+        android:src="@drawable/fab_add"
+        fab:fabSize="normal"
+        fab:rippleColor="@color/white"
 
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_list"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_format_list_bulleted_black_24dp"
-            fab:fab_label="New List"
-            fab:fab_size="mini" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_note"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_note_black_24dp"
-            fab:fab_label="New Note"
-            fab:fab_size="mini" />
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/fab_video_note"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_movie_black_24dp"
-            fab:fab_label="New Video Note"
-            fab:fab_size="mini" />
-
-    </com.github.clans.fab.FloatingActionMenu>
-
+        />
 </FrameLayout>

@@ -44,6 +44,7 @@ import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteTask;
 import com.example.madey.easynotes.AsyncTasks.WriteUriToFileTask;
 import com.example.madey.easynotes.BarAudioPlayer;
 import com.example.madey.easynotes.MainActivity;
+import com.example.madey.easynotes.MainFragmentAdapter;
 import com.example.madey.easynotes.R;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.models.AudioClipModel;
@@ -149,13 +150,14 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
             @Override
             public void onClick(View v) {
                 //save Note
-                saveOrUpdateNote(((MainActivity) getActivity()).getNotes());
+                saveOrUpdateNote(((MainFragment) (getActivity()).getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN)).getmAdapter());
                 //pop back stack
                 getFragmentManager().popBackStack();
                 //remove fragment, destroying everything
                 getFragmentManager().beginTransaction().remove(NewNoteFragment.this).commit();
             }
         });
+        toolbar.setTitle(null);
         thumbsRecyclerView = (RecyclerView) rootView.findViewById(R.id.pictures_holder);
         LinearLayoutManager thumbsRecyclerViewLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, true);
         thumbsRecyclerView.setLayoutManager(thumbsRecyclerViewLayoutManager);
@@ -190,7 +192,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         if (menu != null) {
-            menu.setGroupVisible(R.id.main_menu_group, false);
+            menu.clear();
+            inflater.inflate(R.menu.menu, menu);
             menu.setGroupVisible(R.id.create_note_menu_group, true);
         }
     }
@@ -201,14 +204,16 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         switch (item.getItemId()) {
             case R.id.action_done:
                 //save Note
-                saveOrUpdateNote(((MainActivity) getActivity()).getNotes());
+                saveOrUpdateNote(((MainFragment) (getActivity()).getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN)).getmAdapter());
                 //pop back stack
                 getFragmentManager().popBackStack();
                 //remove fragment, destroying everything
                 getFragmentManager().beginTransaction().remove(this).commit();
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
+        return true;
     }
 
     public void updateNote(final List<Object> notes) {
@@ -258,7 +263,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         unt.execute(simpleNoteModel);
     }
 
-    public void saveOrUpdateNote(final List<SimpleNoteModel> notes) {
+    public void saveOrUpdateNote(final MainFragmentAdapter adapter) {
         Utils.verifyStoragePermissions(getActivity());
         System.out.println("Entering NewNoteFragment.saveOrUpdateNote...");
         EditText title = (EditText) getView().findViewById(R.id.editText);
@@ -287,6 +292,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 @Override
                 public void onPostExecute(Integer affected) {
                     if (affected > 0) {
+                        adapter.notifyDataSetChanged();
                         Log.d(LOG_TAG, "Note Updated Successfully.");
                     } else {
                         Log.e(LOG_TAG, "Error Updating Note.");
@@ -301,7 +307,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 public void onSaved(Boolean success) {
                     if (success) {
                         //since the note was persisted successfully, we need to show it in the MainFragment when the user navigates back.
-                        notes.add(0, simpleNoteModel);
+                        adapter.getMDataSet().add(0, simpleNoteModel);
+                        adapter.notifyItemInserted(0);
                         Log.d(LOG_TAG, "Note Persisted Successfully.");
                     } else {
                         Log.e(LOG_TAG, "Error saving note...");

@@ -1,32 +1,33 @@
 package com.example.madey.easynotes.uicomponents;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
+import android.widget.Toolbar;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteTask;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.MainFragmentAdapter;
 import com.example.madey.easynotes.NoteTouchHelper;
 import com.example.madey.easynotes.R;
+import com.example.madey.easynotes.SettingsActivity;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.models.SimpleNoteModel;
-import com.github.clans.fab.FloatingActionButton;
-import com.github.clans.fab.FloatingActionMenu;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,28 +40,10 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     private static final String LOG_TAG = "MainFragment";
 
-    private FloatingActionMenu menuRed;
-    private FloatingActionButton fab1;
-    private FloatingActionButton fab2;
-    private FloatingActionButton fab3;
+    private android.support.design.widget.FloatingActionButton fabAddNote;
     private RecyclerView mRecyclerView;
     private MainFragmentAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private View.OnClickListener clickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.fab_note:
-                    //Create a blank instance for this note
-                    SimpleNoteModel simpleNoteModel = new SimpleNoteModel();
-                    NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
-                    FragmentTransaction ft = getFragmentManager().beginTransaction();
-                    ft.addToBackStack("new_note").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
-                    menuRed.close(true);
-                    break;
-            }
-        }
-    };
 
     private View rootView;
 
@@ -108,15 +91,15 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         super.onCreateView(inflater, container, savedInstanceState);
         MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.MAIN;
         rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        setHasOptionsMenu(true);
         final MainActivity ctx = (MainActivity) this.getActivity();
-        Toolbar toolbar = ((Toolbar) ctx.findViewById(R.id.my_toolbar));
-        getActivity().setTitle("Easy Notes");
 
 
-        toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
-
-        final DrawerLayout dl = (DrawerLayout) rootView.findViewById(R.id.drawer_layout);
-        final ListView dListView = (ListView) rootView.findViewById(R.id.left_drawer);
+        //toolbar
+        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+        toolbar.setNavigationIcon(null);
+        toolbar.setTitle("Easy Notes");
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -126,16 +109,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         mAdapter = new MainFragmentAdapter(ctx.getNotes(), this);
         Log.d(LOG_TAG, "onCreateView() Notes in MainFragment: " + ctx.getNotes());
         mRecyclerView.setAdapter(mAdapter);
-
-
-
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //dl.openDrawer(Gravity.LEFT);
-            }
-        });
         mRecyclerView.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
             @Override
             public void onChildViewAttachedToWindow(View view) {
@@ -157,26 +130,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
 
         // Inflate the layout for this fragment
-        menuRed = (FloatingActionMenu) rootView.findViewById(R.id.menu_red);
-
-        fab1 = (FloatingActionButton) rootView.findViewById(R.id.fab_list);
-        fab2 = (FloatingActionButton) rootView.findViewById(R.id.fab_note);
-        fab3 = (FloatingActionButton) rootView.findViewById(R.id.fab_video_note);
-
-        menuRed.setClosedOnTouchOutside(true);
-
-        menuRed.setVisibility(View.VISIBLE);
-
-        fab1.setOnClickListener(clickListener);
-        fab2.setOnClickListener(clickListener);
-
-        menuRed.setOnMenuButtonClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                menuRed.toggle(true);
-            }
-        });
-        menuRed.showMenuButton(true);
+        fabAddNote = (android.support.design.widget.FloatingActionButton) rootView.findViewById(R.id.fab_add_note);
+        fabAddNote.setOnClickListener(this);
 
         mRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
             @Override
@@ -206,6 +161,34 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         Log.d(LOG_TAG, "In onSAveInstanceState. Saving Notes in Bundle: " + ((MainActivity) getActivity()).getNotes());
         outState.putParcelableArrayList("notes", (ArrayList<? extends Parcelable>) ((MainActivity) getActivity()).getNotes());
 
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        Log.d(LOG_TAG, "onCreateOptionsMenu(): menu is " + menu);
+        if (menu != null) {
+            menu.clear();
+            inflater.inflate(R.menu.menu, menu);
+            menu.setGroupVisible(R.id.main_menu_group, true);
+        }
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                break;
+            case R.id.action_settings:
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), SettingsActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
     }
 
     @Override
@@ -249,7 +232,15 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             //pass a reference to the Fragment for editing by user.
             NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
             getFragmentManager().beginTransaction().addToBackStack("new_note").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
-
+        }
+        switch (v.getId()) {
+            case R.id.fab_add_note:
+                //Create a blank instance for this note
+                SimpleNoteModel simpleNoteModel = new SimpleNoteModel();
+                NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.addToBackStack("new_note").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
+                break;
         }
     }
 }

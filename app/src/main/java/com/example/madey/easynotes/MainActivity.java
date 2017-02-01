@@ -1,11 +1,7 @@
 package com.example.madey.easynotes;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.example.madey.easynotes.models.SimpleNoteModel;
 import com.example.madey.easynotes.uicomponents.ImagePagerFragment;
@@ -38,9 +34,6 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
-
         if (savedInstanceState == null) {
             mf = new MainFragment();
             getSupportFragmentManager().beginTransaction().add(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
@@ -68,23 +61,7 @@ public class MainActivity extends AppCompatActivity {
         CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu, menu);
 
-        menu.getItem(2).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                // Display the fragment as the main content.
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            }
-        });
-        return true;
-    }
 
     @Override
     public void onBackPressed() {
@@ -97,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             switch (MainActivity.CURRENT_FRAGMENT) {
                 case NEWNOTE:
                     NewNoteFragment newNoteFragment = (NewNoteFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_NEWNOTE);
-                    newNoteFragment.saveOrUpdateNote(notes);
+                    newNoteFragment.saveOrUpdateNote(((MainFragment) (getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN))).getmAdapter());
                     break;
                 case PAGER:
                     ImagePagerFragment imagePagerFragment = (ImagePagerFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_PAGER);

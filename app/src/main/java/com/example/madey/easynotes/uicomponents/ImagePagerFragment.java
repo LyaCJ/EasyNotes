@@ -123,6 +123,8 @@ public class ImagePagerFragment extends Fragment {
                         @Override
                         protected void onPostExecute(Integer affected) {
                             if (affected > 0) {
+                                //loose reference to the thumbnail in simple note model
+                                simpleNoteModel.setThumb(null);
                                 Log.d(LOG_TAG, "Updated imageModels for note with id " + simpleNoteModel.getId());
                                 if (0 == imagePagerAdapter.getCount()) {
                                     Toast.makeText(getActivity(), "Image Deleted", Toast.LENGTH_SHORT).show();
@@ -148,8 +150,9 @@ public class ImagePagerFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         if (menu != null) {
+            menu.clear();
+            inflater.inflate(R.menu.menu, menu);
             menu.setGroupVisible(R.id.pager_menu_group, true);
-            menu.setGroupVisible(R.id.create_note_menu_group, false);
         }
 
     }
