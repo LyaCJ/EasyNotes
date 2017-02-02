@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,7 +20,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toolbar;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteTask;
 import com.example.madey.easynotes.MainActivity;
@@ -63,6 +64,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         if (savedInstanceState == null) {
             Log.d(LOG_TAG, "Inside onCreate, savedInstanceState is null");
             ReadSimpleNoteTask rsnft = new ReadSimpleNoteTask(this.getActivity()) {
@@ -92,14 +94,14 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.MAIN;
         rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        setHasOptionsMenu(true);
         final MainActivity ctx = (MainActivity) this.getActivity();
 
 
         //toolbar
-        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) getActivity().findViewById(R.id.my_toolbar);
         toolbar.setNavigationIcon(null);
-        toolbar.setTitle("Easy Notes");
+        ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        actionBar.setTitle("Easy Notes");
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -231,7 +233,9 @@ public class MainFragment extends Fragment implements View.OnClickListener {
             SimpleNoteModel simpleNoteModel = ((MainActivity) getActivity()).getNotes().get(index);
             //pass a reference to the Fragment for editing by user.
             NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
-            getFragmentManager().beginTransaction().addToBackStack("new_note").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
+            FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+            fragmentTransaction.addToBackStack("new_note").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
         }
         switch (v.getId()) {
             case R.id.fab_add_note:
@@ -239,6 +243,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
                 SimpleNoteModel simpleNoteModel = new SimpleNoteModel();
                 NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
                 FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.setCustomAnimations(android.R.anim.slide_in_left, android.R.anim.slide_out_right, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
                 ft.addToBackStack("new_note").replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
                 break;
         }

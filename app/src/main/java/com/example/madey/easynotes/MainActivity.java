@@ -2,6 +2,9 @@ package com.example.madey.easynotes;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 
 import com.example.madey.easynotes.models.SimpleNoteModel;
 import com.example.madey.easynotes.uicomponents.ImagePagerFragment;
@@ -33,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
         //Utils.verifyStoragePermissions(this);
 
         setContentView(R.layout.activity_main);
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+
+
 
         if (savedInstanceState == null) {
             mf = new MainFragment();
@@ -53,6 +60,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        Log.d(LOG_TAG, "Inside onCreateOptionsMenu() Menu is " + menu);
+        if (menu != null) {
+            menu.setGroupVisible(R.id.main_menu_group, true);
+        }
+        return true;
     }
 
     @Override

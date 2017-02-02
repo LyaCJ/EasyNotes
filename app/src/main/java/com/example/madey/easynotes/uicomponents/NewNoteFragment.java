@@ -17,10 +17,10 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -119,6 +119,8 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setHasOptionsMenu(true);
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                     .addConnectionCallbacks(this)
@@ -142,9 +144,9 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
         MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.NEWNOTE;
         setRetainInstance(true);
         rootView = inflater.inflate(R.layout.fragment_new_note, container, false);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
         // Inflate the layout for this fragment
-        setHasOptionsMenu(true);
-        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.my_toolbar);
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) getActivity().findViewById(R.id.my_toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_black_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
