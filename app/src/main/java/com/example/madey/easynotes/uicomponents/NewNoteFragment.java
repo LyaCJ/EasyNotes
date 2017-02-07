@@ -38,6 +38,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.example.madey.easynotes.AsyncTasks.AddressRetrieverTask;
+import com.example.madey.easynotes.AsyncTasks.UpdateImageListTask;
 import com.example.madey.easynotes.AsyncTasks.UpdateNoteTask;
 import com.example.madey.easynotes.AsyncTasks.WriteFileTask;
 import com.example.madey.easynotes.AsyncTasks.WriteSimpleNoteTask;
@@ -266,7 +267,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
     }
 
     public void saveOrUpdateNote(final MainFragmentAdapter adapter) {
-        Utils.verifyStoragePermissions(getActivity());
+        //Utils.verifyStoragePermissions(getActivity());
         System.out.println("Entering NewNoteFragment.saveOrUpdateNote...");
         EditText title = (EditText) getView().findViewById(R.id.editText);
         EditText content = (EditText) getView().findViewById(R.id.editText2);
@@ -294,6 +295,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 @Override
                 public void onPostExecute(Integer affected) {
                     if (affected > 0) {
+                        if (adapter != null)
                         adapter.notifyDataSetChanged();
                         Log.d(LOG_TAG, "Note Updated Successfully.");
                     } else {
@@ -309,8 +311,10 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                 public void onSaved(Boolean success) {
                     if (success) {
                         //since the note was persisted successfully, we need to show it in the MainFragment when the user navigates back.
-                        adapter.getMDataSet().add(0, simpleNoteModel);
-                        adapter.notifyItemInserted(0);
+                        if (adapter != null) {
+                            adapter.getMDataSet().add(0, simpleNoteModel);
+                            adapter.notifyItemInserted(0);
+                        }
                         Log.d(LOG_TAG, "Note Persisted Successfully.");
                     } else {
                         Log.e(LOG_TAG, "Error saving note...");
@@ -671,6 +675,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                             ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
                             adapter.notifyItemInserted(0);
                             imageHolderProgressBar.setVisibility(View.GONE);
+                            updateImageList();
                         } else
                             Snackbar.make(getActivity().getCurrentFocus(), "Captured image not saved", Snackbar.LENGTH_SHORT).show();
                     }
@@ -688,6 +693,7 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                             ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
                             adapter.notifyItemInserted(0);
                             imageHolderProgressBar.setVisibility(View.GONE);
+                            updateImageList();
                         } else
                             Snackbar.make(getActivity().getCurrentFocus(), "Captured image not saved", Snackbar.LENGTH_SHORT).show();
                     }
@@ -706,9 +712,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
                         ThumbsRecyclerViewAdapter adapter = ((ThumbsRecyclerViewAdapter) thumbsRecyclerView.getAdapter());
                         adapter.notifyItemRangeInserted(0, obj.size());
                         imageHolderProgressBar.setVisibility(View.GONE);
+                        updateImageList();
                     }
                 }.execute(uris);
             }
+
+            //saveNote if not already saved. Else, just update the
         }
     }
 
@@ -864,6 +873,12 @@ public class NewNoteFragment extends NoteFragment implements GoogleApiClient.Con
 
 
         System.out.println("Exiting onPause()");
+    }
+
+    private void updateImageList() {
+        UpdateImageListTask updateImageListTask = new UpdateImageListTask(getActivity());
+        updateImageListTask.execute(simpleNoteModel);
+        simpleNoteModel.setThumb(null);
     }
 
     /*public enum VIEW_MODE {READ, UPDATE, VIEW_MODE_FRAGMENT, CREATE}*/

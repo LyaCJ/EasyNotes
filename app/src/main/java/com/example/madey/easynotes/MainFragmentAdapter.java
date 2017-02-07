@@ -94,7 +94,7 @@ public class MainFragmentAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     sndoh.modified.setText(date);
                 }
                 if (snData.getHasImages()) {
-                    if (snData.getThumb() == null) {
+                    if (snData.getThumb() == null && snData.getImageModels().size() > 0) {
                         CreateThumbsTask ctt = new CreateThumbsTask(sndoh.iv.getContext(), new Point(300, 300)) {
                             @Override
                             public void onCompleted(ArrayList<Bitmap> bmp) {

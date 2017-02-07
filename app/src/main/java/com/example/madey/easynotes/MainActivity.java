@@ -1,6 +1,7 @@
 package com.example.madey.easynotes;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -23,9 +24,9 @@ public class MainActivity extends AppCompatActivity {
     public List<SimpleNoteModel> notes = new ArrayList<>(5);
     private MainFragment mf;
 
-    public List<SimpleNoteModel> getNotes() {
+    /*public List<SimpleNoteModel> getNotes() {
         return notes;
-    }
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +40,14 @@ public class MainActivity extends AppCompatActivity {
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
-
-
         if (savedInstanceState == null) {
-            mf = new MainFragment();
+            mf = MainFragment.newInstance();
             getSupportFragmentManager().beginTransaction().add(R.id.frame_fragment, mf, Utils.FRAGMENT_TAG_MAIN).commit();
         } else {
 
             CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
             System.out.println("MainActivity.onCreate/: " + CURRENT_FRAGMENT);
+            /*
             switch (CURRENT_FRAGMENT) {
                 case MAIN:
                     mf = (MainFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN);
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                     NewNoteFragment nnf = (NewNoteFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_NEWNOTE);
                     getSupportFragmentManager().beginTransaction().replace(R.id.frame_fragment, nnf, Utils.FRAGMENT_TAG_NEWNOTE).commit();
                     break;
-            }
+            }*/
 
         }
     }
@@ -76,7 +76,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
+        //restore notes and notify adapter
+        if (savedInstanceState != null) {
+            CURRENT_FRAGMENT = (FRAGMENTS) savedInstanceState.getSerializable("curr_fragment");
+        }
     }
 
 
@@ -92,12 +95,10 @@ public class MainActivity extends AppCompatActivity {
             switch (MainActivity.CURRENT_FRAGMENT) {
                 case NEWNOTE:
                     NewNoteFragment newNoteFragment = (NewNoteFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_NEWNOTE);
-                    newNoteFragment.saveOrUpdateNote(((MainFragment) (getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_MAIN))).getmAdapter());
                     break;
                 case PAGER:
                     ImagePagerFragment imagePagerFragment = (ImagePagerFragment) getSupportFragmentManager().findFragmentByTag(Utils.FRAGMENT_TAG_PAGER);
                     getSupportFragmentManager().beginTransaction().remove(imagePagerFragment).commit();
-
                     break;
 
             }
@@ -106,9 +107,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()) {
+            FragmentManager fm = getSupportFragmentManager();
+            DataFragment dataFragment = (DataFragment) fm.findFragmentByTag(Utils.TAG_DATA_FRAGMENT);
+            // we will not need this fragment anymore, this may also be a good place to signal
+            // to the retained fragment object to perform its own cleanup.
+            fm.beginTransaction().remove(dataFragment).commit();
+        }
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable("curr_fragment", CURRENT_FRAGMENT);
+        //save the notes
     }
 
     public enum FRAGMENTS {

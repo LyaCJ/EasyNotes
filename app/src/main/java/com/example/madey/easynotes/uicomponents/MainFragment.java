@@ -3,8 +3,8 @@ package com.example.madey.easynotes.uicomponents;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.madey.easynotes.AsyncTasks.ReadSimpleNoteTask;
+import com.example.madey.easynotes.DataFragment;
 import com.example.madey.easynotes.MainActivity;
 import com.example.madey.easynotes.MainFragmentAdapter;
 import com.example.madey.easynotes.NoteTouchHelper;
@@ -30,7 +31,6 @@ import com.example.madey.easynotes.SettingsActivity;
 import com.example.madey.easynotes.Utils;
 import com.example.madey.easynotes.models.SimpleNoteModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -41,6 +41,8 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     private static final String LOG_TAG = "MainFragment";
 
+    private DataFragment mDataFragment;
+
     private android.support.design.widget.FloatingActionButton fabAddNote;
     private RecyclerView mRecyclerView;
     private MainFragmentAdapter mAdapter;
@@ -48,9 +50,15 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
     private View rootView;
 
-
     public MainFragment() {
         // Required empty public constructor
+    }
+
+    public static MainFragment newInstance() {
+        MainFragment mainFragment = new MainFragment();
+        Bundle args = new Bundle();
+        mainFragment.setArguments(args);
+        return mainFragment;
     }
 
     public RecyclerView getmRecyclerView() {
@@ -65,32 +73,40 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        if (savedInstanceState == null) {
-            Log.d(LOG_TAG, "Inside onCreate, savedInstanceState is null");
-            ReadSimpleNoteTask rsnft = new ReadSimpleNoteTask(this.getActivity()) {
+        //initializing data
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        mDataFragment = (DataFragment) fm.findFragmentByTag(Utils.TAG_DATA_FRAGMENT);
+        // create the fragment and data the first time
+        if (mDataFragment == null) {
+            // add the fragment
+            mDataFragment = new DataFragment();
+            fm.beginTransaction().add(mDataFragment, Utils.TAG_DATA_FRAGMENT).commit();
+            mAdapter = new MainFragmentAdapter(mDataFragment.getData(), this);
+            // load data from a data source or perform any calculation
+            ReadSimpleNoteTask readSimpleNoteTask = new ReadSimpleNoteTask(getActivity()) {
                 @Override
                 public void onResponseReceived(List<SimpleNoteModel> obj) {
-                    //mAdapter.notifyDataSetChanged();
-                    //mRecyclerView.smoothScrollToPosition(0);
-                    mAdapter.getMDataSet().addAll(obj);
-                    mAdapter.notifyItemRangeInserted(0, obj.size());
-                    if (obj.size() > 0) {
-                        mRecyclerView.setVisibility(View.VISIBLE);
-                        //Will need to be changed if recycler view is nested inside something other than MainFragment
-                        ((View) mRecyclerView.getParent()).findViewById(R.id.empty_view).setVisibility(View.GONE);
-                    }
-                    Log.d(LOG_TAG, "Items in MainFragment: " + obj.size());
+                    Log.d(LOG_TAG, "Inside onResponseReceived: " + obj.size());
+                    mDataFragment.getData().addAll(obj);
+                    mAdapter.notifyDataSetChanged();
                 }
             };
-            rsnft.execute();
+            readSimpleNoteTask.execute();
         } else
-            Log.d(LOG_TAG, "Inside onCreate, savedInstanceState is not null");
+            mAdapter = new MainFragmentAdapter(mDataFragment.getData(), this);
+        Log.d(LOG_TAG, "onCreate() savedInstanceState is: " + savedInstanceState);
+
+
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
+        Log.d(LOG_TAG, "onCreateView() savedInstanceState is: " + savedInstanceState);
+
+
         MainActivity.CURRENT_FRAGMENT = MainActivity.FRAGMENTS.MAIN;
         rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -108,19 +124,18 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.main_recycler_view);
         mLayoutManager = new LinearLayoutManager(ctx);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mAdapter = new MainFragmentAdapter(ctx.getNotes(), this);
-        Log.d(LOG_TAG, "onCreateView() Notes in MainFragment: " + ctx.getNotes());
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
             @Override
             public void onChildViewAttachedToWindow(View view) {
+                Log.d(LOG_TAG, "onChildViewAttachedToWindow : Child Attached");
                 mRecyclerView.setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.empty_view).setVisibility(View.GONE);
             }
 
             @Override
             public void onChildViewDetachedFromWindow(View view) {
-                if (ctx.getNotes().isEmpty()) {
+                if (mAdapter.getMDataSet().isEmpty()) {
                     mRecyclerView.setVisibility(View.GONE);
                     rootView.findViewById(R.id.empty_view).setVisibility(View.VISIBLE);
                 }
@@ -151,7 +166,6 @@ public class MainFragment extends Fragment implements View.OnClickListener {
 
             }
         });
-
         return rootView;
         //System.out.println("Files:"+Arrays.asList(ctx.getFilesDir().list()));
     }
@@ -159,10 +173,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        //save the notes
-        Log.d(LOG_TAG, "In onSAveInstanceState. Saving Notes in Bundle: " + ((MainActivity) getActivity()).getNotes());
-        outState.putParcelableArrayList("notes", (ArrayList<? extends Parcelable>) ((MainActivity) getActivity()).getNotes());
-
+        Log.d(LOG_TAG, "Saving instance: " + outState);
     }
 
     @Override
@@ -196,31 +207,17 @@ public class MainFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.d(LOG_TAG, "Notes in onActivityCreated(): " + ((MainActivity) getActivity()).getNotes());
-        Log.d(LOG_TAG, "savedInstanceState in onActivityCreated(): " + savedInstanceState);
-        MainActivity mainActivity = ((MainActivity) getActivity());
-        //restore notes and notify adapter
-        if (savedInstanceState != null) {
-            List<SimpleNoteModel> notes = savedInstanceState.getParcelableArrayList("notes");
-            mainActivity.getNotes().addAll(notes);
-            mAdapter.notifyDataSetChanged();
-        }
-        //notes added.
-        if (mainActivity.getNotes().isEmpty()) {
-            mRecyclerView.setVisibility(View.GONE);
-            rootView.findViewById(R.id.empty_view).setVisibility(View.VISIBLE);
-        } else {
-            mRecyclerView.setVisibility(View.VISIBLE);
-            rootView.findViewById(R.id.empty_view).setVisibility(View.GONE);
-        }
-        Log.d(LOG_TAG, "Notes in onActivityCreated(): " + ((MainActivity) getActivity()).getNotes().size());
+        //clear all notes
+
+        Log.d(LOG_TAG, "onActivityCreated savedInstanceState is  " + savedInstanceState);
+
+
     }
 
     @Override
     public void onResume() {
         super.onResume();
     }
-
 
     /*
     Handles clicks on CarViews
@@ -230,7 +227,7 @@ public class MainFragment extends Fragment implements View.OnClickListener {
         if (v instanceof CardView) {
             //the item index will be stored in the form of CardView tag
             int index = Integer.parseInt(v.getTag().toString());
-            SimpleNoteModel simpleNoteModel = ((MainActivity) getActivity()).getNotes().get(index);
+            SimpleNoteModel simpleNoteModel = mAdapter.getMDataSet().get(index);
             //pass a reference to the Fragment for editing by user.
             NewNoteFragment nnf = NewNoteFragment.newInstance(simpleNoteModel);
             FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();

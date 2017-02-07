@@ -41,16 +41,13 @@ public final class Utils {
     public static String FRAGMENT_TAG_NEWAUDIO = "newaudio_fragment";
     public static String FRAGMENT_TAG_SEARCH = "search_fragment";
     public static String FRAGMENT_TAG_PAGER = "pager_fragment";
-
-
+    public static String TAG_DATA_FRAGMENT = "DataFragment";
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-
     private static String[] PERMISSIONS_COARSE_LOCATION = {
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
-
 
     public static void initDimensions(Context ctx) {
         WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
